@@ -11,12 +11,12 @@ Las restricciones arquitectónicas representan condiciones tecnológicas, organi
 | RC05 | TypeScript en backend | El backend deberá utilizar TypeScript como lenguaje principal de desarrollo. |
 | RC06 | API REST | La comunicación entre frontend y backend deberá realizarse mediante una API REST. |
 | RC07 | PostgreSQL | La información estructurada del sistema deberá almacenarse utilizando PostgreSQL. |
-| RC08 | Supabase | La solución utilizará Supabase como plataforma principal para servicios de base de datos y almacenamiento según corresponda. |
-| RC09 | Almacenamiento de archivos | Las imágenes, documentos de verificación, códigos QR y evidencias podrán almacenarse mediante Supabase Storage o Cloudflare R2. |
+| RC08 | Supabase | La solución utilizará inicialmente Supabase como proveedor de PostgreSQL y, según corresponda, de servicios de almacenamiento. |
+| RC09 | Almacenamiento de archivos | Los archivos digitales se almacenarán inicialmente mediante Supabase Storage, manteniendo Cloudflare R2 como alternativa tecnológica futura. |
 | RC10 | Git y GitHub | El código fuente y la documentación deberán gestionarse mediante Git y mantenerse en un repositorio de GitHub. |
 | RC11 | Arquitectura de tres capas | La solución deberá organizarse mediante una arquitectura cliente-servidor de tres capas: presentación, lógica de negocio y datos. |
 | RC12 | Enfoque modular | Los dominios funcionales deberán mantenerse organizados en módulos claramente separados. |
-| RC13 | Pagos mediante Yape o Plin | En la primera versión, los pagos se realizarán mediante códigos QR de Yape o Plin al repartidor. |
+| RC13 | Pagos mediante Yape o Plin | En la primera versión, el cliente realizará el pago directamente al repartidor mediante códigos QR de Yape o Plin. El repartidor verificará el dinero recibido y registrará la validación dentro de la plataforma. |
 | RC14 | Sin pasarela bancaria | La primera versión no utilizará una pasarela bancaria ni procesamiento automático de pagos mediante API. |
 | RC15 | Sin aplicación móvil nativa | La primera versión no desarrollará aplicaciones móviles nativas para Android o iOS. |
 | RC16 | Sin integración con SUNAT | La facturación electrónica integrada con SUNAT no formará parte de la primera versión. |

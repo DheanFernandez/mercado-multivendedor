@@ -40,3 +40,4 @@ Las historias de usuario describen las principales necesidades de los actores de
 | HU34 | Administrador | Como administrador, quiero configurar reglas operativas, para establecer condiciones como tiempos de reserva y tolerancias de peso o precio. |
 | HU35 | Administrador | Como administrador, quiero consultar reportes e indicadores, para analizar el funcionamiento general de la plataforma. |
 | HU36 | Administrador | Como administrador, quiero consultar registros de auditoría, para mantener la trazabilidad de las operaciones críticas. |
+| HU37 | Cliente | Como cliente, quiero recibir asistencia para encontrar productos mediante inteligencia artificial, para localizar más fácilmente los artículos que necesito dentro del mercado. |

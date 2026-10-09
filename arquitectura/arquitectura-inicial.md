@@ -196,131 +196,118 @@ Ejemplo:
 Cliente → Web/PWA → API REST → Pedidos → Repartidores → Pagos → Delivery → Base de datos
 
 
+
 ## 7. Diagrama de Arquitectura
 
+La solución se organiza mediante una arquitectura cliente-servidor de tres capas con enfoque modular.
+
+El siguiente diagrama representa la estructura general del sistema, sus actores, los principales módulos de negocio y los servicios de persistencia.
+
 ```mermaid
-flowchart TD
+flowchart TB
 
-    %% =========================
-    %% ACTORES
-    %% =========================
-
-    subgraph ACTORES["ACTORES"]
-        Cliente["Cliente"]
-        Comerciante["Comerciante"]
-        Trabajador["Trabajador de puesto"]
-        Repartidor["Repartidor"]
-        Administrador["Administrador"]
+    subgraph ACT["ACTORES"]
+        direction LR
+        C["Cliente"]
+        CM["Comerciante"]
+        T["Trabajador de puesto"]
+        R["Repartidor"]
+        A["Administrador"]
     end
 
-    %% =========================
-    %% PRESENTACION
-    %% =========================
-
-    subgraph PRESENTACION["CAPA DE PRESENTACIÓN"]
-        Web["Aplicación Web / PWA"]
-        Frontend["Next.js + TypeScript"]
+    subgraph PRE["CAPA DE PRESENTACIÓN"]
+        direction LR
+        WEB["Aplicación Web / PWA<br/>Next.js + TypeScript"]
     end
 
-    %% =========================
-    %% LOGICA DE NEGOCIO
-    %% =========================
+    subgraph NEG["CAPA DE LÓGICA DE NEGOCIO"]
+        direction TB
 
-    subgraph NEGOCIO["CAPA DE LÓGICA DE NEGOCIO"]
+        API["API REST<br/>NestJS + TypeScript"]
 
-        API["API REST - NestJS + TypeScript"]
+        subgraph MOD["MÓDULOS FUNCIONALES"]
+            direction LR
 
-        Auth["Autenticación y Usuarios"]
-        Comerciantes["Comerciantes y Puestos"]
-        Productos["Productos y Categorías"]
-        Inventario["Inventario"]
-        Catalogo["Marketplace y Catálogo"]
-        Carrito["Carrito Multivendedor"]
-        Pedidos["Pedidos"]
-        Riders["Repartidores"]
-        Pagos["Pagos"]
-        Delivery["Delivery"]
-        Promociones["Promociones"]
-        Incidencias["Incidencias"]
-        Notificaciones["Notificaciones"]
-        Auditoria["Auditoría"]
-        IA["Asistente IA"]
-        Reportes["Reportes"]
-
+            M1["Usuarios y<br/>Autenticación"]
+            M2["Comerciantes y<br/>Puestos"]
+            M3["Productos y<br/>Catálogo"]
+            M4["Inventario"]
+            M5["Carrito y<br/>Pedidos"]
+            M6["Repartidores y<br/>Delivery"]
+            M7["Pagos QR"]
+            M8["Promociones e<br/>Incidencias"]
+            M9["Notificaciones,<br/>Auditoría y Reportes"]
+            M10["Asistente IA"]
+        end
     end
 
-    %% =========================
-    %% DATOS
-    %% =========================
-
-    subgraph DATOS["CAPA DE DATOS"]
-        BD["PostgreSQL / Supabase"]
-        Storage["Supabase Storage / Cloudflare R2"]
+    subgraph DAT["CAPA DE DATOS"]
+        direction LR
+        DB["PostgreSQL<br/>Supabase"]
+        ST["Supabase Storage<br/>Archivos digitales"]
     end
 
-    %% =========================
-    %% SISTEMAS EXTERNOS
-    %% =========================
-
-    subgraph EXTERNOS["SISTEMAS EXTERNOS"]
-        Yape["Yape"]
-        Plin["Plin"]
+    subgraph EXT["MEDIOS DE PAGO EXTERNOS"]
+        direction LR
+        Y["Yape"]
+        P["Plin"]
     end
 
-    %% ACTORES A PRESENTACION
+    ACT --> WEB
+    WEB -->|"HTTPS / REST"| API
 
-    Cliente --> Web
-    Comerciante --> Web
-    Trabajador --> Web
-    Repartidor --> Web
-    Administrador --> Web
+    API --> MOD
+    MOD --> DB
+    MOD --> ST
 
-    Web --> Frontend
-    Frontend --> API
+    R -.->|"Verifica pago recibido"| Y
+    R -.->|"Verifica pago recibido"| P
 
-    %% API A MODULOS
+    M7 -.->|"Registra validación manual"| R
 
-    API --> Auth
-    API --> Comerciantes
-    API --> Productos
-    API --> Inventario
-    API --> Catalogo
-    API --> Carrito
-    API --> Pedidos
-    API --> Riders
-    API --> Pagos
-    API --> Delivery
-    API --> Promociones
-    API --> Incidencias
-    API --> Notificaciones
-    API --> Auditoria
-    API --> IA
-    API --> Reportes
+    classDef actor fill:#e9efff,stroke:#4361a5,color:#172b4d
+    classDef frontend fill:#e8f4ff,stroke:#2374ab,color:#17354d
+    classDef backend fill:#edf7ed,stroke:#458a55,color:#20452a
+    classDef data fill:#fff3dd,stroke:#b88a34,color:#604418
+    classDef external fill:#f4ecff,stroke:#8662ae,color:#49316c
 
-    %% MODULOS A BASE DE DATOS
+    class C,CM,T,R,A actor
+    class WEB frontend
+    class API,M1,M2,M3,M4,M5,M6,M7,M8,M9,M10 backend
+    class DB,ST data
+    class Y,P external
+```
 
-    Auth --> BD
-    Comerciantes --> BD
-    Productos --> BD
-    Inventario --> BD
-    Catalogo --> BD
-    Carrito --> BD
-    Pedidos --> BD
-    Riders --> BD
-    Pagos --> BD
-    Delivery --> BD
-    Promociones --> BD
-    Incidencias --> BD
-    Auditoria --> BD
-    Reportes --> BD
+## 8. Justificación de la arquitectura
 
-    %% STORAGE
+### Arquitectura cliente-servidor
 
-    Productos --> Storage
-    Riders --> Storage
-    Incidencias --> Storage
+La plataforma utilizará un modelo cliente-servidor, donde los usuarios accederán mediante una aplicación Web/PWA y las operaciones principales serán procesadas por el backend.
 
-    %% PAGOS EXTERNOS
+### Arquitectura en tres capas
 
-    Pagos -.-> Yape
-    Pagos -.-> Plin
+**Presentación:** proporciona interfaces para clientes, comerciantes, trabajadores de puesto, repartidores y administradores.
+
+**Lógica de negocio:** implementa los módulos funcionales del sistema mediante NestJS y expone sus operaciones a través de una API REST.
+
+**Datos:** almacena información estructurada en PostgreSQL y archivos digitales mediante servicios de almacenamiento.
+
+### Enfoque modular
+
+Los módulos funcionales tendrán responsabilidades definidas, permitiendo organizar el sistema y facilitar su evolución.
+
+### Pagos externos
+
+Los pagos se realizarán directamente entre el cliente y el repartidor mediante Yape o Plin.
+
+La plataforma no procesará transferencias bancarias mediante API.
+
+El repartidor verificará el pago recibido y registrará su validación dentro del sistema.
+
+### Evolución hacia Clean Architecture
+
+La arquitectura inicial establece la separación global de responsabilidades.
+
+En la siguiente etapa se aplicará Clean Architecture para definir la organización interna de los módulos y orientar las dependencias hacia las reglas del negocio.
+
+El diagrama presentado es una vista conceptual de los componentes. Las conexiones hacia la capa de datos representan acceso a persistencia y no implican que las reglas de negocio dependan directamente de PostgreSQL.

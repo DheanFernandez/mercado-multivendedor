@@ -29,3 +29,20 @@ Para la primera versión del sistema se consideran prioritarios los siguientes a
 5. **Escalabilidad**, debido a que la plataforma debe permitir incorporar nuevos comerciantes, puestos, repartidores y eventualmente nuevos mercados.
 6. **Disponibilidad**, debido a que los procesos comerciales deben mantenerse operativos durante los horarios del mercado.
 7. **Mantenibilidad**, debido a que el sistema está compuesto por múltiples dominios funcionales que deben evolucionar de forma independiente.
+
+
+## Criterios de evaluación de los atributos prioritarios
+
+Para facilitar la evaluación de la arquitectura se establecen los siguientes criterios preliminares. Los valores cuantitativos son objetivos propuestos y deberán validarse mediante pruebas durante la implementación.
+
+| Atributo | Criterio de evaluación propuesto |
+|---|---|
+| AC01 - Rendimiento | Bajo una carga de prueba de 100 usuarios concurrentes, al menos el 95 % de las consultas del catálogo deberá responder en menos de 2 segundos. |
+| AC02 - Escalabilidad | La solución deberá permitir incorporar nuevos comerciantes y puestos sin modificar la estructura principal de los módulos existentes. |
+| AC03 - Disponibilidad | El sistema deberá recuperarse de fallos temporales sin perder operaciones previamente confirmadas. |
+| AC04 - Seguridad | Los usuarios no deberán acceder a recursos ni ejecutar operaciones fuera de los permisos asignados a sus roles. |
+| AC05 - Mantenibilidad | Los cambios en un módulo deberán poder realizarse sin modificar innecesariamente las reglas de negocio de otros módulos. |
+| AC07 - Concurrencia | Dos clientes no deberán poder confirmar simultáneamente reservas incompatibles sobre el mismo stock o repartidor. |
+| AC08 - Integridad de la información | Las operaciones críticas deberán completarse correctamente o revertirse sin dejar registros inconsistentes. |
+
+Estos criterios servirán como referencia para seleccionar decisiones arquitectónicas y diseñar las pruebas correspondientes.

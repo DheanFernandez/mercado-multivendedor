@@ -16,10 +16,11 @@ Los drivers arquitectónicos representan los requisitos funcionales, atributos d
 | DA10 | La primera versión utilizará pagos mediante códigos QR de Yape o Plin. | RC13, RF44, RF45 | Influye en el flujo de pago, ya que el sistema debe registrar y validar el pago sin utilizar una pasarela bancaria automatizada. |
 | DA11 | Un pedido no debe continuar al proceso de compra si el pago no ha sido validado. | RF46, AC08 | Requiere reglas de negocio que controlen estrictamente las transiciones de estado del pedido. |
 | DA12 | La plataforma debe mantener trazabilidad de operaciones críticas. | RF53, AC06 | Requiere mecanismos de auditoría, registro de eventos y almacenamiento de información relacionada con cambios importantes. |
-| DA13 | Los fallos de servicios secundarios no deben impedir las operaciones principales del sistema. | AC03 | Favorece el desacoplamiento de servicios como notificaciones o inteligencia artificial respecto al flujo crítico de compra. |
-| DA14 | La arquitectura debe facilitar cambios y evolución de módulos independientes. | AC05, RC12 | Requiere separación clara de responsabilidades y una estructura modular. |
+| DA13 | Los fallos de servicios secundarios no deben impedir las operaciones principales del sistema. | AC03, AC11 | Requiere mecanismos de aislamiento de fallos y desacoplamiento de servicios secundarios, como notificaciones o inteligencia artificial, para evitar que sus errores afecten los procesos críticos de compra y entrega. |
+| DA14 | La arquitectura debe facilitar cambios, correcciones y evolución de los módulos sin afectar innecesariamente otras funcionalidades. | AC05, RC12 | Requiere separar responsabilidades, reducir el acoplamiento entre módulos y establecer dependencias internas que protejan las reglas del negocio frente a cambios tecnológicos. |
 | DA15 | La solución debe ser accesible desde computadoras y dispositivos móviles mediante navegador. | AC09, AC10, RC01 | Influye en el diseño de la capa de presentación y justifica el uso de una aplicación web responsive/PWA. |
 | DA16 | La arquitectura debe organizarse en tres capas. | RC11 | Determina la separación general entre presentación, lógica de negocio y persistencia. |
+
 
 ## Drivers prioritarios
 
@@ -28,12 +29,14 @@ Para la primera versión del sistema se consideran especialmente relevantes los 
 1. **DA02 - Consistencia del inventario**
 2. **DA03 - Control concurrente de repartidores**
 3. **DA04 - Seguridad de la información**
-4. **DA05 - Escalabilidad y modularidad**
-5. **DA08 - Pedidos multivendedor**
-6. **DA09 - Integración del repartidor en el proceso de compra**
-7. **DA10 - Flujo de pagos mediante Yape o Plin**
-8. **DA11 - Control de estados del pedido**
-9. **DA12 - Auditoría y trazabilidad**
-10. **DA16 - Arquitectura de tres capas**
+4. **DA14 - Mantenibilidad y evolución modular**
+5. **DA05 - Escalabilidad y modularidad**
+6. **DA08 - Pedidos multivendedor**
+7. **DA09 - Integración del repartidor en el proceso de compra**
+8. **DA10 - Flujo de pagos mediante Yape o Plin**
+9. **DA11 - Control de estados del pedido**
+10. **DA12 - Auditoría y trazabilidad**
 
 Estos drivers influyen directamente en la separación de módulos, la gestión de persistencia, el control de concurrencia, la seguridad, la organización de los procesos de negocio y la comunicación entre las diferentes capas del sistema.
+
+El driver DA14 es fundamental para seleccionar Clean Architecture como enfoque arquitectónico, mientras que DA02 y DA03 requieren mecanismos específicos para garantizar consistencia durante las operaciones concurrentes.

@@ -49,7 +49,7 @@ Los requisitos funcionales describen las funciones principales que debe realizar
 | RF41 | El sistema debe establecer un tiempo máximo para responder una solicitud de pedido. |
 | RF42 | El sistema debe permitir configurar y mostrar el costo del servicio de reparto. |
 | RF43 | El sistema debe sumar el costo de reparto al importe estimado de los productos. |
-| RF44 | El sistema debe permitir al cliente realizar el pago mediante código QR de Yape o Plin. |
+| RF44 | El sistema debe mostrar al cliente el código QR de Yape o Plin proporcionado por el repartidor, para que realice el pago desde la aplicación externa correspondiente, sin procesamiento bancario automático por parte de la plataforma. |
 | RF45 | El sistema debe permitir al repartidor validar el pago recibido. |
 | RF46 | El sistema debe impedir que un pedido continúe al proceso de compra si el pago no ha sido validado. |
 | RF47 | El sistema debe permitir al repartidor registrar la compra realizada en los diferentes puestos. |
@@ -63,6 +63,9 @@ Los requisitos funcionales describen las funciones principales que debe realizar
 | RF55 | El sistema debe proporcionar reportes, indicadores y paneles de control. |
 | RF56 | El sistema debe permitir configurar reglas operativas como tiempos de reserva y tolerancias de peso o precio. |
 | RF57 | El sistema debe proporcionar una funcionalidad de inteligencia artificial para apoyar la búsqueda de productos. |
+| RF58 | El sistema debe permitir al comerciante consultar los pedidos, ventas y operaciones correspondientes únicamente a los puestos comerciales que tiene asignados. |
+| RF59 | El sistema debe permitir al repartidor habilitado cambiar su estado entre disponible y no disponible, respetando las restricciones relacionadas con pedidos o reservas activas. |
+
 
 ## Relación entre historias de usuario y requisitos funcionales
 
@@ -86,10 +89,10 @@ Los requisitos funcionales describen las funciones principales que debe realizar
 | HU16 Gestionar precios y presentaciones | RF11 |
 | HU17 Gestionar inventario | RF12, RF14, RF15 |
 | HU18 Consultar movimientos de inventario | RF13 |
-| HU19 Consultar operaciones del puesto | RF54, RF55 |
+| HU19 Consultar operaciones del puesto | RF58, RF55 |
 | HU20 Acceder según permisos | RF03, RF04, RF05 |
 | HU21 Registrar datos del repartidor | RF32, RF33 |
-| HU22 Indicar disponibilidad | RF35 |
+| HU22 Indicar disponibilidad | RF59, RF35 |
 | HU23 Aceptar o rechazar pedidos | RF40, RF41 |
 | HU24 Validar pago | RF45, RF46 |
 | HU25 Registrar compras | RF47, RF49 |
@@ -104,3 +107,4 @@ Los requisitos funcionales describen las funciones principales que debe realizar
 | HU34 Configurar reglas operativas | RF56 |
 | HU35 Consultar reportes | RF55 |
 | HU36 Consultar auditoría | RF53 |
+| HU37 Búsqueda asistida por inteligencia artificial | RF57 |
