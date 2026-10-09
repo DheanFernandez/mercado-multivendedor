@@ -40,3 +40,47 @@ Para la primera versión del sistema se consideran especialmente relevantes los 
 Estos drivers influyen directamente en la separación de módulos, la gestión de persistencia, el control de concurrencia, la seguridad, la organización de los procesos de negocio y la comunicación entre las diferentes capas del sistema.
 
 El driver DA14 es fundamental para seleccionar Clean Architecture como enfoque arquitectónico, mientras que DA02 y DA03 requieren mecanismos específicos para garantizar consistencia durante las operaciones concurrentes.
+
+
+## Trazabilidad entre drivers y decisiones arquitectónicas
+
+La siguiente matriz permite identificar cómo las decisiones arquitectónicas propuestas responden a los drivers definidos durante el análisis del sistema.
+
+Los documentos ADR registran las decisiones de mayor impacto, mientras que los documentos de estilo y enfoque arquitectónico describen la organización global e interna de la solución.
+
+| Driver | Decisión o documento relacionado | Respuesta arquitectónica |
+|---|---|---|
+| DA01 | ADR-003 | Transacciones y control de operaciones concurrentes. |
+| DA02 | ADR-003 | Reservas de inventario mediante operaciones atómicas en PostgreSQL. |
+| DA03 | ADR-003 | Control transaccional de reservas de repartidores. |
+| DA04 | ADR-002, ADR-004 | Separación de responsabilidades y validación autorizada de pagos. Requiere profundizar la estrategia general de seguridad. |
+| DA05 | ADR-001, ADR-002 | Monolito modular y separación de responsabilidades internas. |
+| DA06 | Estilo arquitectónico, ADR-002 | Comunicación mediante API REST y controladores como adaptadores de entrada. |
+| DA07 | Estilo arquitectónico, ADR-003 | PostgreSQL como tecnología de persistencia y coordinación transaccional. |
+| DA08 | ADR-003, estilo arquitectónico | Coordinación del pedido principal, productos por puesto y reservas de inventario. |
+| DA09 | ADR-003, ADR-004 | Reserva de repartidores y participación dentro del flujo de compra y pago. |
+| DA10 | ADR-004 | Pago externo mediante Yape o Plin y validación operativa del repartidor. |
+| DA11 | ADR-004, ADR-003 | Validación del pago y control de transiciones de estado del pedido. |
+| DA12 | ADR-004 | Registro de validaciones de pago. Requiere ampliar la estrategia transversal de auditoría. |
+| DA13 | ADR-002 | Desacoplamiento mediante interfaces. Requiere mecanismos adicionales de aislamiento de fallos. |
+| DA14 | ADR-001, ADR-002 | Organización modular y aplicación de Clean Architecture. |
+| DA15 | Estilo arquitectónico | Aplicación Web/PWA responsive mediante Next.js y TypeScript. |
+| DA16 | Estilo arquitectónico, ADR-001 | Arquitectura cliente-servidor de tres capas y backend monolítico modular. |
+
+## Aspectos arquitectónicos pendientes de profundización
+
+La matriz identifica tres drivers que requieren decisiones técnicas adicionales:
+
+### DA04 - Seguridad de la información
+
+Se deberá definir una estrategia de seguridad que contemple autenticación, autorización por roles, protección de documentos sensibles y control de acceso a la información de cada puesto comercial.
+
+### DA12 - Auditoría y trazabilidad
+
+Se deberá establecer qué operaciones críticas serán auditadas, qué información se registrará y qué roles estarán autorizados para consultar los registros.
+
+### DA13 - Aislamiento de fallos
+
+Se deberán definir mecanismos de aislamiento para evitar que los errores de servicios secundarios, como notificaciones e inteligencia artificial, interrumpan las operaciones críticas de compra y entrega.
+
+Estos aspectos se desarrollarán mediante decisiones arquitectónicas complementarias, manteniendo la coherencia con el monolito modular y Clean Architecture seleccionados.
