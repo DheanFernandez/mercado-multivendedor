@@ -9,9 +9,11 @@
 
 Proyecto académico orientado al diseño y desarrollo de una plataforma web multivendedor para un mercado de abastos.
 
-La plataforma permitirá integrar comerciantes, puestos comerciales, productos, inventarios, clientes, pedidos, repartidores y procesos de entrega dentro de un único sistema.
+La plataforma permitirá integrar comerciantes, puestos comerciales, productos, inventarios, clientes, pedidos y pagos dentro de un único sistema.
 
 Cada comerciante podrá administrar de manera independiente la información de su puesto, productos, precios e inventario, mientras que los clientes podrán consultar y adquirir productos ofrecidos por diferentes comerciantes mediante un marketplace común.
+
+Los clientes pagarán a cada puesto mediante Yape o Plin y retirarán sus productos directamente en los puestos correspondientes. La plataforma no incluye servicio de delivery.
 
 ## Objetivo
 
@@ -77,6 +79,6 @@ El proyecto desarrolla progresivamente el análisis y diseño arquitectónico de
 - **Backend:** NestJS y TypeScript.
 - **Base de datos:** PostgreSQL mediante Supabase.
 - **Comunicación:** API REST sobre HTTPS.
-- **Pagos:** Yape o Plin mediante códigos QR y validación del repartidor.
+- **Pagos:** Yape o Plin mediante códigos QR de cada puesto y validación del comerciante.
 
 La documentación representa decisiones y propuestas de diseño arquitectónico. No implica que los componentes descritos ya estén implementados.

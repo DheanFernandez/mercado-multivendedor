@@ -11,33 +11,22 @@ Las historias de usuario describen las principales necesidades de los actores de
 | HU05 | Cliente | Como cliente, quiero modificar o eliminar productos del carrito, para ajustar mi compra antes de confirmar el pedido. |
 | HU06 | Cliente | Como cliente, quiero visualizar el subtotal de cada puesto y el total general, para conocer el importe estimado de mi compra. |
 | HU07 | Cliente | Como cliente, quiero generar un pedido con productos de uno o varios puestos, para iniciar el proceso de compra. |
-| HU08 | Cliente | Como cliente, quiero consultar repartidores disponibles y ver su información básica, para seleccionar quién realizará mi compra y entrega. |
-| HU09 | Cliente | Como cliente, quiero seleccionar un repartidor disponible, para que realice la compra y entrega de mi pedido. |
-| HU10 | Cliente | Como cliente, quiero visualizar el costo del servicio de reparto, para conocer el monto total antes de confirmar el pedido. |
-| HU11 | Cliente | Como cliente, quiero realizar el pago mediante Yape o Plin, para continuar con el procesamiento del pedido. |
-| HU12 | Cliente | Como cliente, quiero consultar el estado de mi pedido, para conocer el avance de la compra y entrega. |
-| HU13 | Cliente | Como cliente, quiero confirmar la recepción de mi pedido mediante un PIN, para registrar que la entrega fue completada correctamente. |
-| HU14 | Comerciante | Como comerciante, quiero administrar la información de mi tienda, para mantener actualizados los datos de mi puesto comercial. |
-| HU15 | Comerciante | Como comerciante, quiero registrar y actualizar productos, para mantener actualizado mi catálogo. |
-| HU16 | Comerciante | Como comerciante, quiero gestionar precios y presentaciones de mis productos, para ofrecer información comercial correcta a los clientes. |
-| HU17 | Comerciante | Como comerciante, quiero gestionar el inventario de mis productos, para conocer el stock disponible. |
-| HU18 | Comerciante | Como comerciante, quiero consultar los movimientos de inventario, para controlar ingresos, ventas, devoluciones y ajustes. |
-| HU19 | Comerciante | Como comerciante, quiero consultar las operaciones relacionadas con mi puesto, para supervisar las ventas realizadas. |
+| HU08 | Cliente | Como cliente, quiero realizar el pago de cada puesto mediante Yape o Plin, para que los comerciantes puedan validarlo y preparar mi pedido. |
+| HU09 | Cliente | Como cliente, quiero consultar el estado de mi pedido, para conocer el avance del pago, la preparación y el retiro de los productos de cada puesto. |
+| HU10 | Cliente | Como cliente, quiero retirar en cada puesto los productos de mi pedido, para recibir mi compra una vez que estén listos. |
+| HU11 | Comerciante | Como comerciante, quiero administrar la información de mi tienda, para mantener actualizados los datos de mi puesto comercial, incluidos sus códigos QR de cobro. |
+| HU12 | Comerciante | Como comerciante, quiero registrar y actualizar productos, para mantener actualizado mi catálogo. |
+| HU13 | Comerciante | Como comerciante, quiero gestionar precios y presentaciones de mis productos, para ofrecer información comercial correcta a los clientes. |
+| HU14 | Comerciante | Como comerciante, quiero gestionar el inventario de mis productos, para conocer el stock disponible. |
+| HU15 | Comerciante | Como comerciante, quiero consultar los movimientos de inventario, para controlar ingresos, ventas, devoluciones y ajustes. |
+| HU16 | Comerciante | Como comerciante, quiero consultar las operaciones relacionadas con mi puesto, para supervisar las ventas realizadas. |
+| HU17 | Comerciante | Como comerciante, quiero validar el pago recibido por los productos de mi puesto, para comenzar la preparación del pedido. |
+| HU18 | Comerciante | Como comerciante, quiero registrar variaciones de peso o precio cuando ocurran, para informar correctamente al cliente. |
+| HU19 | Comerciante | Como comerciante, quiero marcar los productos de mi puesto como listos para retiro y registrar su entrega al cliente, para mantener actualizado el estado del pedido. |
 | HU20 | Trabajador de puesto | Como trabajador de puesto, quiero acceder únicamente a las funciones autorizadas por el comerciante, para apoyar en las operaciones del puesto. |
-| HU21 | Repartidor | Como repartidor, quiero registrar mis datos personales, vehículo y medios de pago, para solicitar mi habilitación en la plataforma. |
-| HU22 | Repartidor | Como repartidor, quiero indicar mi disponibilidad, para recibir solicitudes de pedidos. |
-| HU23 | Repartidor | Como repartidor, quiero aceptar o rechazar solicitudes de pedidos, para administrar los servicios que puedo atender. |
-| HU24 | Repartidor | Como repartidor, quiero validar el pago recibido, para comenzar el proceso de compra del pedido. |
-| HU25 | Repartidor | Como repartidor, quiero registrar la compra de productos en los diferentes puestos, para mantener actualizado el estado del pedido. |
-| HU26 | Repartidor | Como repartidor, quiero registrar variaciones de peso o precio cuando ocurran, para informar correctamente al cliente. |
-| HU27 | Repartidor | Como repartidor, quiero marcar el pedido como en camino, para informar al cliente que su pedido está siendo trasladado. |
-| HU28 | Repartidor | Como repartidor, quiero confirmar la entrega del pedido mediante el PIN del cliente, para completar correctamente el servicio. |
-| HU29 | Administrador | Como administrador, quiero gestionar los usuarios de la plataforma, para controlar quiénes pueden acceder al sistema. |
-| HU30 | Administrador | Como administrador, quiero registrar y administrar comerciantes y puestos, para mantener organizada la información del mercado. |
-| HU31 | Administrador | Como administrador, quiero verificar y aprobar repartidores, para permitir únicamente repartidores autorizados. |
-| HU32 | Administrador | Como administrador, quiero suspender repartidores cuando exista una incidencia grave, para proteger las operaciones de la plataforma. |
-| HU33 | Administrador | Como administrador, quiero consultar pedidos activos e incidencias, para supervisar el funcionamiento de la plataforma. |
-| HU34 | Administrador | Como administrador, quiero configurar reglas operativas, para establecer condiciones como tiempos de reserva y tolerancias de peso o precio. |
-| HU35 | Administrador | Como administrador, quiero consultar reportes e indicadores, para analizar el funcionamiento general de la plataforma. |
-| HU36 | Administrador | Como administrador, quiero consultar registros de auditoría, para mantener la trazabilidad de las operaciones críticas. |
-| HU37 | Cliente | Como cliente, quiero recibir asistencia para encontrar productos mediante inteligencia artificial, para localizar más fácilmente los artículos que necesito dentro del mercado. |
+| HU21 | Administrador | Como administrador, quiero gestionar los usuarios de la plataforma, para controlar quiénes pueden acceder al sistema. |
+| HU22 | Administrador | Como administrador, quiero registrar y administrar comerciantes y puestos, para mantener organizada la información del mercado. |
+| HU23 | Administrador | Como administrador, quiero consultar pedidos activos e incidencias, para supervisar el funcionamiento de la plataforma. |
+| HU24 | Administrador | Como administrador, quiero configurar reglas operativas, para establecer condiciones como tiempos de reserva y tolerancias de peso o precio. |
+| HU25 | Administrador | Como administrador, quiero consultar reportes e indicadores, para analizar el funcionamiento general de la plataforma. |
+| HU26 | Administrador | Como administrador, quiero consultar registros de auditoría, para mantener la trazabilidad de las operaciones críticas. |

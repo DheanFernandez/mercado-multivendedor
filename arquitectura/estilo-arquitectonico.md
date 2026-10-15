@@ -18,11 +18,11 @@
 
 La plataforma permitirá integrar los procesos comerciales y operativos de un mercado de abastos mediante una aplicación web multivendedor.
 
-Los clientes podrán consultar productos de distintos puestos, crear pedidos y seleccionar repartidores.
+Los clientes podrán consultar productos de distintos puestos, crear pedidos multivendedor, pagar a cada puesto mediante QR y retirar sus productos en los puestos correspondientes.
 
-Los comerciantes administrarán sus productos e inventarios de manera independiente, mientras que los repartidores realizarán las compras y entregas correspondientes.
+Los comerciantes administrarán sus productos e inventarios de manera independiente, validarán los pagos recibidos y prepararán los pedidos de sus puestos. La plataforma no incluye servicio de delivery.
 
-Debido a la participación de diferentes actores y a la necesidad de mantener consistencia en las operaciones de inventario, pedidos y asignación de repartidores, se requiere una arquitectura que separe las responsabilidades del sistema.
+Debido a la participación de diferentes actores y a la necesidad de mantener consistencia en las operaciones de inventario, pedidos y pagos por puesto, se requiere una arquitectura que separe las responsabilidades del sistema.
 
 ## 3. Estilo arquitectónico seleccionado
 
@@ -42,8 +42,7 @@ Se selecciona una arquitectura cliente-servidor de tres capas, con un backend or
 - Gestionar las interfaces de los clientes.
 - Permitir la administración de comerciantes y puestos.
 - Mostrar el carrito y los pedidos.
-- Presentar la selección de repartidores.
-- Mostrar códigos QR para pagos externos.
+- Mostrar los códigos QR de cada puesto para pagos externos.
 - Permitir el seguimiento de pedidos.
 - Proporcionar paneles administrativos.
 
@@ -63,9 +62,8 @@ La lógica de negocio estará organizada mediante un monolito modular.
 |---|---|
 | Identidad y administración | Autenticación, usuarios, comerciantes, puestos y tiendas |
 | Gestión comercial | Productos, categorías, inventario, promociones y catálogo |
-| Proceso de compra | Carrito multivendedor, pedidos y pagos |
-| Operaciones de entrega | Repartidores y delivery |
-| Servicios transversales | Notificaciones, incidencias, auditoría e inteligencia artificial |
+| Proceso de compra | Carrito multivendedor, pedidos (incluidos preparación y retiro en el puesto) y pagos |
+| Servicios transversales | Notificaciones, incidencias y auditoría |
 | Explotación de información | Reportes e indicadores |
 
 Cada módulo tendrá responsabilidades definidas y deberá mantener contratos claros para sus interacciones.
@@ -86,8 +84,7 @@ El backend se desplegará inicialmente como una única aplicación.
 - Gestionar comerciantes, puestos y tiendas virtuales.
 - Mantener productos, categorías e inventarios.
 - Registrar carritos, pedidos y reservas.
-- Almacenar información de repartidores.
-- Conservar pagos registrados y entregas.
+- Conservar pagos registrados y estados de preparación y retiro de los pedidos.
 - Mantener auditoría e incidencias.
 - Almacenar referencias a archivos digitales.
 
@@ -109,7 +106,6 @@ flowchart TB
         CL["Cliente"]
         CO["Comerciante"]
         TR["Trabajador"]
-        RE["Repartidor"]
         AD["Administrador"]
     end
 
@@ -127,9 +123,8 @@ flowchart TB
             ID["Usuarios, Comerciantes y Puestos"]
             COM["Productos, Inventario y Catálogo"]
             PED["Carrito, Pedidos y Pagos"]
-            DEL["Repartidores y Delivery"]
             SER["Incidencias, Notificaciones y Auditoría"]
-            REP["Reportes y Asistente IA"]
+            REP["Reportes e Indicadores"]
         end
     end
 
@@ -150,9 +145,9 @@ flowchart TB
     classDef backend fill:#edf7ed,stroke:#458a55,color:#20452a
     classDef data fill:#fff3dd,stroke:#b88a34,color:#604418
 
-    class CL,CO,TR,RE,AD actor
+    class CL,CO,TR,AD actor
     class WEB frontend
-    class API,ID,COM,PED,DEL,SER,REP backend
+    class API,ID,COM,PED,SER,REP backend
     class DB,ST data
 ```
 
@@ -170,7 +165,7 @@ La organización interna de las dependencias se especificará en el documento de
 | Módulos funcionales | PostgreSQL | Persistencia mediante repositorios y adaptadores |
 | Módulos funcionales | Supabase Storage | Almacenamiento mediante adaptadores |
 | Cliente | Yape / Plin | Pago externo mediante aplicación móvil |
-| Repartidor | Yape / Plin | Verificación del dinero recibido |
+| Comerciante / Trabajador de puesto | Yape / Plin | Verificación del dinero recibido |
 
 Los pagos mediante Yape o Plin no constituyen una integración bancaria automatizada.
 
@@ -190,7 +185,7 @@ Clean Architecture complementará esta decisión controlando las dependencias in
 
 El backend centralizado permite coordinar operaciones críticas mediante PostgreSQL.
 
-Esto resulta relevante para evitar reservas incompatibles de inventario y repartidores.
+Esto resulta relevante para evitar reservas incompatibles de inventario y validaciones de pago inconsistentes.
 
 ### 6.4. Escalabilidad progresiva
 
@@ -220,13 +215,12 @@ La elección del monolito modular no impide que determinados componentes puedan 
 | Driver | Respuesta arquitectónica |
 |---|---|
 | DA02 - Consistencia del inventario | Coordinación de operaciones transaccionales mediante PostgreSQL. |
-| DA03 - Control concurrente de repartidores | Reservas consistentes y exclusivas cuando corresponda. |
-| DA04 - Seguridad de la información | Autenticación y autorización centralizadas. |
-| DA05 - Escalabilidad y modularidad | Monolito modular con evolución progresiva. |
-| DA06 - API REST | Comunicación HTTP entre frontend y backend. |
-| DA08 - Pedidos multivendedor | Módulos de carrito, pedidos e inventario coordinados. |
-| DA14 - Mantenibilidad | Separación modular y aplicación de Clean Architecture. |
-| DA16 - Arquitectura de tres capas | Separación global de presentación, negocio y datos. |
+| DA03 - Seguridad de la información | Autenticación y autorización centralizadas. |
+| DA04 - Escalabilidad y modularidad | Monolito modular con evolución progresiva. |
+| DA05 - API REST | Comunicación HTTP entre frontend y backend. |
+| DA07 - Pedidos multivendedor | Módulos de carrito, pedidos, inventario y pagos coordinados. |
+| DA12 - Mantenibilidad | Separación modular y aplicación de Clean Architecture. |
+| DA14 - Arquitectura de tres capas | Separación global de presentación, negocio y datos. |
 
 ## 9. Consecuencias arquitectónicas
 

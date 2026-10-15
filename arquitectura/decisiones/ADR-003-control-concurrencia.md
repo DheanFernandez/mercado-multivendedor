@@ -1,17 +1,17 @@
 
-# ADR-003: Control de Concurrencia en Inventario y Repartidores
+# ADR-003: Control de Concurrencia en Inventario
 
 ## 1. Información de la decisión
 
 | Campo | Descripción |
 |---|---|
 | ID | ADR-003 |
-| Título | Control de concurrencia en inventario y repartidores |
+| Título | Control de concurrencia en inventario |
 | Estado | Propuesta |
 | Fecha | 08/10/2026 |
 | Proyecto | Plataforma Integral Multivendedor para la Gestión Comercial y Operativa de un Mercado de Abastos |
-| Drivers principales | DA02, DA03 |
-| Drivers relacionados | DA01, DA08, DA09, DA11 |
+| Driver principal | DA02 |
+| Drivers relacionados | DA01, DA07, DA09 |
 | Atributos de calidad | AC07 - Concurrencia, AC08 - Integridad de la información, AC01 - Rendimiento |
 
 ## 2. Contexto
@@ -22,13 +22,11 @@ Cada puesto administrará su propio inventario y publicará productos disponible
 
 Durante una operación de compra, dos o más clientes podrían intentar reservar cantidades del mismo producto cuando el stock es limitado.
 
-Asimismo, diferentes clientes podrían intentar seleccionar simultáneamente a un mismo repartidor.
-
-Si estas operaciones no cuentan con mecanismos de concurrencia, podrían producirse sobreventas, reservas incompatibles, duplicación de asignaciones e inconsistencias en los pedidos.
+Si estas operaciones no cuentan con mecanismos de concurrencia, podrían producirse sobreventas, reservas incompatibles e inconsistencias en los pedidos.
 
 ## 3. Problema arquitectónico
 
-¿Cómo garantizar que las operaciones concurrentes de reserva de inventario y asignación de repartidores mantengan la consistencia de la información sin bloquear innecesariamente operaciones independientes?
+¿Cómo garantizar que las operaciones concurrentes de reserva de inventario mantengan la consistencia de la información sin bloquear innecesariamente operaciones independientes?
 
 ## 4. Alternativas evaluadas
 
@@ -48,12 +46,11 @@ Las operaciones críticas se ejecutarán mediante transacciones de base de datos
 Las reglas generales serán:
 
 1. No confirmar reservas de inventario superiores al stock disponible.
-2. No permitir reservas incompatibles sobre un mismo repartidor.
-3. Garantizar que la comprobación y actualización de disponibilidad se realicen de forma atómica.
-4. Mantener transacciones cortas.
-5. Registrar correctamente el resultado de cada operación.
-6. Revertir las operaciones que fallen antes de su confirmación.
-7. Controlar los reintentos para evitar operaciones duplicadas.
+2. Garantizar que la comprobación y actualización de disponibilidad se realicen de forma atómica.
+3. Mantener transacciones cortas.
+4. Registrar correctamente el resultado de cada operación.
+5. Revertir las operaciones que fallen antes de su confirmación.
+6. Controlar los reintentos para evitar operaciones duplicadas.
 
 La implementación de estas operaciones se realizará mediante adaptadores de persistencia y mecanismos de coordinación transaccional definidos por la aplicación.
 
@@ -101,45 +98,15 @@ Si la actualización no devuelve filas, la reserva no deberá considerarse confi
 
 ### 6.4. Liberación y confirmación
 
-Cuando un pedido sea cancelado antes de completar la compra, el sistema deberá liberar las cantidades reservadas mediante una operación consistente.
+Cuando un pedido sea cancelado antes de que los productos sean entregados al cliente, el sistema deberá liberar las cantidades reservadas mediante una operación consistente.
 
-Cuando se registre la compra efectiva, el inventario deberá actualizar sus cantidades físicas y reservadas sin aplicar el descuento dos veces.
+Cuando se registre la venta efectiva de los productos en el puesto, el inventario deberá actualizar sus cantidades físicas y reservadas sin aplicar el descuento dos veces.
 
 Las variaciones de peso o precio deberán gestionarse de acuerdo con las reglas del pedido y la disponibilidad correspondiente.
 
-## 7. Control de concurrencia de repartidores
+## 7. Idempotencia y reintentos
 
-### 7.1. Identificación del recurso
-
-Cada repartidor tendrá un estado de habilitación, disponibilidad y asignación.
-
-Solo los repartidores verificados, habilitados y disponibles podrán recibir nuevas solicitudes compatibles con sus condiciones de operación.
-
-### 7.2. Reserva temporal
-
-Cuando un cliente seleccione un repartidor:
-
-1. El backend verificará que el repartidor esté habilitado.
-2. Se comprobará su disponibilidad.
-3. Se intentará registrar una reserva temporal de forma atómica.
-4. Se establecerá un tiempo de expiración.
-5. Se notificará la solicitud al repartidor.
-6. El repartidor podrá aceptarla o rechazarla.
-7. Si se rechaza o expira, se liberará la reserva.
-
-### 7.3. Estrategia técnica
-
-Se utilizarán transacciones y actualizaciones condicionales en PostgreSQL.
-
-La reserva solamente podrá confirmarse si el repartidor continúa disponible y no posee una asignación incompatible.
-
-También podrán utilizarse restricciones de unicidad o mecanismos de bloqueo apropiados para proteger las invariantes del modelo de datos.
-
-La expiración de una reserva deberá comprobarse en el backend, incluso si el procesamiento de tareas programadas se retrasa.
-
-## 8. Idempotencia y reintentos
-
-Las solicitudes de creación de pedidos, reserva de inventario y asignación de repartidores deberán protegerse frente a reintentos duplicados.
+Las solicitudes de creación de pedidos y reserva de inventario deberán protegerse frente a reintentos duplicados.
 
 Para ello se utilizarán identificadores únicos de operación o mecanismos equivalentes.
 
@@ -147,15 +114,15 @@ Un reintento de una operación ya confirmada deberá devolver su resultado anter
 
 Los conflictos transaccionales deberán manejarse con respuestas controladas.
 
-## 9. Relación con Clean Architecture
+## 8. Relación con Clean Architecture
 
 **Dominio**
 
-Define las reglas sobre stock disponible, reservas y asignaciones permitidas.
+Define las reglas sobre stock disponible y reservas permitidas.
 
 **Aplicación**
 
-Coordina casos de uso como ReservarInventario y SeleccionarRepartidor, incluyendo los límites de las operaciones transaccionales.
+Coordina casos de uso como CrearPedido y ReservarInventario, incluyendo los límites de las operaciones transaccionales.
 
 **Infraestructura**
 
@@ -167,12 +134,11 @@ Recibe las solicitudes y comunica los resultados al usuario.
 
 Los casos de uso no deberán depender directamente de sentencias SQL ni de implementaciones concretas de persistencia.
 
-## 10. Consecuencias
+## 9. Consecuencias
 
 ### Consecuencias positivas
 
 - Prevención de sobreventas.
-- Prevención de reservas incompatibles de repartidores.
 - Mayor consistencia de pedidos e inventarios.
 - Capacidad de coordinación entre varias instancias del backend mediante una base de datos compartida.
 - Mayor confiabilidad de las operaciones críticas.
@@ -184,25 +150,23 @@ Los casos de uso no deberán depender directamente de sentencias SQL ni de imple
 - Algunas solicitudes podrán rechazarse si otro usuario reserva primero el recurso.
 - Se requerirán pruebas específicas de concurrencia.
 
-## 11. Pruebas propuestas
+## 10. Pruebas propuestas
 
 Se realizarán pruebas para comprobar:
 
 1. Dos clientes intentando reservar el último stock disponible.
-2. Múltiples clientes intentando reservar un mismo repartidor.
-3. Cancelación de un pedido con stock previamente reservado.
-4. Expiración de una reserva de repartidor.
-5. Reintentos de creación de un mismo pedido.
-6. Fallos durante transacciones de inventario.
-7. Operaciones simultáneas sobre productos de diferentes puestos.
+2. Cancelación de un pedido con stock previamente reservado.
+3. Reintentos de creación de un mismo pedido.
+4. Fallos durante transacciones de inventario.
+5. Operaciones simultáneas sobre productos de diferentes puestos.
 
-## 12. Resultado esperado
+## 11. Resultado esperado
 
-Las operaciones críticas de inventario y asignación de repartidores mantendrán consistencia incluso ante solicitudes simultáneas.
+Las operaciones críticas de inventario y creación de pedidos mantendrán consistencia incluso ante solicitudes simultáneas.
 
 La arquitectura utilizará PostgreSQL como fuente principal de coordinación transaccional, manteniendo las reglas de negocio desacopladas de las implementaciones concretas.
 
-## 13. Relación con otras decisiones
+## 12. Relación con otras decisiones
 
 - ADR-001: Monolito modular.
 - ADR-002: Clean Architecture.

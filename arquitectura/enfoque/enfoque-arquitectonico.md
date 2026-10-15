@@ -11,7 +11,7 @@
 | Organización del backend | Monolito modular |
 | Tecnología backend | NestJS + TypeScript |
 | Tecnología frontend | Next.js + TypeScript |
-| Driver principal | DA14 - Mantenibilidad y evolución modular |
+| Driver principal | DA12 - Mantenibilidad y evolución modular |
 | Decisión relacionada | ADR-002 - Clean Architecture |
 | Estado | Arquitectura propuesta |
 
@@ -19,7 +19,7 @@
 
 La plataforma integrará múltiples procesos comerciales y operativos de un mercado de abastos.
 
-Entre sus funcionalidades se encuentran la gestión de comerciantes y puestos, productos, inventarios, pedidos multivendedor, repartidores, pagos mediante QR y entregas.
+Entre sus funcionalidades se encuentran la gestión de comerciantes y puestos, productos, inventarios, pedidos multivendedor, pagos por puesto mediante QR y la preparación y retiro de pedidos en los puestos.
 
 Estas funcionalidades necesitan reglas de negocio independientes de los frameworks y servicios tecnológicos empleados.
 
@@ -54,10 +54,8 @@ Contiene las entidades, objetos de valor y reglas fundamentales del negocio.
 - Pedido.
 - Producto.
 - Inventario.
-- Repartidor.
 - Pago.
 - ReservaInventario.
-- ReservaRepartidor.
 
 El dominio no dependerá directamente de frameworks, controladores HTTP ni repositorios concretos.
 
@@ -77,10 +75,9 @@ Contiene los casos de uso encargados de coordinar las operaciones del sistema.
 
 - CrearPedido.
 - ReservarInventario.
-- SeleccionarRepartidor.
 - ValidarPago.
-- RegistrarCompra.
-- ConfirmarEntrega.
+- RegistrarPreparacion.
+- RegistrarEntregaEnPuesto.
 
 La aplicación dependerá del dominio y de interfaces, pero no directamente de implementaciones concretas de PostgreSQL.
 
@@ -149,7 +146,7 @@ flowchart LR
     end
 
     subgraph DOMINIO["DOMINIO"]
-        ENT["Entidades y reglas<br/>Pedido / Inventario / Repartidor"]
+        ENT["Entidades y reglas<br/>Pedido / Inventario / Pago"]
     end
 
     subgraph INFRA["INFRAESTRUCTURA"]
@@ -223,30 +220,30 @@ Los repositorios concretos ejecutan las operaciones necesarias sobre PostgreSQL.
 
 Las operaciones críticas se realizarán mediante mecanismos transaccionales para evitar inconsistencias.
 
-## 8. Ejemplo aplicado: selección de repartidor
+## 8. Ejemplo aplicado: validación del pago de un puesto
 
 ### Presentación
 
-El cliente selecciona un repartidor disponible desde la aplicación Web/PWA.
+El comerciante, o el trabajador de puesto autorizado, registra desde la aplicación Web/PWA la validación del pago recibido mediante Yape o Plin.
 
 ### Aplicación
 
-El caso de uso `SeleccionarRepartidor` coordina la solicitud de reserva temporal.
+El caso de uso `ValidarPago` coordina la verificación de autorización, el registro de la validación y la actualización del estado de la parte del pedido correspondiente al puesto.
 
 ### Dominio
 
 Se validan reglas como:
 
-- El repartidor debe estar verificado.
-- Debe encontrarse habilitado.
-- No debe tener una reserva incompatible.
-- La solicitud debe respetar las condiciones de disponibilidad.
+- El usuario debe pertenecer al puesto al que corresponde el pago.
+- El pago debe encontrarse en un estado que permita su validación.
+- Un mismo pago no puede validarse más de una vez.
+- Los productos del puesto solo pueden pasar a preparación cuando el pago esté validado.
 
 ### Infraestructura
 
-El repositorio de repartidores realiza la operación de reserva mediante transacciones o actualizaciones condicionales de PostgreSQL.
+El repositorio de pagos registra la validación y el cambio de estado mediante transacciones o actualizaciones condicionales de PostgreSQL.
 
-Esto evita que dos solicitudes incompatibles reserven simultáneamente al mismo repartidor.
+Esto evita que solicitudes repetidas o simultáneas generen confirmaciones incompatibles sobre el mismo pago.
 
 ## 9. Estructura de carpetas propuesta
 
@@ -267,7 +264,6 @@ src/
 │   │   └── presentation/
 │   │       └── controllers/
 │   ├── inventario/
-│   ├── repartidores/
 │   ├── pagos/
 │   ├── comerciantes/
 │   └── productos/
@@ -283,11 +279,11 @@ Esta estructura no implica que las carpetas ya estén implementadas.
 
 | Driver | Respuesta arquitectónica |
 |---|---|
-| DA04 - Seguridad | Separación de políticas de negocio y mecanismos técnicos de autenticación. |
-| DA05 - Escalabilidad y modularidad | Módulos organizados mediante contratos y responsabilidades definidas. |
-| DA06 - API REST | Controladores REST como adaptadores de entrada. |
-| DA13 - Aislamiento de fallos | Integraciones externas desacopladas mediante interfaces. |
-| DA14 - Mantenibilidad | Dependencias dirigidas hacia las reglas del negocio. |
+| DA03 - Seguridad | Separación de políticas de negocio y mecanismos técnicos de autenticación. |
+| DA04 - Escalabilidad y modularidad | Módulos organizados mediante contratos y responsabilidades definidas. |
+| DA05 - API REST | Controladores REST como adaptadores de entrada. |
+| DA11 - Aislamiento de fallos | Integraciones externas desacopladas mediante interfaces. |
+| DA12 - Mantenibilidad | Dependencias dirigidas hacia las reglas del negocio. |
 
 ## 11. Beneficios esperados
 
@@ -308,9 +304,9 @@ Esta estructura no implica que las carpetas ya estén implementadas.
 
 ## 13. Justificación de la selección
 
-Clean Architecture se selecciona principalmente para responder al driver DA14, relacionado con la mantenibilidad y evolución modular.
+Clean Architecture se selecciona principalmente para responder al driver DA12, relacionado con la mantenibilidad y evolución modular.
 
-Este enfoque permitirá preservar las reglas de negocio de inventario, pedidos, repartidores y pagos frente a cambios tecnológicos.
+Este enfoque permitirá preservar las reglas de negocio de inventario, pedidos y pagos frente a cambios tecnológicos.
 
 Su aplicación contribuirá a mantener una estructura comprensible y preparada para evolucionar durante el desarrollo de la plataforma.
 

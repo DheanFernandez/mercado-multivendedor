@@ -10,17 +10,17 @@
 | Estado | Propuesta |
 | Fecha | 08/10/2026 |
 | Proyecto | Plataforma Integral Multivendedor para la Gestión Comercial y Operativa de un Mercado de Abastos |
-| Driver principal | DA14 - Mantenibilidad y evolución modular |
-| Drivers relacionados | DA04, DA05, DA06, DA13 |
+| Driver principal | DA12 - Mantenibilidad y evolución modular |
+| Drivers relacionados | DA03, DA04, DA05, DA11 |
 | Atributos de calidad | AC04 - Seguridad, AC05 - Mantenibilidad, AC11 - Recuperabilidad |
 
 ## 2. Contexto
 
-La plataforma estará compuesta por módulos responsables de usuarios, comerciantes, puestos, productos, inventario, carrito, pedidos, repartidores, pagos y entregas.
+La plataforma estará compuesta por módulos responsables de usuarios, comerciantes, puestos, productos, inventario, carrito, pedidos y pagos, incluida la preparación y el retiro de pedidos en los puestos.
 
 Estos módulos contienen reglas de negocio que deben mantenerse independientes de las tecnologías utilizadas para construir la interfaz, almacenar información o comunicarse con servicios externos.
 
-Por ejemplo, las reglas que impiden reservar inventario insuficiente o asignar un mismo repartidor a dos pedidos incompatibles deben conservarse incluso si posteriormente se cambia la base de datos o el framework utilizado.
+Por ejemplo, las reglas que impiden reservar inventario insuficiente o preparar los productos de un puesto sin un pago validado deben conservarse incluso si posteriormente se cambia la base de datos o el framework utilizado.
 
 El sistema utilizará Next.js en la capa de presentación, NestJS en el backend y PostgreSQL mediante Supabase para la persistencia.
 
@@ -54,8 +54,7 @@ Ejemplos:
 - Producto.
 - Inventario.
 - Reserva de stock.
-- Repartidor.
-- Reserva de repartidor.
+- Pago.
 - Reglas de transición de estados.
 - Validaciones de cantidades y disponibilidad.
 
@@ -69,16 +68,14 @@ Ejemplos:
 
 - CrearPedido.
 - ReservarInventario.
-- SeleccionarRepartidor.
 - ValidarPago.
-- RegistrarCompra.
-- ConfirmarEntrega.
+- RegistrarPreparacion.
+- RegistrarEntregaEnPuesto.
 
 También definirá las interfaces necesarias para acceder a servicios externos y persistencia, como:
 
 - PedidoRepository.
 - InventarioRepository.
-- RepartidorRepository.
 - PagoRepository.
 - NotificacionService.
 
@@ -109,7 +106,6 @@ Ejemplos:
 - Conexión con Supabase.
 - Adaptadores de almacenamiento de archivos.
 - Implementación de notificaciones.
-- Integración opcional con servicios de inteligencia artificial.
 - Configuración de frameworks y proveedores externos.
 
 Esta capa implementará los contratos definidos por las capas internas.
@@ -157,11 +153,11 @@ La coordinación transaccional deberá garantizar que las reservas de inventario
 
 | Driver | Respuesta de Clean Architecture |
 |---|---|
-| DA04 - Seguridad | Separa las reglas de autorización y negocio de los mecanismos técnicos de autenticación. |
-| DA05 - Escalabilidad y modularidad | Favorece la evolución de funcionalidades mediante límites y contratos definidos. |
-| DA06 - API REST | Permite que REST funcione como adaptador de entrada sin condicionar las reglas del negocio. |
-| DA13 - Aislamiento de fallos | Facilita sustituir o aislar integraciones externas mediante abstracciones. |
-| DA14 - Mantenibilidad | Reduce el acoplamiento y protege el dominio frente a cambios tecnológicos. |
+| DA03 - Seguridad | Separa las reglas de autorización y negocio de los mecanismos técnicos de autenticación. |
+| DA04 - Escalabilidad y modularidad | Favorece la evolución de funcionalidades mediante límites y contratos definidos. |
+| DA05 - API REST | Permite que REST funcione como adaptador de entrada sin condicionar las reglas del negocio. |
+| DA11 - Aislamiento de fallos | Facilita sustituir o aislar integraciones externas mediante abstracciones. |
+| DA12 - Mantenibilidad | Reduce el acoplamiento y protege el dominio frente a cambios tecnológicos. |
 
 Clean Architecture no garantiza por sí sola la escalabilidad, la seguridad ni la tolerancia a fallos; estos atributos requerirán mecanismos adicionales.
 
@@ -204,5 +200,5 @@ La arquitectura continuará siendo cliente-servidor de tres capas a nivel global
 ## 12. Relación con otras decisiones
 
 - ADR-001: Adopción de un monolito modular.
-- ADR-003: Control de concurrencia en inventario y repartidores.
+- ADR-003: Control de concurrencia en inventario.
 - ADR-004: Gestión de pagos mediante códigos QR.

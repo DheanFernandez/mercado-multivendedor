@@ -29,7 +29,6 @@ La capa de presentación será responsable de la interacción entre los usuarios
 - Cliente
 - Comerciante
 - Trabajador de puesto
-- Repartidor
 - Administrador
 
 ### Interfaces principales
@@ -39,11 +38,9 @@ La capa de presentación será responsable de la interacción entre los usuarios
 - Detalle de producto
 - Carrito multivendedor
 - Seguimiento de pedidos
-- Selección de repartidor
-- Pantalla de pago
+- Pantalla de pago por puesto
 - Panel del comerciante
 - Panel del trabajador de puesto
-- Panel del repartidor
 - Panel del administrador
 
 La capa de presentación se comunicará con la capa de lógica de negocio mediante una API REST.
@@ -88,19 +85,11 @@ Responsable de permitir que el cliente agregue productos pertenecientes a difere
 
 #### Pedidos
 
-Responsable de generar y gestionar pedidos, agrupar productos por puesto y controlar sus diferentes estados.
-
-#### Repartidores
-
-Responsable del registro, verificación, disponibilidad y asignación de repartidores.
+Responsable de generar y gestionar pedidos, agrupar productos por puesto y controlar sus diferentes estados, incluida la preparación de los productos y su retiro por el cliente en cada puesto.
 
 #### Pagos
 
-Responsable del registro y validación de pagos realizados mediante Yape o Plin.
-
-#### Delivery
-
-Responsable del proceso de compra, consolidación, traslado y entrega de los pedidos.
+Responsable del registro y validación de los pagos realizados a cada puesto mediante Yape o Plin.
 
 #### Promociones
 
@@ -118,13 +107,9 @@ Responsable de informar a los usuarios sobre eventos importantes relacionados co
 
 Responsable de registrar operaciones críticas y mantener la trazabilidad del sistema.
 
-#### Inteligencia Artificial
-
-Responsable de proporcionar asistencia en la búsqueda de productos sin afectar el funcionamiento principal de la plataforma.
-
 #### Reportes
 
-Responsable de generar indicadores, estadísticas y paneles de control para administradores, comerciantes y repartidores.
+Responsable de generar indicadores, estadísticas y paneles de control para administradores y comerciantes.
 
 ---
 
@@ -152,15 +137,13 @@ La capa de datos será responsable de almacenar y recuperar la información pers
 - Carritos
 - Pedidos
 - Historial de estados
-- Repartidores
+- Códigos QR de cobro de los puestos
 - Pagos registrados
-- Entregas
 - Incidencias
 - Promociones
 - Notificaciones
 - Auditoría
 - Reportes
-- Documentos de verificación
 - Imágenes de productos y tiendas
 
 ---
@@ -179,7 +162,7 @@ Utilizado como medio de pago mediante código QR.
 
 ### Supabase Storage / Cloudflare R2
 
-Utilizados para almacenar imágenes, documentos de verificación, códigos QR y otras evidencias digitales.
+Utilizados para almacenar imágenes, códigos QR de cobro de los puestos y otras evidencias digitales.
 
 ---
 
@@ -193,7 +176,7 @@ Los servicios externos podrán ser utilizados por determinados módulos cuando s
 
 Ejemplo:
 
-Cliente → Web/PWA → API REST → Pedidos → Repartidores → Pagos → Delivery → Base de datos
+Cliente → Web/PWA → API REST → Carrito → Pedidos → Inventario → Pagos → Base de datos
 
 
 
@@ -211,7 +194,6 @@ flowchart TB
         C["Cliente"]
         CM["Comerciante"]
         T["Trabajador de puesto"]
-        R["Repartidor"]
         A["Administrador"]
     end
 
@@ -233,11 +215,9 @@ flowchart TB
             M3["Productos y<br/>Catálogo"]
             M4["Inventario"]
             M5["Carrito y<br/>Pedidos"]
-            M6["Repartidores y<br/>Delivery"]
-            M7["Pagos QR"]
-            M8["Promociones e<br/>Incidencias"]
-            M9["Notificaciones,<br/>Auditoría y Reportes"]
-            M10["Asistente IA"]
+            M6["Pagos QR"]
+            M7["Promociones e<br/>Incidencias"]
+            M8["Notificaciones,<br/>Auditoría y Reportes"]
         end
     end
 
@@ -260,10 +240,10 @@ flowchart TB
     MOD --> DB
     MOD --> ST
 
-    R -.->|"Verifica pago recibido"| Y
-    R -.->|"Verifica pago recibido"| P
+    CM -.->|"Verifica pago recibido"| Y
+    CM -.->|"Verifica pago recibido"| P
 
-    M7 -.->|"Registra validación manual"| R
+    CM -.->|"Registra validación manual"| M6
 
     classDef actor fill:#e9efff,stroke:#4361a5,color:#172b4d
     classDef frontend fill:#e8f4ff,stroke:#2374ab,color:#17354d
@@ -271,9 +251,9 @@ flowchart TB
     classDef data fill:#fff3dd,stroke:#b88a34,color:#604418
     classDef external fill:#f4ecff,stroke:#8662ae,color:#49316c
 
-    class C,CM,T,R,A actor
+    class C,CM,T,A actor
     class WEB frontend
-    class API,M1,M2,M3,M4,M5,M6,M7,M8,M9,M10 backend
+    class API,M1,M2,M3,M4,M5,M6,M7,M8 backend
     class DB,ST data
     class Y,P external
 ```
@@ -286,7 +266,7 @@ La plataforma utilizará un modelo cliente-servidor, donde los usuarios acceder�
 
 ### Arquitectura en tres capas
 
-**Presentación:** proporciona interfaces para clientes, comerciantes, trabajadores de puesto, repartidores y administradores.
+**Presentación:** proporciona interfaces para clientes, comerciantes, trabajadores de puesto y administradores.
 
 **Lógica de negocio:** implementa los módulos funcionales del sistema mediante NestJS y expone sus operaciones a través de una API REST.
 
@@ -298,11 +278,15 @@ Los módulos funcionales tendrán responsabilidades definidas, permitiendo organ
 
 ### Pagos externos
 
-Los pagos se realizarán directamente entre el cliente y el repartidor mediante Yape o Plin.
+Los pagos se realizarán directamente entre el cliente y el comerciante de cada puesto incluido en el pedido mediante Yape o Plin.
 
 La plataforma no procesará transferencias bancarias mediante API.
 
-El repartidor verificará el pago recibido y registrará su validación dentro del sistema.
+El comerciante o el trabajador de puesto autorizado verificará el pago recibido y registrará su validación dentro del sistema.
+
+### Retiro en el puesto
+
+La plataforma no incluye servicio de delivery. Una vez validado el pago, cada puesto prepara sus productos y el cliente los retira directamente en el puesto correspondiente.
 
 ### Evolución hacia Clean Architecture
 

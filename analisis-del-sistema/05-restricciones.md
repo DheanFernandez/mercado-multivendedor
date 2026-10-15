@@ -16,11 +16,11 @@ Las restricciones arquitectónicas representan condiciones tecnológicas, organi
 | RC10 | Git y GitHub | El código fuente y la documentación deberán gestionarse mediante Git y mantenerse en un repositorio de GitHub. |
 | RC11 | Arquitectura de tres capas | La solución deberá organizarse mediante una arquitectura cliente-servidor de tres capas: presentación, lógica de negocio y datos. |
 | RC12 | Enfoque modular | Los dominios funcionales deberán mantenerse organizados en módulos claramente separados. |
-| RC13 | Pagos mediante Yape o Plin | En la primera versión, el cliente realizará el pago directamente al repartidor mediante códigos QR de Yape o Plin. El repartidor verificará el dinero recibido y registrará la validación dentro de la plataforma. |
+| RC13 | Pagos mediante Yape o Plin | En la primera versión, el cliente realizará el pago directamente al comerciante de cada puesto incluido en el pedido mediante códigos QR de Yape o Plin. El comerciante o el trabajador de puesto autorizado verificará el dinero recibido y registrará la validación dentro de la plataforma. |
 | RC14 | Sin pasarela bancaria | La primera versión no utilizará una pasarela bancaria ni procesamiento automático de pagos mediante API. |
 | RC15 | Sin aplicación móvil nativa | La primera versión no desarrollará aplicaciones móviles nativas para Android o iOS. |
 | RC16 | Sin integración con SUNAT | La facturación electrónica integrada con SUNAT no formará parte de la primera versión. |
-| RC17 | Sin GPS en tiempo real | La primera versión no implementará seguimiento GPS en tiempo real del repartidor. |
+| RC17 | Sin servicio de delivery | La plataforma no gestionará reparto a domicilio ni contemplará el rol de repartidor. Los productos de cada puesto serán retirados por el cliente en el puesto correspondiente. |
 | RC18 | Sin integración con hardware especializado | No se contemplará integración con balanzas electrónicas, dispositivos IoT u otro hardware especializado. |
 | RC19 | Sin verificación automática con RENIEC | La primera versión no realizará verificación automática de identidad mediante servicios externos como RENIEC. |
 | RC20 | Despliegue mediante Internet | La solución deberá poder desplegarse y ser accesible públicamente mediante Internet. |
@@ -34,4 +34,5 @@ Las siguientes restricciones tienen una influencia directa en la estructura téc
 - **RC11 - Arquitectura de tres capas**, porque establece la organización general de la solución.
 - **RC12 - Enfoque modular**, porque condiciona la separación de dominios funcionales.
 - **RC13 - Pagos mediante Yape o Plin**, porque define el flujo de pago de la primera versión.
-- **RC14 - Sin pasarela bancaria**, porque obliga a que la validación del pago sea gestionada dentro del flujo operativo del repartidor.
+- **RC14 - Sin pasarela bancaria**, porque obliga a que la validación del pago sea gestionada dentro del flujo operativo del comerciante de cada puesto.
+- **RC17 - Sin servicio de delivery**, porque limita el proceso del pedido a la preparación y el retiro en el puesto, sin módulos de reparto.
