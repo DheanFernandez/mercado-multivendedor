@@ -312,9 +312,9 @@ Su aplicación contribuirá a mantener una estructura comprensible y preparada p
 
 ## 14. Relación con otros documentos
 
-- [Arquitectura inicial](../arquitectura-inicial.md)
-- [Estilo arquitectónico](../estilo-arquitectonico.md)
-- [ADR-001: Monolito modular](../decisiones/ADR-001-monolito-modular.md)
-- [ADR-002: Clean Architecture](../decisiones/ADR-002-clean-architecture.md)
-- [ADR-003: Control de concurrencia](../decisiones/ADR-003-control-concurrencia.md)
-- [ADR-004: Pagos mediante QR](../decisiones/ADR-004-pagos-qr.md)
+- [Arquitectura inicial](arquitectura-inicial.md)
+- [Estilo arquitectónico](estilo-arquitectonico.md)
+- [ADR-001: Monolito modular](../01-analisis-de-sistema/decisiones/ADR-001-monolito-modular.md)
+- [ADR-002: Clean Architecture](../01-analisis-de-sistema/decisiones/ADR-002-clean-architecture.md)
+- [ADR-003: Control de concurrencia](../01-analisis-de-sistema/decisiones/ADR-003-control-concurrencia.md)
+- [ADR-004: Pagos mediante QR](../01-analisis-de-sistema/decisiones/ADR-004-pagos-qr.md)

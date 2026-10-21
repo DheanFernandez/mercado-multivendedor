@@ -243,8 +243,8 @@ La elección del monolito modular no impide que determinados componentes puedan 
 ## 10. Relación con otros documentos
 
 - [Arquitectura inicial](arquitectura-inicial.md)
-- [ADR-001: Monolito modular](decisiones/ADR-001-monolito-modular.md)
-- [ADR-002: Clean Architecture](decisiones/ADR-002-clean-architecture.md)
-- [ADR-003: Control de concurrencia](decisiones/ADR-003-control-concurrencia.md)
-- [ADR-004: Pagos mediante QR](decisiones/ADR-004-pagos-qr.md)
-- [Enfoque arquitectónico](enfoque/enfoque-arquitectonico.md)
+- [ADR-001: Monolito modular](../01-analisis-de-sistema/decisiones/ADR-001-monolito-modular.md)
+- [ADR-002: Clean Architecture](../01-analisis-de-sistema/decisiones/ADR-002-clean-architecture.md)
+- [ADR-003: Control de concurrencia](../01-analisis-de-sistema/decisiones/ADR-003-control-concurrencia.md)
+- [ADR-004: Pagos mediante QR](../01-analisis-de-sistema/decisiones/ADR-004-pagos-qr.md)
+- [Enfoque arquitectónico](enfoque-arquitectonico.md)
