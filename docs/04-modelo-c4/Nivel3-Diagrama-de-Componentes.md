@@ -35,7 +35,6 @@ flowchart TB
             CMP["Comerciantes<br/>y puestos"]
             PRD["Productos<br/>y categorías"]
             CAT["Marketplace<br/>y catálogo"]
-            PRO["Promociones"]
         end
 
         subgraph OPE["Operación del pedido"]
@@ -52,6 +51,7 @@ flowchart TB
             NOT["Notificaciones"]
             AUD["Auditoría"]
             REP["Reportes"]
+            CFG["Configuración<br/>operativa"]
         end
     end
 
@@ -68,6 +68,8 @@ flowchart TB
     CAR --> CAT
     PED --> CAR
     PED -->|"Reserva stock"| INV
+    PED -->|"Consulta reglas"| CFG
+    INV -->|"Consulta tiempo de reserva"| CFG
     PED -->|"Crea pago por puesto"| PAG
     PAG -->|"Verifica permisos y QR"| CMP
     PAG -.->|"Evento PagoValidado"| PED
@@ -83,7 +85,7 @@ flowchart TB
 
     classDef comp fill:#85bbf0,stroke:#5d82a8,color:#000000
     classDef ext fill:#999999,stroke:#6b6b6b,color:#ffffff
-    class REST,USR,CMP,PRD,CAT,PRO,CAR,PED,INV,PAG,INC,NOT,AUD,REP comp
+    class REST,USR,CMP,PRD,CAT,CAR,PED,INV,PAG,INC,NOT,AUD,REP,CFG comp
     class WEB,DB,ST ext
 ```
 
@@ -100,7 +102,6 @@ flowchart TB
 | **Comerciantes y puestos** | Gestión de comerciantes y puestos | Puestos, tiendas virtuales, trabajadores autorizados, códigos QR de cobro (RF06–RF08, RF33) | `src/modules/comerciantes/` |
 | **Productos y categorías** | Información de productos | Productos, categorías, precios, presentaciones e imágenes (RF09–RF11) | `src/modules/productos/` |
 | **Marketplace y catálogo** | Consulta pública | Catálogo general, búsqueda y filtros (RF16–RF19) | `src/modules/catalogo/` |
-| **Promociones** | Descuentos | Promociones por producto o tienda | `src/modules/promociones/` |
 | **Carrito multivendedor** | Selección previa a la compra | Ítems de varios puestos, subtotales por puesto y total (RF20–RF24) | `src/modules/carrito/` |
 | **Pedidos** | Proceso de compra | Pedido agrupado por puesto, estados, preparación, retiro y variaciones (RF26–RF31, RF36–RF39) | `src/modules/pedidos/` |
 | **Inventario** | Control de stock | Stock físico, reservado y disponible; reservas atómicas; movimientos (RF12–RF15, RF25) | `src/modules/inventario/` |
@@ -109,6 +110,7 @@ flowchart TB
 | **Notificaciones** | Comunicación con el usuario | Avisos de cambios de estado del pedido (RF41) | `src/modules/notificaciones/` |
 | **Auditoría** | Trazabilidad | Registro de operaciones críticas (RF42) | `src/modules/auditoria/` |
 | **Reportes** | Indicadores | Reportes, paneles y operaciones por puesto (RF43, RF44, RF46) | `src/modules/reportes/` |
+| **Configuración operativa** | Reglas operativas parametrizables | Tiempos de reserva y tolerancias de peso o precio, administrados por el administrador (RF45) | `src/modules/configuracion/` |
 
 ---
 
@@ -122,6 +124,7 @@ flowchart TB
 | Carrito | Catálogo | Consulta precio, puesto y disponibilidad | Llamada en memoria |
 | Pedidos | Carrito | Convierte el carrito en pedido agrupado por puesto | Llamada en memoria |
 | Pedidos | Inventario | Reserva el stock dentro de la misma transacción | Llamada en memoria |
+| Pedidos, Inventario | Configuración operativa | Consultan tolerancias de peso o precio y tiempo de reserva; Configuración no depende de ningún otro módulo | Llamada en memoria |
 | Pedidos | Pagos | Crea un pago por cada puesto del pedido | Llamada en memoria |
 | Pagos | Comerciantes y puestos | Verifica que el usuario pertenezca al puesto y obtiene el QR | Llamada en memoria |
 | Pagos | Pedidos | Informa que el pago de un puesto fue validado | Evento en memoria (`PagoValidado`) |

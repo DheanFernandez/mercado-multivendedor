@@ -61,9 +61,9 @@ La lógica de negocio estará organizada mediante un monolito modular.
 | Grupo funcional | Módulos |
 |---|---|
 | Identidad y administración | Autenticación, usuarios, comerciantes, puestos y tiendas |
-| Gestión comercial | Productos, categorías, inventario, promociones y catálogo |
+| Gestión comercial | Productos, categorías, inventario y catálogo |
 | Proceso de compra | Carrito multivendedor, pedidos (incluidos preparación y retiro en el puesto) y pagos |
-| Servicios transversales | Notificaciones, incidencias y auditoría |
+| Servicios transversales | Notificaciones, incidencias, auditoría y configuración operativa |
 | Explotación de información | Reportes e indicadores |
 
 Cada módulo tendrá responsabilidades definidas y deberá mantener contratos claros para sus interacciones.

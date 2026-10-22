@@ -91,10 +91,6 @@ Responsable de generar y gestionar pedidos, agrupar productos por puesto y contr
 
 Responsable del registro y validación de los pagos realizados a cada puesto mediante Yape o Plin.
 
-#### Promociones
-
-Responsable de administrar promociones y descuentos aplicables a productos o tiendas.
-
 #### Incidencias
 
 Responsable de gestionar cancelaciones, devoluciones, reclamos e incidencias.
@@ -106,6 +102,10 @@ Responsable de informar a los usuarios sobre eventos importantes relacionados co
 #### Auditoría
 
 Responsable de registrar operaciones críticas y mantener la trazabilidad del sistema.
+
+#### Configuración operativa
+
+Responsable de administrar las reglas operativas parametrizables, como tiempos de reserva y tolerancias de peso o precio (RF45).
 
 #### Reportes
 
@@ -140,10 +140,10 @@ La capa de datos será responsable de almacenar y recuperar la información pers
 - Códigos QR de cobro de los puestos
 - Pagos registrados
 - Incidencias
-- Promociones
 - Notificaciones
 - Auditoría
 - Reportes
+- Configuración operativa
 - Imágenes de productos y tiendas
 
 ---
@@ -216,8 +216,8 @@ flowchart TB
             M4["Inventario"]
             M5["Carrito y<br/>Pedidos"]
             M6["Pagos QR"]
-            M7["Promociones e<br/>Incidencias"]
-            M8["Notificaciones,<br/>Auditoría y Reportes"]
+            M7["Incidencias"]
+            M8["Notificaciones, Auditoría,<br/>Reportes y Configuración"]
         end
     end
 

@@ -51,11 +51,11 @@ Los módulos principales serán:
 - Carrito multivendedor.
 - Pedidos.
 - Pagos.
-- Promociones.
 - Incidencias.
 - Notificaciones.
 - Auditoría.
 - Reportes.
+- Configuración operativa.
 
 Cada módulo tendrá responsabilidades definidas y deberá comunicarse con otros módulos mediante interfaces o contratos explícitos cuando sea necesario.
 

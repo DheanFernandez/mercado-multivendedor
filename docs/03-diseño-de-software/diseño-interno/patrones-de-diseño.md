@@ -46,6 +46,5 @@ Documentar los patrones de diseño previstos para el backend de la Plataforma In
 | Patrón | Dónde se aplicaría | Cuándo |
 |---|---|---|
 | State | Estados del pedido por puesto (espera de pago → preparación → listo para retiro → entregado) | Si las transiciones de estado crecen y se vuelven difíciles de mantener en la entidad |
-| Strategy | Cálculo de promociones y descuentos | Al implementar el módulo Promociones |
 | Strategy | Tolerancias de peso o precio (RF45) | Si el administrador necesita varias reglas de tolerancia configurables |
 | Outbox | Pedidos y Pagos → Notificaciones | Si los eventos en memoria no son suficientes para garantizar el envío de notificaciones (DA11) |

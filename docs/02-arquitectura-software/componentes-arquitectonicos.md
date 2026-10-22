@@ -26,14 +26,13 @@ La organización responde a la arquitectura cliente-servidor de tres capas, al [
 | **Carrito multivendedor** | Carrito con productos de varios puestos, subtotales por puesto y total general. | RF20–RF24 |
 | **Pedidos** | Pedido principal agrupado por puesto, estados, preparación, retiro en el puesto y variaciones de peso o precio. | RF26–RF31, RF36–RF39 |
 | **Pagos** | Presentación del QR por puesto, aviso de pago del cliente y validación por el comerciante o trabajador autorizado. | RF32, RF34, RF35 |
-| **Promociones** | Promociones y descuentos aplicables a productos o tiendas. | — |
 | **Incidencias** | Cancelaciones, devoluciones, reclamos e incidencias. | RF40 |
 | **Notificaciones** | Avisos a los usuarios sobre cambios de estado del pedido. | RF41 |
 | **Auditoría** | Registro de operaciones críticas y trazabilidad. | RF42 |
 | **Reportes** | Indicadores, estadísticas, paneles y consultas de operaciones por puesto. | RF43, RF44, RF46 |
-| **Configuración** *(transversal)* | Reglas operativas como tiempos de reserva y tolerancias de peso o precio. | RF45 |
+| **Configuración operativa** *(transversal)* | Reglas operativas como tiempos de reserva y tolerancias de peso o precio. Es consultada por Pedidos e Inventario. | RF45 |
 
-> El módulo Configuración no figura en la lista de [ADR-001](../01-analisis-de-sistema/decisiones/ADR-001-monolito-modular.md). **TODO:** confirmar si RF45 se atiende en un módulo propio o dentro del módulo de Autenticación y usuarios / administración.
+> RF45 se atiende en un módulo propio, **Configuración operativa**, incluido en la lista de [ADR-001](../01-analisis-de-sistema/decisiones/ADR-001-monolito-modular.md).
 
 ## 3. Componentes externos
 
@@ -45,7 +44,79 @@ La organización responde a la arquitectura cliente-servidor de tres capas, al [
 
 ## 4. Diagrama de componentes
 
-El detalle de los componentes y sus relaciones se representa con el modelo C4:
+Diagrama C4 nivel 3 del contenedor API de la plataforma. La fuente de referencia es [Nivel 3 · Diagrama de componentes](../04-modelo-c4/Nivel3-Diagrama-de-Componentes.md), donde se detallan responsabilidades y relaciones; si ese diagrama cambia, este debe actualizarse.
+
+```mermaid
+flowchart TB
+    WEB["Aplicación Web/PWA<br/><i>[Next.js]</i>"]
+
+    subgraph API["API de la plataforma · NestJS"]
+        direction TB
+        REST["<b>API REST</b><br/>Rutas /api/v1, autenticación,<br/>validación, manejo de errores"]
+
+        subgraph COM["Comercial"]
+            direction LR
+            USR["Autenticación<br/>y usuarios"]
+            CMP["Comerciantes<br/>y puestos"]
+            PRD["Productos<br/>y categorías"]
+            CAT["Marketplace<br/>y catálogo"]
+        end
+
+        subgraph OPE["Operación del pedido"]
+            direction LR
+            CAR["Carrito<br/>multivendedor"]
+            PED["Pedidos"]
+            INV["Inventario"]
+            PAG["Pagos QR"]
+            INC["Incidencias"]
+        end
+
+        subgraph TRA["Transversales"]
+            direction LR
+            NOT["Notificaciones"]
+            AUD["Auditoría"]
+            REP["Reportes"]
+            CFG["Configuración<br/>operativa"]
+        end
+    end
+
+    DB[("PostgreSQL<br/>Supabase")]
+    ST["Supabase Storage /<br/>Cloudflare R2"]
+
+    WEB -->|"HTTPS/JSON"| REST
+    REST --> COM
+    REST --> OPE
+    REST --> TRA
+
+    CAT --> PRD
+    CAT --> INV
+    CAR --> CAT
+    PED --> CAR
+    PED -->|"Reserva stock"| INV
+    PED -->|"Consulta reglas"| CFG
+    INV -->|"Consulta tiempo de reserva"| CFG
+    PED -->|"Crea pago por puesto"| PAG
+    PAG -->|"Verifica permisos y QR"| CMP
+    PAG -.->|"Evento PagoValidado"| PED
+    PAG -.->|"Evento PagoValidado"| NOT
+    PED -.->|"Evento cambio de estado"| NOT
+    PAG --> AUD
+    PED --> AUD
+    INV --> AUD
+
+    API -->|"SQL"| DB
+    CMP -->|"HTTPS/API"| ST
+    PRD -->|"HTTPS/API"| ST
+
+    classDef comp fill:#85bbf0,stroke:#5d82a8,color:#000000
+    classDef ext fill:#999999,stroke:#6b6b6b,color:#ffffff
+    class REST,USR,CMP,PRD,CAT,CAR,PED,INV,PAG,INC,NOT,AUD,REP,CFG comp
+    class WEB,DB,ST ext
+```
+
+> Las líneas continuas son llamadas en memoria a la API pública de otro módulo; las discontinuas son eventos en memoria.
+
+Contexto adicional:
 
 - [Nivel 2 · Diagrama de contenedores](../04-modelo-c4/Nivel2-DiagramadeContenedores.md)
 - [Nivel 3 · Diagrama de componentes](../04-modelo-c4/Nivel3-Diagrama-de-Componentes.md)
