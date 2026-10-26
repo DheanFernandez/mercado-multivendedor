@@ -113,3 +113,17 @@ Las medidas se basan en los [criterios de evaluación](04-atributos-de-calidad.m
 | EQ-05 | Escalabilidad | Que se incorporen puestos sin cambiar los módulos. |
 | EQ-06 | Disponibilidad | Que un fallo secundario no detenga las operaciones principales. |
 | EQ-07 | Mantenibilidad | Que los cambios se mantengan dentro del módulo responsable. |
+
+## Resumen de medición
+
+Las medidas son objetivos propuestos; ninguna ha sido ejecutada ni medida todavía.
+
+| Código | Métrica | Método de comprobación | Estado |
+|---|---|---|---|
+| EQ-01 | 100 % de intentos no autorizados rechazados | Pruebas de autorización por rol y puesto | Pendiente |
+| EQ-02 | 0 pedidos, reservas o agrupaciones inconsistentes tras un fallo | Fallos forzados y revisión de inventario y pedidos | Pendiente |
+| EQ-03 | 0 reservas incompatibles en pruebas concurrentes | Solicitudes simultáneas sobre el mismo producto | Pendiente |
+| EQ-04 | 95 % de consultas en menos de 2 s con 100 usuarios (propuesta por validar) | Pruebas de carga | Pendiente |
+| EQ-05 | Alta de puestos solo con registro de datos, sin cambios de código | Alta en entorno de prueba y flujo de compra | Pendiente |
+| EQ-06 | 0 operaciones confirmadas perdidas (meta de disponibilidad por definir) | Simulación de caída de un servicio secundario | Pendiente |
+| EQ-07 | Pruebas aprobadas y dependencias entre capas respetadas | Revisión de cambios, pruebas e inspección de `import` | Pendiente |

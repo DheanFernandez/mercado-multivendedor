@@ -30,3 +30,17 @@ Las historias de usuario describen las principales necesidades de los actores de
 | HU24 | Administrador | Como administrador, quiero configurar reglas operativas, para establecer condiciones como tiempos de reserva y tolerancias de peso o precio. |
 | HU25 | Administrador | Como administrador, quiero consultar reportes e indicadores, para analizar el funcionamiento general de la plataforma. |
 | HU26 | Administrador | Como administrador, quiero consultar registros de auditoría, para mantener la trazabilidad de las operaciones críticas. |
+
+## Historia de usuario, acción y requisito funcional
+
+- **Historia de usuario:** expresa la necesidad de un actor y el beneficio que busca.
+- **Acción:** operación concreta que el actor realiza en el sistema para satisfacer esa necesidad.
+- **Requisito funcional:** comportamiento que el sistema debe proporcionar para hacer posibles esas acciones.
+
+Por lo tanto, una historia de usuario no es lo mismo que una acción: una historia agrupa una o varias acciones y se concreta en uno o más requisitos funcionales.
+
+Ejemplo con HU17:
+
+| Historia de usuario | Acciones del actor | Requisitos funcionales |
+|---|---|---|
+| HU17: como comerciante, quiero validar el pago recibido por los productos de mi puesto, para comenzar la preparación del pedido. | Revisa el pago recibido por Yape o Plin del puesto; marca el pago como validado; el trabajador de puesto autorizado puede realizar la misma validación. | RF34: validar el pago del puesto. RF35: impedir la preparación si el pago no fue validado. |

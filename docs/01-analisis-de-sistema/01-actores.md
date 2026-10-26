@@ -11,7 +11,7 @@ Los actores identificados corresponden a los usuarios que participan en los proc
 | Actor | Descripción | Responsabilidades principales |
 |---|---|---|
 | Cliente | Usuario que adquiere productos de diferentes puestos comerciales mediante el marketplace. | Consultar productos, gestionar el carrito, generar pedidos, realizar los pagos de cada puesto mediante QR y retirar sus pedidos en los puestos correspondientes. |
-| Comerciante | Responsable de uno o más puestos comerciales del mercado. | Administrar tiendas, productos, precios, promociones, inventarios y códigos QR de cobro; validar los pagos recibidos, preparar los pedidos de sus puestos, registrar su entrega al cliente y consultar operaciones de sus puestos. |
+| Comerciante | Responsable de uno o más puestos comerciales del mercado. | Administrar tiendas, productos, precios, inventarios y códigos QR de cobro; validar los pagos recibidos, preparar los pedidos de sus puestos, registrar su entrega al cliente y consultar operaciones de sus puestos. |
 | Trabajador de puesto | Usuario autorizado por el comerciante para realizar actividades operativas según los permisos asignados. | Consultar productos, apoyar en la gestión de inventario y atender operaciones autorizadas del puesto, como la validación de pagos, la preparación de pedidos y su entrega al cliente. |
 | Administrador | Responsable de gestionar y supervisar el funcionamiento general de la plataforma. | Administrar usuarios, comerciantes, puestos, incidencias, configuraciones, auditoría y reportes. |
 
