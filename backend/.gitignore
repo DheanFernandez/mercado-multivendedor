@@ -1,0 +1,13 @@
+# Dependencias y compilación
+node_modules/
+dist/
+*.tsbuildinfo
+coverage/
+
+# Variables de entorno y credenciales (solo se versiona .env.example)
+.env
+.env.*
+!.env.example
+
+# Cliente Prisma generado (se regenera con `npm run prisma:generate`)
+/src/generated/
