@@ -1,13 +1,15 @@
 
 # ADR-004: Gestión de Pagos Mediante Códigos QR
 
+> **Nota:** Esta decisión fue reemplazada por [ADR-005](ADR-005-pago-unico-mercado-pago.md) debido a la incorporación del pago único por pedido mediante Mercado Pago. El contenido se conserva como registro histórico.
+
 ## 1. Información de la decisión
 
 | Campo | Descripción |
 |---|---|
 | ID | ADR-004 |
 | Título | Gestión de pagos mediante códigos QR de Yape o Plin |
-| Estado | Propuesta |
+| Estado | Reemplazado por ADR-005 |
 | Fecha | 08/10/2026 |
 | Proyecto | Plataforma Integral Multivendedor para la Gestión Comercial y Operativa de un Mercado de Abastos |
 | Driver principal | DA08 - Pagos mediante Yape o Plin |

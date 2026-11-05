@@ -22,7 +22,7 @@ Estos módulos contienen reglas de negocio que deben mantenerse independientes d
 
 Por ejemplo, las reglas que impiden reservar inventario insuficiente o preparar los productos de un puesto sin un pago validado deben conservarse incluso si posteriormente se cambia la base de datos o el framework utilizado.
 
-El sistema utilizará Next.js en la capa de presentación, NestJS en el backend y PostgreSQL mediante Supabase para la persistencia.
+El sistema utilizará Next.js en la aplicación Web/PWA, NestJS en la API del monolito y PostgreSQL mediante Supabase para la persistencia. Esta decisión no define el estilo arquitectónico de la solución, establecido en ADR-001 como monolito modular, sino la organización interna del código dentro de cada módulo del backend.
 
 Sin una organización adecuada, estas tecnologías podrían quedar directamente acopladas a las reglas del negocio, dificultando las pruebas y el mantenimiento.
 
@@ -34,9 +34,11 @@ Sin una organización adecuada, estas tecnologías podrían quedar directamente 
 
 | Alternativa | Ventajas | Limitaciones |
 |---|---|---|
-| Arquitectura tradicional por capas técnicas | Organización inicial sencilla y conocida. | Puede generar dependencias directas de la lógica de negocio hacia infraestructura si no se controlan las dependencias. |
-| Arquitectura Hexagonal | Separa el núcleo del negocio mediante puertos y adaptadores. | Requiere definir contratos y adaptadores de manera disciplinada. |
-| Clean Architecture | Define una separación explícita entre dominio, aplicación, adaptadores e infraestructura, orientando las dependencias hacia el núcleo del negocio. | Introduce mayor estructura y archivos, especialmente en funcionalidades pequeñas. |
+| Organización del código por carpetas técnicas (controladores, servicios, repositorios) | Organización inicial sencilla y conocida en NestJS. | La lógica de negocio tiende a depender directamente de la persistencia y del framework si no se controlan las dependencias. |
+| Puertos y adaptadores (Hexagonal) en cada módulo | Separa el núcleo del negocio de las tecnologías mediante puertos y adaptadores. | No prescribe por sí misma cómo organizar casos de uso y entidades dentro del núcleo. |
+| Clean Architecture en cada módulo | Organiza el código de cada módulo en anillos concéntricos (dominio, aplicación, adaptadores e infraestructura) con dependencias orientadas hacia el núcleo; incorpora puertos y adaptadores para las integraciones externas. | Introduce mayor estructura y archivos, especialmente en funcionalidades pequeñas. |
+
+Las tres alternativas se evalúan como formas de organizar el código interno de los módulos del monolito, no como estilos arquitectónicos ni como capas de despliegue: en todos los casos la API se despliega como una única aplicación.
 
 ## 5. Decisión arquitectónica
 
@@ -81,18 +83,18 @@ También definirá las interfaces necesarias para acceder a servicios externos y
 
 Los casos de uso dependerán del dominio y de abstracciones, no de implementaciones concretas de infraestructura.
 
-### 5.3. Presentación y adaptadores de entrada
+### 5.3. Adaptadores de entrada (anillo de interfaz)
 
-Permitirá recibir solicitudes de los usuarios y transformarlas en operaciones de aplicación.
+Es el anillo externo del código de cada módulo que recibe las solicitudes dirigidas a la API del monolito y las transforma en operaciones de aplicación. Forma parte del mismo código desplegable que el resto del módulo y no constituye una capa de despliegue independiente.
 
-En el backend comprenderá principalmente:
+Comprenderá principalmente:
 
 - Controladores REST de NestJS.
 - Validación de solicitudes.
 - Transformación de datos de entrada y salida.
 - Manejo de respuestas HTTP.
 
-El frontend Next.js será un cliente separado que consumirá la API REST.
+La aplicación Web/PWA desarrollada con Next.js es un contenedor separado que consume la API REST del monolito; no forma parte de los anillos de Clean Architecture del backend.
 
 Los controladores deberán delegar las operaciones a los casos de uso, evitando contener directamente las reglas del negocio.
 
@@ -195,10 +197,11 @@ El backend NestJS estará organizado en módulos funcionales con responsabilidad
 
 Los casos de uso y las reglas de negocio podrán probarse sin depender directamente de una base de datos real o de servicios externos.
 
-La arquitectura continuará siendo cliente-servidor de tres capas a nivel global y monolito modular a nivel de despliegue.
+La solución adopta un único estilo arquitectónico: monolito modular, definido en ADR-001. Clean Architecture se aplica únicamente como organización interna del código de cada módulo, mediante anillos con dependencias orientadas hacia el dominio.
 
 ## 12. Relación con otras decisiones
 
 - ADR-001: Adopción de un monolito modular.
 - ADR-003: Control de concurrencia en inventario.
-- ADR-004: Gestión de pagos mediante códigos QR.
+- ADR-004: Gestión de pagos mediante códigos QR (reemplazada por ADR-005).
+- [ADR-005](ADR-005-pago-unico-mercado-pago.md): Pago único por pedido mediante Mercado Pago.

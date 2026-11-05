@@ -10,10 +10,10 @@ Los actores identificados corresponden a los usuarios que participan en los proc
 
 | Actor | Descripción | Responsabilidades principales |
 |---|---|---|
-| Cliente | Usuario que adquiere productos de diferentes puestos comerciales mediante el marketplace. | Consultar productos, gestionar el carrito, generar pedidos, realizar los pagos de cada puesto mediante QR y retirar sus pedidos en los puestos correspondientes. |
-| Comerciante | Responsable de uno o más puestos comerciales del mercado. | Administrar tiendas, productos, precios, inventarios y códigos QR de cobro; validar los pagos recibidos, preparar los pedidos de sus puestos, registrar su entrega al cliente y consultar operaciones de sus puestos. |
-| Trabajador de puesto | Usuario autorizado por el comerciante para realizar actividades operativas según los permisos asignados. | Consultar productos, apoyar en la gestión de inventario y atender operaciones autorizadas del puesto, como la validación de pagos, la preparación de pedidos y su entrega al cliente. |
-| Administrador | Responsable de gestionar y supervisar el funcionamiento general de la plataforma. | Administrar usuarios, comerciantes, puestos, incidencias, configuraciones, auditoría y reportes. |
+| Cliente | Usuario que adquiere productos de diferentes puestos comerciales mediante el marketplace. | Consultar productos, gestionar el carrito, generar pedidos, realizar un pago único por pedido mediante Mercado Pago y retirar sus pedidos en los puestos correspondientes. |
+| Comerciante | Responsable de uno o más puestos comerciales del mercado. | Administrar tiendas, productos, precios e inventarios; vincular su cuenta de Mercado Pago; preparar los pedidos de sus puestos con pago aprobado, registrar su entrega al cliente, solicitar reembolsos y consultar las operaciones, cobros y comisiones de sus puestos. |
+| Trabajador de puesto | Usuario autorizado por el comerciante para realizar actividades operativas según los permisos asignados. | Consultar productos, apoyar en la gestión de inventario y atender las operaciones autorizadas del puesto, limitadas a la preparación de pedidos y su entrega al cliente. No tiene permiso para validar pagos. |
+| Administrador | Responsable de gestionar y supervisar el funcionamiento general de la plataforma. | Administrar usuarios, comerciantes, puestos, configuraciones, auditoría y reportes; gestionar la conciliación de pagos con Mercado Pago y las incidencias. |
 
 ## 3. Sistemas y servicios externos
 
@@ -21,32 +21,32 @@ Los sistemas externos representan servicios o medios que participan en el funcio
 
 | Sistema o servicio | Descripción | Tipo de interacción |
 |---|---|---|
-| Yape | Medio de pago utilizado por los clientes para transferir dinero al comerciante de cada puesto mediante código QR. | Pago externo realizado por el cliente. |
-| Plin | Medio de pago utilizado por los clientes para transferir dinero al comerciante de cada puesto mediante código QR. | Pago externo realizado por el cliente. |
-| Supabase Storage / Cloudflare R2 | Alternativas tecnológicas para almacenar imágenes, códigos QR de cobro y evidencias digitales. | Servicio externo de almacenamiento mediante API. |
+| Mercado Pago | Pasarela de pago utilizada para cobrar al cliente el pedido completo en una única transacción, notificar el resultado del pago y ejecutar reembolsos. En la primera versión se utiliza el entorno Sandbox. | Integración mediante API (Checkout, consulta de pagos y reembolsos) y recepción de notificaciones mediante Webhooks. |
+| Supabase Storage / Cloudflare R2 | Alternativas tecnológicas para almacenar imágenes de productos y documentos de la plataforma. | Servicio externo de almacenamiento mediante API. |
 
 ### Consideraciones sobre los pagos
 
-En la primera versión del sistema, Yape y Plin no funcionarán como pasarelas de pago integradas mediante API.
+En la primera versión del sistema, el cliente realizará un pago único por todo su pedido mediante Mercado Pago Checkout, cuyo importe corresponde a la suma de los subtotales de cada puesto incluido.
 
-El cliente realizará el pago de los productos de cada puesto utilizando la aplicación correspondiente y el código QR configurado por el comerciante de ese puesto.
+La confirmación del pago será recibida automáticamente por la plataforma mediante un Webhook verificado y una consulta a la API de Mercado Pago. Ningún usuario de la plataforma valida pagos de forma manual.
 
-Posteriormente, el comerciante o el trabajador de puesto autorizado verificará el dinero recibido y registrará la validación del pago dentro de la plataforma.
+Cada comerciante deberá vincular su cuenta de Mercado Pago a la plataforma y asumirá la comisión de la pasarela correspondiente a sus ventas.
 
-Los productos de un puesto únicamente podrán pasar a preparación cuando el pago correspondiente a ese puesto haya sido validado.
+Los productos de un puesto únicamente podrán pasar a preparación cuando el pago del pedido haya sido aprobado por la pasarela.
 
 ## 4. Relaciones entre actores
 
 El proceso principal del marketplace contempla las siguientes interacciones:
 
 1. El cliente consulta productos de diferentes puestos y genera un pedido.
-2. El sistema agrupa el pedido por puesto y presenta el importe y el código QR de cada puesto.
-3. El cliente realiza el pago de cada puesto mediante Yape o Plin.
-4. El comerciante o el trabajador autorizado verifica y valida el pago recibido.
-5. El comerciante o el trabajador autorizado prepara los productos de su puesto y los marca como listos para retiro.
+2. El sistema agrupa el pedido por puesto, reserva el inventario y calcula el total como la suma de los subtotales por puesto.
+3. El cliente realiza el pago único del pedido mediante Mercado Pago Checkout.
+4. Mercado Pago notifica el resultado del pago y la plataforma lo verifica automáticamente.
+5. El comerciante o el trabajador autorizado prepara los productos de su puesto con pago aprobado y los marca como listos para retiro.
 6. El cliente retira los productos en cada puesto.
 7. El comerciante o el trabajador autorizado registra la entrega de los productos al cliente.
-8. El administrador supervisa las operaciones y gestiona las incidencias.
+8. El comerciante solicita los reembolsos que correspondan y la plataforma los ejecuta mediante la API de Mercado Pago.
+9. El administrador supervisa las operaciones, gestiona la conciliación de pagos y las incidencias.
 
 La plataforma no incluye servicio de reparto a domicilio.
 
@@ -58,4 +58,6 @@ La plataforma utilizará mecanismos de autenticación y autorización para prote
 
 Los comerciantes y trabajadores de puesto no podrán gestionar información de otros puestos sin autorización.
 
-Solo el comerciante del puesto, o el trabajador de puesto con permiso asignado, podrá validar los pagos y registrar la preparación y la entrega de los productos correspondientes a ese puesto.
+Solo el comerciante del puesto, o el trabajador de puesto con permiso asignado, podrá registrar la preparación y la entrega de los productos correspondientes a ese puesto.
+
+Solo el comerciante titular podrá vincular o desvincular la cuenta de Mercado Pago de sus puestos y solicitar reembolsos.
