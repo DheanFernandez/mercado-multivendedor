@@ -7,34 +7,34 @@ Documentar cómo se aplican los principios SOLID en el backend de la Plataforma 
 ## Contexto
 
 - **Estilo:** monolito modular (NestJS + TypeScript).
-- **Enfoque interno:** Clean Architecture (dominio, aplicación, presentación, infraestructura).
-- **Módulo de referencia:** Pagos, porque integra autorización por puesto, control de estados, auditoría y eventos hacia Pedidos y Notificaciones ([diseño interno de módulos](diseño-interno-de-modulos.md)).
+- **Enfoque interno:** Clean Architecture (dominio, aplicación, adaptadores de entrada, infraestructura).
+- **Módulo de referencia:** Pagos, porque integra la verificación del Webhook de Mercado Pago, la consulta a la pasarela, la idempotencia, el control de estados, la auditoría y los eventos hacia Pedidos y Notificaciones ([diseño interno de módulos](diseño-interno-de-modulos.md)).
 
 ## SOLID en el módulo Pagos
 
-| Principio | Dónde se aplica (capa) | Cómo se cumple en la plataforma | Archivos |
+| Principio | Dónde se aplica (anillo) | Cómo se cumple en la plataforma | Archivos |
 |---|---|---|---|
-| **S** · Responsabilidad única | Todas las capas | Cada clase tiene una sola tarea: el controlador recibe la petición HTTP, el caso de uso coordina la validación, la entidad `Pago` controla sus estados y el repositorio guarda en PostgreSQL | `pagos.controller.ts`, `validar-pago.use-case.ts`, `pago.entity.ts`, `postgres-pago.repository.ts` |
-| **O** · Abierto/cerrado | Infraestructura | Para pasar de Supabase Storage a Cloudflare R2 se crea un nuevo adaptador; los casos de uso que guardan el QR de cobro no se modifican | `supabase-storage.adapter.ts`, `r2-storage.adapter.ts` |
+| **S** · Responsabilidad única | Todos los anillos | Cada clase tiene una sola tarea: `MercadoPagoWebhookController` recibe la notificación y verifica su firma, `ProcesarNotificacionPagoUseCase` coordina el procesamiento, la entidad `Pago` controla sus estados, `MercadoPagoCheckoutAdapter` se comunica con la pasarela y el repositorio guarda en PostgreSQL | `mercado-pago-webhook.controller.ts`, `procesar-notificacion-pago.use-case.ts`, `pago.entity.ts`, `mercado-pago-checkout.adapter.ts`, `postgres-pago.repository.ts` |
+| **O** · Abierto/cerrado | Infraestructura | Para cambiar la modalidad de cobro (Checkout único, Split por puesto o simulador local) se agrega un adaptador que implementa `PasarelaPagoPort` y se selecciona en `pagos.module.ts`; los casos de uso `IniciarPago` y `ProcesarNotificacionPago` y la entidad `Pago` no se modifican | `pasarela-pago.port.ts`, `mercado-pago-checkout.adapter.ts`, `mercado-pago-split.adapter.ts`, `pasarela-pago-local.adapter.ts` |
 | **L** · Sustitución de Liskov | Infraestructura | `PostgresPagoRepository` y `PagoRepositoryEnMemoria` respetan el mismo contrato (`guardarSiEstado` devuelve `false` si el estado cambió); el caso de uso funciona igual con cualquiera | `postgres-pago.repository.ts`, `pago.repository.en-memoria.ts` |
-| **I** · Segregación de interfaces | Aplicación (puertos) | Cada puerto tiene solo lo que Pagos necesita: `PermisosPuestoPort` solo verifica permisos, `AuditoriaPort` solo registra, `EventosPort` solo publica | `permisos-puesto.port.ts`, `auditoria.port.ts`, `eventos.port.ts` |
-| **D** · Inversión de dependencias | Aplicación | `ValidarPagoUseCase` recibe interfaces por el constructor y no conoce PostgreSQL, Supabase ni NestJS; las implementaciones se conectan en `pagos.module.ts` | `validar-pago.use-case.ts`, `pagos.module.ts` |
+| **I** · Segregación de interfaces | Aplicación (puertos) | Cada puerto tiene solo lo que Pagos necesita: `PasarelaPagoPort` solo crea cobros, consulta pagos y reembolsa; `VerificadorFirmaWebhookPort` solo verifica firmas; `NotificacionPagoRepository` solo registra notificaciones; `OutboxPort` solo registra eventos; `AuditoriaPort` solo registra operaciones | `pasarela-pago.port.ts`, `verificador-firma-webhook.port.ts`, `notificacion-pago.repository.ts`, `outbox.port.ts`, `auditoria.port.ts` |
+| **D** · Inversión de dependencias | Aplicación | `ProcesarNotificacionPagoUseCase` recibe interfaces por el constructor y no conoce PostgreSQL, Supabase, Mercado Pago ni NestJS; las implementaciones se conectan en `pagos.module.ts` | `procesar-notificacion-pago.use-case.ts`, `pagos.module.ts` |
 
 ## Qué pasaría sin SOLID en la plataforma
 
 | Situación real | Sin SOLID | Con SOLID |
 |---|---|---|
-| Se cambia Supabase Storage por Cloudflare R2 | Hay que modificar todos los casos de uso que suben imágenes o códigos QR | Solo se reemplaza el adaptador de almacenamiento |
-| En una versión futura se integra una pasarela de pago | Se reescribe la lógica de validación de pagos | Se agrega un adaptador y un caso de uso; las reglas del `Pago` se mantienen |
-| Se quiere probar la validación de pagos | Se necesita PostgreSQL y usuarios reales en Supabase | Se prueba con implementaciones en memoria |
-| Cambian los permisos del trabajador de puesto | Hay que buscar la regla en controladores y servicios | Solo cambia la implementación de `PermisosPuestoPort` en el módulo Comerciantes y puestos |
-| Falla el envío de notificaciones | El error interrumpe la validación del pago | Notificaciones escucha el evento por su cuenta; el pago queda validado (DA11) |
+| Se cambia Supabase Storage por Cloudflare R2 | Hay que modificar todos los casos de uso que suben imágenes | Solo se reemplaza el adaptador de almacenamiento |
+| Se pasa del cobro único (Checkout) a la división por puesto (Split) | Se reescribe la lógica de cobro y de procesamiento de notificaciones | Se agrega `MercadoPagoSplitAdapter` y se cambia `PASARELA_PAGO_MODO`; las reglas del `Pago` y los casos de uso se mantienen |
+| Se quiere probar el procesamiento de notificaciones de pago | Se necesita PostgreSQL y una conexión real con Mercado Pago | Se prueba con `PasarelaPagoLocalAdapter` y repositorios en memoria |
+| Cambia el mecanismo de firma de los Webhooks de Mercado Pago | Hay que buscar la verificación en controladores y servicios | Solo cambia la implementación de `VerificadorFirmaWebhookPort`; `MercadoPagoWebhookController` y `ProcesarNotificacionPagoUseCase` se mantienen |
+| Falla el envío de notificaciones | El error interrumpe el procesamiento del pago | El evento `PagoAprobado` queda registrado en el Outbox y Notificaciones lo procesa por su cuenta; el pago queda aprobado (DA11) |
 
 ## Relación con Clean Architecture y los patrones
 
 | Principio | Lo cumple en el proyecto |
 |---|---|
-| Responsabilidad única | La separación en capas de Clean Architecture |
-| Abierto/cerrado y Liskov | El patrón Adapter (almacenamiento de archivos) y los repositorios intercambiables |
-| Segregación de interfaces | Los puertos de la capa de aplicación (`PagoRepository`, `PermisosPuestoPort`, `AuditoriaPort`, `EventosPort`) |
+| Responsabilidad única | La separación en anillos de Clean Architecture dentro de cada módulo |
+| Abierto/cerrado y Liskov | Los patrones Adapter y Strategy de la pasarela de pago (`PasarelaPagoPort`), el adaptador de almacenamiento de archivos y los repositorios intercambiables |
+| Segregación de interfaces | Los puertos del anillo de aplicación (`PagoRepository`, `PasarelaPagoPort`, `VerificadorFirmaWebhookPort`, `NotificacionPagoRepository`, `OutboxPort`, `AuditoriaPort`) |
 | Inversión de dependencias | La inyección de dependencias de NestJS y la regla de dependencias de [ADR-002](../../01-analisis-de-sistema/decisiones/ADR-002-clean-architecture.md) |

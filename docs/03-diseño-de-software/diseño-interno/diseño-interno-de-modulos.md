@@ -3,19 +3,32 @@
 > **Proyecto:** Plataforma Integral Multivendedor para la Gestión Comercial y Operativa de un Mercado de Abastos
 > **Backend:** NestJS + TypeScript · **Módulo de referencia:** Pagos
 > **Enfoque arquitectónico:** Clean Architecture dentro de cada módulo del monolito modular
-> **Nivel C4:** 4 – Código · **Versión:** 1.0
+> **Nivel C4:** 4 – Código · **Versión:** 1.1
 
 ---
 
 ## 1. Propósito
 
-Este documento describe **cómo se organiza el código dentro de un módulo** del backend NestJS. Tiene tres objetivos:
+Este documento describe **cómo se organiza el código dentro de un módulo** del monolito NestJS. Tiene tres objetivos:
 
 - que todos los módulos se construyan con la misma estructura;
-- que las reglas de negocio de inventario, pedidos y pagos queden aisladas de NestJS, PostgreSQL y Supabase;
+- que las reglas de negocio de inventario, pedidos y pagos queden aisladas de NestJS, PostgreSQL, Supabase y Mercado Pago;
 - que cualquier integrante del equipo sepa dónde va cada archivo y de qué puede depender.
 
-Se toma como referencia el módulo **Pagos** y su caso de uso **ValidarPago**, porque concentra reglas críticas del negocio: autorización por puesto, transiciones de estado, prevención de duplicaciones y trazabilidad ([ADR-004](../../01-analisis-de-sistema/decisiones/ADR-004-pagos-qr.md)).
+Se toma como referencia el módulo **Pagos** y su caso de uso **ProcesarNotificacionPago**, porque concentra reglas críticas del negocio: verificación de la notificación de la pasarela, consulta del estado real del pago, idempotencia, transiciones de estado y trazabilidad ([ADR-005](../../01-analisis-de-sistema/decisiones/ADR-005-pago-unico-mercado-pago.md)).
+
+### 1.1 Reglas de negocio aplicadas
+
+Las referencias entre paréntesis de este documento remiten a las siguientes secciones de ADR-005:
+
+| Referencia | Regla | Origen |
+|---|---|---|
+| R1 | Solo se procesan notificaciones con firma válida | ADR-005 §5.3 (1) y §7 (1) |
+| R2 | El estado del pago se obtiene de la API de Mercado Pago, no del contenido de la notificación | ADR-005 §5.3 (2) y §7 (2) |
+| R3 | El monto aprobado debe coincidir con la suma de los subtotales por puesto | ADR-005 §5.1 y §5.3 (3) |
+| R4 | Una notificación repetida no genera más de un cambio de estado | ADR-005 §5.3 (4) |
+| R5 | Cada notificación y cada cambio de estado se registran para auditoría | ADR-005 §5.3 (5) y §7 (7) |
+| R6 | Los productos de un puesto solo pasan a preparación con el pago APROBADO | ADR-005 §5.4 |
 
 > Este diseño es una propuesta para la implementación. No implica que el código ya exista.
 
@@ -23,7 +36,7 @@ Se toma como referencia el módulo **Pagos** y su caso de uso **ValidarPago**, p
 
 ## 2. Estructura de carpetas
 
-La estructura sigue la propuesta del [enfoque arquitectónico](../../02-arquitectura-software/enfoque-arquitectonico.md).
+La estructura sigue la propuesta de la [organización interna de los módulos](../../02-arquitectura-software/enfoque-arquitectonico.md).
 
 ```text
 src/
@@ -31,98 +44,123 @@ src/
     └── pagos/
         ├── domain/
         │   ├── entities/
-        │   │   └── pago.entity.ts                  Entidad Pago y sus reglas
+        │   │   └── pago.entity.ts                       Entidad Pago y sus reglas
         │   ├── value-objects/
-        │   │   ├── estado-pago.ts                  Enumeración EstadoPago
-        │   │   └── monto.ts                        Objeto de valor Monto (soles)
+        │   │   ├── estado-pago.ts                       Enumeración EstadoPago
+        │   │   ├── monto.ts                             Objeto de valor Monto (soles)
+        │   │   └── resultado-pasarela.ts                Resultado del pago informado por la pasarela
         │   └── errors/
-        │       └── transicion-pago-invalida.error.ts
+        │       ├── transicion-pago-invalida.error.ts
+        │       └── monto-no-coincide.error.ts
         ├── application/
         │   ├── ports/
-        │   │   ├── pago.repository.ts              Interfaz de persistencia
-        │   │   ├── permisos-puesto.port.ts         Interfaz para verificar permisos del puesto
-        │   │   ├── auditoria.port.ts               Interfaz para registrar operaciones críticas
-        │   │   └── eventos.port.ts                 Interfaz para publicar eventos del módulo
+        │   │   ├── pago.repository.ts                   Persistencia de pagos
+        │   │   ├── notificacion-pago.repository.ts      Registro idempotente de notificaciones
+        │   │   ├── pasarela-pago.port.ts                Contrato con la pasarela de pago
+        │   │   ├── verificador-firma-webhook.port.ts    Verificación de la firma del Webhook
+        │   │   ├── unidad-de-trabajo.port.ts            Transacción de base de datos
+        │   │   ├── outbox.port.ts                       Registro de eventos para despacho asíncrono
+        │   │   └── auditoria.port.ts                    Registro de operaciones críticas
         │   ├── use-cases/
-        │   │   ├── obtener-datos-pago.use-case.ts
-        │   │   ├── registrar-aviso-pago.use-case.ts
-        │   │   ├── validar-pago.use-case.ts        Caso de uso ValidarPago
-        │   │   └── observar-pago.use-case.ts
+        │   │   ├── iniciar-pago.use-case.ts
+        │   │   ├── procesar-notificacion-pago.use-case.ts   Caso de uso ProcesarNotificacionPago
+        │   │   ├── conciliar-pagos.use-case.ts
+        │   │   └── registrar-reembolso.use-case.ts
         │   └── dto/
-        │       └── validar-pago.command.ts         Datos de entrada del caso de uso
+        │       └── procesar-notificacion-pago.command.ts
         ├── infrastructure/
         │   ├── persistence/
-        │   │   └── postgres-pago.repository.ts     Implementación con PostgreSQL (Supabase)
+        │   │   ├── postgres-pago.repository.ts
+        │   │   ├── postgres-notificacion-pago.repository.ts
+        │   │   ├── postgres-unidad-de-trabajo.ts
+        │   │   └── postgres-outbox.ts
+        │   ├── pasarela/
+        │   │   ├── mercado-pago-checkout.adapter.ts     Cobro único vigente (Checkout)
+        │   │   ├── mercado-pago-split.adapter.ts        Alternativa de respaldo (división por puesto)
+        │   │   ├── pasarela-pago-local.adapter.ts       Simulador local para desarrollo y pruebas
+        │   │   └── verificador-firma-mercado-pago.ts    HMAC de la cabecera x-signature
         │   └── adapters/
-        │       ├── permisos-puesto.adapter.ts      Usa la API pública del módulo Comerciantes y puestos
-        │       ├── auditoria.adapter.ts            Usa la API pública del módulo Auditoría
-        │       └── eventos-nest.adapter.ts         Publica eventos en memoria
-        ├── presentation/
-        │   └── controllers/
-        │       └── pagos.controller.ts             Traduce HTTP ⇄ caso de uso
-        ├── pagos.module.ts                         Raíz de composición (módulo NestJS)
-        └── index.ts                                API pública del módulo
+        │       └── auditoria.adapter.ts                 Usa la API pública del módulo Auditoría
+        ├── entry-adapters/
+        │   ├── controllers/
+        │   │   └── pagos.controller.ts                  Iniciar pago y consultar estado
+        │   └── webhooks/
+        │       └── mercado-pago-webhook.controller.ts   WebhookController de Mercado Pago
+        ├── pagos.module.ts                              Raíz de composición (módulo NestJS)
+        └── index.ts                                     API pública del módulo
 ```
 
-| Archivo | Capa | Responsabilidad | Importa de |
+| Archivo | Anillo | Responsabilidad | Importa de |
 |---|---|---|---|
-| `pago.entity.ts` | Dominio | Controlar los estados del pago y validar sus transiciones (RN01, RN04, RN05) | Solo dominio |
-| `estado-pago.ts` | Dominio | Definir PENDIENTE, ESPERANDO_VALIDACION, VALIDADO, OBSERVADO y CANCELADO | Nada |
-| `monto.ts` | Dominio | Representar el importe esperado del puesto (RN02) | Nada |
+| `pago.entity.ts` | Dominio | Controlar los estados del pago y aplicar el resultado de la pasarela (R3, R4, R6) | Solo dominio |
+| `estado-pago.ts` | Dominio | Definir PENDIENTE, EN_PROCESO, APROBADO, RECHAZADO, EXPIRADO, CANCELADO y REEMBOLSADO | Nada |
+| `monto.ts` | Dominio | Representar importes en soles y compararlos (R3) | Nada |
+| `resultado-pasarela.ts` | Dominio | Representar el estado, el monto y la referencia del pago informados por la pasarela | Dominio |
 | `pago.repository.ts` | Aplicación (puerto) | Declarar **qué** operaciones de persistencia necesita el módulo | Dominio |
-| `permisos-puesto.port.ts` | Aplicación (puerto) | Declarar cómo saber si un usuario puede operar sobre un puesto | Nada |
-| `auditoria.port.ts` | Aplicación (puerto) | Declarar el registro de operaciones críticas (RN06) | Nada |
-| `eventos.port.ts` | Aplicación (puerto) | Declarar la publicación del evento `PagoValidado` | Nada |
-| `validar-pago.use-case.ts` | Aplicación | Coordinar los pasos de la validación | Dominio + puertos |
-| `validar-pago.command.ts` | Aplicación | Datos de entrada: `pagoId`, `usuarioId`, `montoRecibido` | Nada |
+| `notificacion-pago.repository.ts` | Aplicación (puerto) | Registrar una notificación solo si no fue procesada antes (R4) | Nada |
+| `pasarela-pago.port.ts` | Aplicación (puerto) | Declarar crear cobro, consultar pago y reembolsar, sin mencionar a Mercado Pago | Dominio |
+| `verificador-firma-webhook.port.ts` | Aplicación (puerto) | Declarar la verificación de la firma de una notificación (R1) | Nada |
+| `unidad-de-trabajo.port.ts` | Aplicación (puerto) | Ejecutar un bloque dentro de una transacción | Nada |
+| `outbox.port.ts` | Aplicación (puerto) | Registrar eventos en la misma transacción para despacharlos después | Nada |
+| `auditoria.port.ts` | Aplicación (puerto) | Declarar el registro de operaciones críticas (R5) | Nada |
+| `procesar-notificacion-pago.use-case.ts` | Aplicación | Coordinar consulta, idempotencia, transición, auditoría y evento | Dominio + puertos |
+| `procesar-notificacion-pago.command.ts` | Aplicación | Datos de entrada: `notificacionId`, `pagoExternoId` | Nada |
 | `postgres-pago.repository.ts` | Infraestructura | Guardar el pago con actualización condicional en PostgreSQL | Dominio + cliente de BD |
-| `permisos-puesto.adapter.ts` | Infraestructura | Consultar al módulo Comerciantes y puestos | Puerto + `comerciantes/index.ts` |
-| `auditoria.adapter.ts` | Infraestructura | Enviar el registro al módulo Auditoría | Puerto + `auditoria/index.ts` |
-| `eventos-nest.adapter.ts` | Infraestructura | Publicar eventos en memoria para Pedidos y Notificaciones | Puerto + NestJS |
-| `pagos.controller.ts` | Presentación | Leer la petición HTTP, invocar el caso de uso y responder | Aplicación |
-| `pagos.module.ts` | Composición | Registrar los providers y conectar cada puerto con su implementación | Todas las capas |
+| `postgres-notificacion-pago.repository.ts` | Infraestructura | `INSERT ... ON CONFLICT DO NOTHING` sobre el identificador de la notificación | Puerto + cliente de BD |
+| `mercado-pago-checkout.adapter.ts` | Infraestructura | Implementar `PasarelaPagoPort` con un cobro único mediante Checkout | Puerto + SDK/API de Mercado Pago |
+| `mercado-pago-split.adapter.ts` | Infraestructura | Implementar `PasarelaPagoPort` dividiendo el cobro entre las cuentas vinculadas de cada puesto | Puerto + SDK/API de Mercado Pago |
+| `pasarela-pago-local.adapter.ts` | Infraestructura | Implementar `PasarelaPagoPort` en memoria para desarrollo local y pruebas | Puerto |
+| `verificador-firma-mercado-pago.ts` | Infraestructura | Calcular y comparar el HMAC de la cabecera `x-signature` | Puerto + `node:crypto` |
+| `mercado-pago-webhook.controller.ts` | Adaptador de entrada | Recibir la notificación, verificar la firma e invocar el caso de uso | Aplicación |
+| `pagos.controller.ts` | Adaptador de entrada | Iniciar el pago y consultar su estado desde la Web/PWA | Aplicación |
+| `pagos.module.ts` | Composición | Registrar los providers y elegir la estrategia de pasarela según la configuración | Todos los anillos |
 | `index.ts` | Composición | Exponer solo lo que otros módulos pueden usar | `pagos.module.ts` |
 
 ---
 
-## 3. Capas del módulo y regla de dependencia
+## 3. Anillos del módulo y regla de dependencia
 
 ```mermaid
 flowchart TB
-    subgraph PRES["Presentación"]
+    subgraph ENT_AD["Adaptadores de entrada"]
+        WH["MercadoPagoWebhookController"]
         CTRL["PagosController"]
     end
     subgraph APP["Aplicación"]
-        UC["ValidarPagoUseCase"]
-        PORTS["Puertos<br/>PagoRepository · PermisosPuestoPort<br/>AuditoriaPort · EventosPort"]
+        UC["ProcesarNotificacionPagoUseCase"]
+        PORTS["Puertos<br/>PagoRepository · NotificacionPagoRepository<br/>PasarelaPagoPort · VerificadorFirmaWebhookPort<br/>UnidadDeTrabajo · OutboxPort · AuditoriaPort"]
     end
     subgraph DOM["Dominio"]
-        ENT["Pago · EstadoPago · Monto"]
+        ENT["Pago · EstadoPago · Monto · ResultadoPasarela"]
     end
     subgraph INF["Infraestructura"]
-        REPO["PostgresPagoRepository"]
-        ADP["PermisosPuestoAdapter<br/>AuditoriaAdapter<br/>EventosNestAdapter"]
+        REPO["PostgresPagoRepository<br/>PostgresNotificacionPagoRepository<br/>PostgresOutbox"]
+        PAS["MercadoPagoCheckoutAdapter<br/>MercadoPagoSplitAdapter<br/>PasarelaPagoLocalAdapter"]
+        VER["VerificadorFirmaMercadoPago"]
     end
 
+    WH --> UC
     CTRL --> UC
+    WH --> PORTS
     UC --> ENT
     UC --> PORTS
     PORTS --> ENT
     REPO -. implementa .-> PORTS
-    ADP -. implementa .-> PORTS
+    PAS -. implementa .-> PORTS
+    VER -. implementa .-> PORTS
 ```
 
-**Regla de dependencia:** el código solo puede importar hacia el centro (dominio). El dominio no conoce NestJS, PostgreSQL ni Supabase ([ADR-002](../../01-analisis-de-sistema/decisiones/ADR-002-clean-architecture.md)).
+**Regla de dependencia:** el código solo puede importar hacia el centro (dominio). El dominio no conoce NestJS, PostgreSQL, Supabase ni Mercado Pago ([ADR-002](../../01-analisis-de-sistema/decisiones/ADR-002-clean-architecture.md)).
 
-| Capa | Contiene | Responsabilidad | Puede depender de | **No** puede depender de |
+| Anillo | Contiene | Responsabilidad | Puede depender de | **No** puede depender de |
 |---|---|---|---|---|
-| **Dominio** | Entidades, objetos de valor, enumeraciones, errores | Reglas del negocio que serían ciertas con cualquier tecnología | Nada externo | Aplicación, infraestructura, presentación, NestJS, cliente de BD |
-| **Aplicación** | Casos de uso, puertos (interfaces), comandos | Orquestar el flujo: qué paso va primero y qué hacer si falla | Dominio | Infraestructura, presentación, NestJS, SQL |
-| **Infraestructura** | Repositorios concretos y adaptadores | Implementar los puertos con una tecnología o con la API pública de otro módulo | Aplicación (puertos), dominio, librerías externas | Presentación |
-| **Presentación** | Controladores REST | Traducir HTTP a llamadas del caso de uso y viceversa | Aplicación | Infraestructura, base de datos |
-| **Composición** | `pagos.module.ts` | Elegir implementaciones concretas y conectarlas mediante la inyección de dependencias de NestJS | Todas | — |
+| **Dominio** | Entidades, objetos de valor, enumeraciones, errores | Reglas del negocio que serían ciertas con cualquier tecnología | Nada externo | Aplicación, infraestructura, adaptadores de entrada, NestJS, cliente de BD, SDK de Mercado Pago |
+| **Aplicación** | Casos de uso, puertos (interfaces), comandos | Orquestar el flujo: qué paso va primero y qué hacer si falla | Dominio | Infraestructura, adaptadores de entrada, NestJS, SQL, SDK de Mercado Pago |
+| **Infraestructura** | Repositorios concretos y adaptadores de salida | Implementar los puertos con una tecnología o con la API pública de otro módulo | Aplicación (puertos), dominio, librerías externas | Adaptadores de entrada |
+| **Adaptadores de entrada** | Controladores REST y del Webhook | Traducir HTTP a llamadas del caso de uso y viceversa | Aplicación (casos de uso y puertos) | Infraestructura, base de datos, SDK de Mercado Pago |
+| **Composición** | `pagos.module.ts` | Elegir implementaciones concretas y conectarlas mediante la inyección de dependencias de NestJS | Todos | — |
 
-> **Cómo comprobarlo en el código:** basta revisar los `import` de `domain/`. Si aparece `@nestjs/*`, `@supabase/*`, `pg` o cualquier archivo de `infrastructure/`, la regla se rompió.
+> **Cómo comprobarlo en el código:** basta revisar los `import` de `domain/` y `application/`. Si aparece `@nestjs/*`, `@supabase/*`, `pg`, `mercadopago` o cualquier archivo de `infrastructure/`, la regla se rompió. El SDK de Mercado Pago solo puede importarse en `infrastructure/pasarela/`.
 
 ---
 
@@ -130,33 +168,39 @@ flowchart TB
 
 ```mermaid
 classDiagram
-    class PagosController {
-        -validarPago: ValidarPagoUseCase
-        +validar(pagoId, usuario, body)
+    class MercadoPagoWebhookController {
+        -verificador: VerificadorFirmaWebhookPort
+        -procesar: ProcesarNotificacionPagoUseCase
+        +recibir(cabeceras, query, body)
     }
-    class ValidarPagoUseCase {
+    class ProcesarNotificacionPagoUseCase {
         -pagos: PagoRepository
-        -permisos: PermisosPuestoPort
+        -notificaciones: NotificacionPagoRepository
+        -pasarela: PasarelaPagoPort
+        -uow: UnidadDeTrabajo
+        -outbox: OutboxPort
         -auditoria: AuditoriaPort
-        -eventos: EventosPort
-        +ejecutar(cmd: ValidarPagoCommand)
+        +ejecutar(cmd: ProcesarNotificacionPagoCommand)
     }
-    class ValidarPagoCommand {
-        +pagoId: string
-        +usuarioId: string
-        +montoRecibido: number
+    class ProcesarNotificacionPagoCommand {
+        +notificacionId: string
+        +pagoExternoId: string
     }
     class Pago {
         -id: string
         -pedidoId: string
-        -puestoId: string
-        -montoEsperado: Monto
+        -montoTotal: Monto
         -estado: EstadoPago
-        +registrarAviso()
-        +validar(usuarioId, montoRecibido)
-        +observar(motivo)
-        +cancelar()
-        +estaValidado() bool
+        -pagoExternoId: string
+        +aplicarResultadoPasarela(resultado) bool
+        +expirar()
+        +estaAprobado() bool
+    }
+    class ResultadoPasarela {
+        +pagoExternoId: string
+        +referenciaExterna: string
+        +estado: EstadoPago
+        +montoPagado: Monto
     }
     class Monto {
         +valor: number
@@ -165,114 +209,151 @@ classDiagram
     class EstadoPago {
         <<enumeration>>
         PENDIENTE
-        ESPERANDO_VALIDACION
-        VALIDADO
-        OBSERVADO
+        EN_PROCESO
+        APROBADO
+        RECHAZADO
+        EXPIRADO
         CANCELADO
+        REEMBOLSADO
+    }
+    class PasarelaPagoPort {
+        <<interface>>
+        +crearCobro(solicitud) CobroCreado
+        +consultarPago(pagoExternoId) ResultadoPasarela
+        +reembolsar(pagoExternoId, monto)
+    }
+    class VerificadorFirmaWebhookPort {
+        <<interface>>
+        +esValida(firma, requestId, dataId) bool
+    }
+    class NotificacionPagoRepository {
+        <<interface>>
+        +yaProcesada(notificacionId) bool
+        +registrarSiNueva(notificacionId, pagoExternoId) bool
     }
     class PagoRepository {
         <<interface>>
-        +buscarPorId(id) Pago
+        +buscarPorPedido(pedidoId) Pago
         +guardarSiEstado(pago, estadoEsperado) bool
     }
-    class PermisosPuestoPort {
+    class OutboxPort {
         <<interface>>
-        +puedeValidarPagos(usuarioId, puestoId) bool
+        +agregar(evento)
     }
-    class AuditoriaPort {
-        <<interface>>
-        +registrar(operacion)
-    }
-    class EventosPort {
-        <<interface>>
-        +publicar(evento)
-    }
-    class PostgresPagoRepository
-    class PermisosPuestoAdapter
-    class AuditoriaAdapter
-    class EventosNestAdapter
+    class MercadoPagoCheckoutAdapter
+    class MercadoPagoSplitAdapter
+    class PasarelaPagoLocalAdapter
+    class VerificadorFirmaMercadoPago
 
-    PagosController ..> ValidarPagoCommand : crea
-    PagosController --> ValidarPagoUseCase
-    ValidarPagoUseCase --> PagoRepository
-    ValidarPagoUseCase --> PermisosPuestoPort
-    ValidarPagoUseCase --> AuditoriaPort
-    ValidarPagoUseCase --> EventosPort
-    ValidarPagoUseCase ..> Pago : usa
+    MercadoPagoWebhookController ..> ProcesarNotificacionPagoCommand : crea
+    MercadoPagoWebhookController --> VerificadorFirmaWebhookPort
+    MercadoPagoWebhookController --> ProcesarNotificacionPagoUseCase
+    ProcesarNotificacionPagoUseCase --> PagoRepository
+    ProcesarNotificacionPagoUseCase --> NotificacionPagoRepository
+    ProcesarNotificacionPagoUseCase --> PasarelaPagoPort
+    ProcesarNotificacionPagoUseCase --> OutboxPort
+    ProcesarNotificacionPagoUseCase ..> Pago : usa
     Pago *-- Monto
     Pago --> EstadoPago
-    PostgresPagoRepository ..|> PagoRepository
-    PermisosPuestoAdapter ..|> PermisosPuestoPort
-    AuditoriaAdapter ..|> AuditoriaPort
-    EventosNestAdapter ..|> EventosPort
+    Pago ..> ResultadoPasarela : aplica
+    MercadoPagoCheckoutAdapter ..|> PasarelaPagoPort
+    MercadoPagoSplitAdapter ..|> PasarelaPagoPort
+    PasarelaPagoLocalAdapter ..|> PasarelaPagoPort
+    VerificadorFirmaMercadoPago ..|> VerificadorFirmaWebhookPort
 ```
 
 ### 4.1 Notación UML utilizada
 
 | Símbolo | Significado | Ejemplo en el diagrama |
 |---|---|---|
-| Línea continua con flecha abierta | Asociación: la clase guarda una referencia a la otra | `ValidarPagoUseCase` → `PagoRepository` |
-| Línea discontinua con flecha abierta | Dependencia: la usa o la crea, pero no la guarda | `PagosController` «crea» `ValidarPagoCommand` |
-| Línea discontinua con triángulo hueco | Realización: implementa una interfaz | `PostgresPagoRepository` ▷ `PagoRepository` |
+| Línea continua con flecha abierta | Asociación: la clase guarda una referencia a la otra | `ProcesarNotificacionPagoUseCase` → `PasarelaPagoPort` |
+| Línea discontinua con flecha abierta | Dependencia: la usa o la crea, pero no la guarda | `MercadoPagoWebhookController` «crea» `ProcesarNotificacionPagoCommand` |
+| Línea discontinua con triángulo hueco | Realización: implementa una interfaz | `MercadoPagoCheckoutAdapter` ▷ `PasarelaPagoPort` |
 | Rombo relleno | Composición: la parte no existe sin el todo | `Pago` ◆ `Monto` |
-| «interface» | Interfaz (contrato sin implementación) | `PagoRepository`, `PermisosPuestoPort` |
-| `-` / `+` | Privado / público | `- estado`, `+ validar()` |
+| «interface» | Interfaz (contrato sin implementación) | `PasarelaPagoPort`, `PagoRepository` |
+| `-` / `+` | Privado / público | `- estado`, `+ aplicarResultadoPasarela()` |
 
 ---
 
-## 5. Flujo de ejecución: validar el pago de un puesto
+## 5. Flujo de ejecución: procesar la notificación de pago
 
 ```mermaid
 sequenceDiagram
-    actor CM as Comerciante / Trabajador autorizado
-    participant CTRL as PagosController
-    participant UC as ValidarPagoUseCase
-    participant REPO as PagoRepository
-    participant PERM as PermisosPuestoPort
+    participant MP as Mercado Pago
+    participant WH as MercadoPagoWebhookController
+    participant VER as VerificadorFirmaWebhookPort
+    participant UC as ProcesarNotificacionPagoUseCase
+    participant NOT as NotificacionPagoRepository
+    participant PAS as PasarelaPagoPort
+    participant UOW as UnidadDeTrabajo
     participant PAGO as Pago
-    participant AUD as AuditoriaPort
-    participant EV as EventosPort
+    participant REPO as PagoRepository
+    participant OUT as OutboxPort
 
-    CM->>CTRL: POST /api/v1/pagos/{pagoId}/validacion
-    CTRL->>UC: ejecutar(cmd)
-    UC->>REPO: buscarPorId(pagoId)
-    REPO-->>UC: pago
-    UC->>PERM: puedeValidarPagos(usuarioId, puestoId)
-    alt Usuario no autorizado
-        PERM-->>UC: false
-        UC-->>CTRL: error de autorización
-        CTRL-->>CM: 403 Forbidden
-    else Usuario autorizado
-        PERM-->>UC: true
-        UC->>PAGO: validar(usuarioId, montoRecibido)
-        UC->>REPO: guardarSiEstado(pago, ESPERANDO_VALIDACION)
-        alt El pago ya cambió de estado (solicitud repetida o simultánea)
-            REPO-->>UC: false
-            UC-->>CTRL: conflicto
-            CTRL-->>CM: 409 Conflict
-        else Guardado correcto
-            REPO-->>UC: true
-            UC->>AUD: registrar(pedido, puesto, usuario, fecha, monto, resultado)
-            UC->>EV: publicar(PagoValidado)
-            CTRL-->>CM: 200 OK con el estado VALIDADO
+    MP->>WH: POST /api/v1/webhooks/mercado-pago
+    WH->>VER: esValida(x-signature, x-request-id, data.id)
+    alt Firma ausente o inválida
+        VER-->>WH: false
+        WH-->>MP: 401 Unauthorized
+    else Firma válida
+        VER-->>WH: true
+        WH->>UC: ejecutar(cmd)
+        UC->>NOT: yaProcesada(notificacionId)
+        alt Notificación ya procesada
+            NOT-->>UC: true
+            UC-->>WH: DUPLICADA
+            WH-->>MP: 200 OK
+        else Notificación nueva
+            NOT-->>UC: false
+            UC->>PAS: consultarPago(pagoExternoId)
+            PAS-->>UC: resultado
+            UC->>UOW: ejecutar(transacción)
+            UOW->>NOT: registrarSiNueva(notificacionId)
+            UOW->>REPO: buscarPorPedido(referenciaExterna)
+            UOW->>PAGO: aplicarResultadoPasarela(resultado)
+            UOW->>REPO: guardarSiEstado(pago, estadoAnterior)
+            UOW->>OUT: agregar(PagoAprobado)
+            UOW-->>UC: confirmada
+            UC-->>WH: PROCESADA
+            WH-->>MP: 200 OK
         end
     end
 ```
 
-| Paso | Origen → destino | Acción | Capa |
+| Paso | Origen → destino | Acción | Anillo |
 |---|---|---|---|
-| 1 | Web/PWA → `PagosController` | `POST /api/v1/pagos/{pagoId}/validacion` con `montoRecibido` y el token de sesión | Presentación |
-| 2 | `PagosController` → `ValidarPagoUseCase` | `ejecutar(cmd)` | Presentación → Aplicación |
-| 3 | `ValidarPagoUseCase` → `PagoRepository` | `buscarPorId(pagoId)` | Aplicación → puerto |
-| 4 | `ValidarPagoUseCase` → `PermisosPuestoPort` | Verifica que el usuario sea el comerciante del puesto o un trabajador con permiso (RN01) | Aplicación → puerto |
-| 5 | `ValidarPagoUseCase` → `Pago` | `validar()`: comprueba que el estado permita la validación y registra el monto recibido (RN02, RN03) | Aplicación → Dominio |
-| 6 | `ValidarPagoUseCase` → `PagoRepository` | `guardarSiEstado()`: actualización condicional; si otra solicitud ya validó el pago, no se aplica (RN05) | Aplicación → Infraestructura |
-| 7 | `ValidarPagoUseCase` → `AuditoriaPort` | Registra pedido, puesto, usuario, fecha, hora, monto y resultado (RN06) | Aplicación → puerto |
-| 8 | `ValidarPagoUseCase` → `EventosPort` | Publica `PagoValidado`; el módulo Pedidos habilita la preparación del puesto (RN04) y Notificaciones avisa al cliente | Aplicación → puerto |
-| 9 | `PagosController` → Web/PWA | `200 OK` con el estado VALIDADO | Presentación |
-| Alt. | — | `403` si el usuario no pertenece al puesto; `409` si el pago ya no está en ESPERANDO_VALIDACION | Presentación |
+| 1 | Mercado Pago → `MercadoPagoWebhookController` | `POST /api/v1/webhooks/mercado-pago` con las cabeceras `x-signature` y `x-request-id` | Adaptador de entrada |
+| 2 | Controlador → `VerificadorFirmaWebhookPort` | Verifica la firma; si es inválida responde `401` sin invocar el caso de uso (R1) | Adaptador de entrada → puerto |
+| 3 | Controlador → `ProcesarNotificacionPagoUseCase` | `ejecutar(cmd)` con el identificador de la notificación y del pago | Adaptador de entrada → Aplicación |
+| 4 | Caso de uso → `NotificacionPagoRepository` | `yaProcesada()`: descarte rápido de reenvíos sin consultar a la pasarela (R4) | Aplicación → puerto |
+| 5 | Caso de uso → `PasarelaPagoPort` | `consultarPago()`: obtiene el estado real del pago, **fuera** de la transacción (R2) | Aplicación → Infraestructura |
+| 6 | Caso de uso → `UnidadDeTrabajo` | Abre una transacción corta | Aplicación → puerto |
+| 7 | En la transacción → `NotificacionPagoRepository` | `registrarSiNueva()`: inserción con clave única; si otra solicitud simultánea ya la registró, se termina sin cambios (R4) | Aplicación → Infraestructura |
+| 8 | En la transacción → `Pago` | `aplicarResultadoPasarela()`: valida la transición y que el monto coincida (R3, R6) | Aplicación → Dominio |
+| 9 | En la transacción → `PagoRepository` | `guardarSiEstado()`: actualización condicional sobre el estado anterior | Aplicación → Infraestructura |
+| 10 | En la transacción → `OutboxPort` | Registra `PagoAprobado` y la auditoría en la misma transacción; el despacho a Pedidos y Notificaciones ocurre después (R5) | Aplicación → Infraestructura |
+| 11 | Controlador → Mercado Pago | `200 OK` para que la pasarela no reintente | Adaptador de entrada |
+| Alt. | — | `401` si la firma es inválida; `200` con `DUPLICADA` si la notificación ya fue procesada; `500` si la consulta a la pasarela falla, para que Mercado Pago reintente | Adaptador de entrada |
 
-> **TODO:** confirmar si el comerciante puede validar un pago que sigue en PENDIENTE (el cliente pagó pero no registró el aviso en la plataforma).
+> **TODO:** confirmar en la documentación de Mercado Pago el formato de la marca de tiempo de `x-signature` y fijar el margen de tolerancia para rechazar notificaciones antiguas.
+
+### 5.1 Idempotencia
+
+La idempotencia se garantiza en tres niveles:
+
+1. **Registro de notificaciones:** la tabla de notificaciones tiene una clave única sobre el identificador de la notificación. `registrarSiNueva()` usa `INSERT ... ON CONFLICT DO NOTHING` dentro de la transacción, por lo que dos entregas simultáneas de la misma notificación no pueden procesarse ambas.
+2. **Transición en el dominio:** si el resultado de la pasarela coincide con el estado actual del pago, `aplicarResultadoPasarela()` devuelve `false` y no se guarda nada. Así, notificaciones distintas que informan el mismo estado no generan cambios.
+3. **Actualización condicional:** `guardarSiEstado()` solo modifica la fila si el pago sigue en el estado leído, evitando que el Webhook y la conciliación periódica apliquen cambios incompatibles.
+
+### 5.2 Adaptadores de pasarela
+
+| Adaptador | Uso | Comportamiento de `crearCobro` |
+|---|---|---|
+| `MercadoPagoCheckoutAdapter` | Vigente en Sandbox | Crea un único cobro por la suma de los subtotales y devuelve la URL del Checkout |
+| `MercadoPagoSplitAdapter` | Alternativa de respaldo de ADR-005 | Divide el cobro entre las cuentas vinculadas de los comerciantes de cada puesto |
+| `PasarelaPagoLocalAdapter` | Desarrollo local y pruebas automatizadas | Simula cobros y resultados en memoria, sin conexión a Mercado Pago |
+
+Los tres implementan el mismo contrato `PasarelaPagoPort`; el caso de uso no conoce cuál se está usando.
 
 ---
 
@@ -286,170 +367,296 @@ El siguiente código es **referencial** y muestra cómo se aplica la regla de de
 // domain/entities/pago.entity.ts
 import { EstadoPago } from '../value-objects/estado-pago';
 import { Monto } from '../value-objects/monto';
+import { ResultadoPasarela } from '../value-objects/resultado-pasarela';
 import { TransicionPagoInvalidaError } from '../errors/transicion-pago-invalida.error';
+import { MontoNoCoincideError } from '../errors/monto-no-coincide.error';
+
+const TRANSICIONES: Record<EstadoPago, EstadoPago[]> = {
+  [EstadoPago.PENDIENTE]: [EstadoPago.EN_PROCESO, EstadoPago.APROBADO, EstadoPago.RECHAZADO, EstadoPago.EXPIRADO, EstadoPago.CANCELADO],
+  [EstadoPago.EN_PROCESO]: [EstadoPago.APROBADO, EstadoPago.RECHAZADO, EstadoPago.EXPIRADO],
+  [EstadoPago.APROBADO]: [EstadoPago.REEMBOLSADO],
+  [EstadoPago.RECHAZADO]: [],
+  [EstadoPago.EXPIRADO]: [],
+  [EstadoPago.CANCELADO]: [],
+  [EstadoPago.REEMBOLSADO]: [],
+};
 
 export class Pago {
   constructor(
     readonly id: string,
     readonly pedidoId: string,
-    readonly puestoId: string,
-    readonly montoEsperado: Monto,
+    readonly montoTotal: Monto,
     private estado: EstadoPago,
-    private validadoPor?: string,
-    private montoRecibido?: Monto,
+    private pagoExternoId?: string,
   ) {}
 
-  validar(usuarioId: string, montoRecibido: Monto): void {
-    if (this.estado !== EstadoPago.ESPERANDO_VALIDACION) {
-      throw new TransicionPagoInvalidaError(this.estado, EstadoPago.VALIDADO);
+  /** Devuelve false si el resultado no cambia el estado actual (notificación repetida, R4). */
+  aplicarResultadoPasarela(resultado: ResultadoPasarela): boolean {
+    if (resultado.estado === this.estado) return false;
+
+    if (!TRANSICIONES[this.estado].includes(resultado.estado)) {
+      throw new TransicionPagoInvalidaError(this.estado, resultado.estado);
     }
-    if (!montoRecibido.igualA(this.montoEsperado)) {
-      // Una diferencia de monto no valida el pago: queda observado (RN08)
-      this.estado = EstadoPago.OBSERVADO;
-      return;
+    if (resultado.estado === EstadoPago.APROBADO && !resultado.montoPagado.igualA(this.montoTotal)) {
+      // El monto aprobado debe coincidir con la suma de los subtotales por puesto (R3)
+      throw new MontoNoCoincideError(this.montoTotal, resultado.montoPagado);
     }
-    this.estado = EstadoPago.VALIDADO;
-    this.validadoPor = usuarioId;
-    this.montoRecibido = montoRecibido;
+
+    this.estado = resultado.estado;
+    this.pagoExternoId = resultado.pagoExternoId;
+    return true;
   }
 
-  estaValidado(): boolean {
-    return this.estado === EstadoPago.VALIDADO;
+  estaAprobado(): boolean {
+    return this.estado === EstadoPago.APROBADO;
   }
 
   get estadoActual(): EstadoPago {
     return this.estado;
   }
 
-  get validadoPorUsuario(): string | undefined {
-    return this.validadoPor;
-  }
-
-  get montoRecibidoValor(): number | undefined {
-    return this.montoRecibido?.valor;
+  get idExterno(): string | undefined {
+    return this.pagoExternoId;
   }
 }
 ```
 
-### 6.2 Aplicación · puerto y caso de uso
+### 6.2 Aplicación · puertos y caso de uso
 
 ```typescript
-// application/ports/pago.repository.ts
-import { Pago } from '../../domain/entities/pago.entity';
-import { EstadoPago } from '../../domain/value-objects/estado-pago';
+// application/ports/pasarela-pago.port.ts
+import { Monto } from '../../domain/value-objects/monto';
+import { ResultadoPasarela } from '../../domain/value-objects/resultado-pasarela';
 
-export const PAGO_REPOSITORY = Symbol('PAGO_REPOSITORY');
+export const PASARELA_PAGO_PORT = Symbol('PASARELA_PAGO_PORT');
 
-export interface PagoRepository {
-  buscarPorId(id: string): Promise<Pago | null>;
-  /** Guarda solo si el pago sigue en el estado esperado. Devuelve false si otra solicitud lo cambió. */
-  guardarSiEstado(pago: Pago, estadoEsperado: EstadoPago): Promise<boolean>;
+export interface SolicitudCobro {
+  pedidoId: string;
+  montoTotal: Monto;
+  subtotales: { puestoId: string; cuentaComercianteId: string; monto: Monto }[];
+  expiraEn: Date;
+}
+
+export interface CobroCreado {
+  referenciaCobro: string;
+  urlCheckout: string;
+}
+
+export interface PasarelaPagoPort {
+  crearCobro(solicitud: SolicitudCobro): Promise<CobroCreado>;
+  consultarPago(pagoExternoId: string): Promise<ResultadoPasarela>;
+  reembolsar(pagoExternoId: string, monto?: Monto): Promise<void>;
 }
 ```
 
 ```typescript
-// application/use-cases/validar-pago.use-case.ts
-export class ValidarPagoUseCase {
+// application/ports/notificacion-pago.repository.ts
+export const NOTIFICACION_PAGO_REPOSITORY = Symbol('NOTIFICACION_PAGO_REPOSITORY');
+
+export interface NotificacionPagoRepository {
+  yaProcesada(notificacionId: string): Promise<boolean>;
+  /** Inserta la notificación con clave única. Devuelve false si ya existía. */
+  registrarSiNueva(notificacionId: string, pagoExternoId: string): Promise<boolean>;
+}
+```
+
+```typescript
+// application/use-cases/procesar-notificacion-pago.use-case.ts
+export type ResultadoProcesamiento = 'PROCESADA' | 'DUPLICADA' | 'SIN_CAMBIOS';
+
+export class ProcesarNotificacionPagoUseCase {
   constructor(
     private readonly pagos: PagoRepository,
-    private readonly permisos: PermisosPuestoPort,
+    private readonly notificaciones: NotificacionPagoRepository,
+    private readonly pasarela: PasarelaPagoPort,
+    private readonly uow: UnidadDeTrabajo,
+    private readonly outbox: OutboxPort,
     private readonly auditoria: AuditoriaPort,
-    private readonly eventos: EventosPort,
   ) {}
 
-  async ejecutar(cmd: ValidarPagoCommand): Promise<EstadoPago> {
-    const pago = await this.pagos.buscarPorId(cmd.pagoId);
-    if (!pago) throw new PagoNoEncontradoError(cmd.pagoId);
+  async ejecutar(cmd: ProcesarNotificacionPagoCommand): Promise<ResultadoProcesamiento> {
+    if (await this.notificaciones.yaProcesada(cmd.notificacionId)) return 'DUPLICADA';
 
-    const autorizado = await this.permisos.puedeValidarPagos(cmd.usuarioId, pago.puestoId);
-    if (!autorizado) throw new UsuarioNoAutorizadoError(cmd.usuarioId, pago.puestoId);
+    // La consulta a la pasarela se realiza fuera de la transacción para mantenerla corta (R2)
+    const resultado = await this.pasarela.consultarPago(cmd.pagoExternoId);
 
-    pago.validar(cmd.usuarioId, new Monto(cmd.montoRecibido));
+    return this.uow.ejecutar(async () => {
+      const nueva = await this.notificaciones.registrarSiNueva(cmd.notificacionId, cmd.pagoExternoId);
+      if (!nueva) return 'DUPLICADA';
 
-    const guardado = await this.pagos.guardarSiEstado(pago, EstadoPago.ESPERANDO_VALIDACION);
-    if (!guardado) throw new PagoYaProcesadoError(cmd.pagoId);
+      const pago = await this.pagos.buscarPorPedido(resultado.referenciaExterna);
+      if (!pago) throw new PagoNoEncontradoError(resultado.referenciaExterna);
 
-    await this.auditoria.registrar({
-      operacion: 'VALIDAR_PAGO',
-      pedidoId: pago.pedidoId,
-      puestoId: pago.puestoId,
-      usuarioId: cmd.usuarioId,
-      monto: cmd.montoRecibido,
-      resultado: pago.estadoActual,
+      const estadoAnterior = pago.estadoActual;
+      if (!pago.aplicarResultadoPasarela(resultado)) return 'SIN_CAMBIOS';
+
+      const guardado = await this.pagos.guardarSiEstado(pago, estadoAnterior);
+      if (!guardado) throw new PagoModificadoConcurrentementeError(pago.id);
+
+      await this.auditoria.registrar({
+        operacion: 'PROCESAR_NOTIFICACION_PAGO',
+        pedidoId: pago.pedidoId,
+        notificacionId: cmd.notificacionId,
+        estadoAnterior,
+        estadoNuevo: pago.estadoActual,
+      });
+
+      if (pago.estaAprobado()) {
+        await this.outbox.agregar({ tipo: 'PagoAprobado', pedidoId: pago.pedidoId, pagoId: pago.id });
+      }
+      return 'PROCESADA';
     });
-
-    if (pago.estaValidado()) {
-      await this.eventos.publicar({ tipo: 'PagoValidado', pedidoId: pago.pedidoId, puestoId: pago.puestoId });
-    }
-    return pago.estadoActual;
   }
 }
 ```
 
-> El caso de uso no importa nada de NestJS: recibe sus dependencias por el constructor.
+> El caso de uso no importa nada de NestJS ni de Mercado Pago: recibe sus dependencias por el constructor. Si la transacción falla, el registro de la notificación también se revierte y el reintento de Mercado Pago se procesa normalmente.
 
-### 6.3 Infraestructura · repositorio
+### 6.3 Infraestructura · repositorio y adaptador de pasarela
 
 ```typescript
-// infrastructure/persistence/postgres-pago.repository.ts
-export class PostgresPagoRepository implements PagoRepository {
+// infrastructure/persistence/postgres-notificacion-pago.repository.ts
+export class PostgresNotificacionPagoRepository implements NotificacionPagoRepository {
   constructor(private readonly db: ClienteBaseDatos) {}
 
-  async guardarSiEstado(pago: Pago, estadoEsperado: EstadoPago): Promise<boolean> {
-    // Actualización condicional: si dos solicitudes llegan a la vez, solo una modifica la fila (RN05)
+  async registrarSiNueva(notificacionId: string, pagoExternoId: string): Promise<boolean> {
     const filas = await this.db.query(
-      `UPDATE pagos
-          SET estado = $1, validado_por = $2, monto_recibido = $3, actualizado_en = now()
-        WHERE id = $4 AND estado = $5`,
-      [pago.estadoActual, pago.validadoPorUsuario, pago.montoRecibidoValor, pago.id, estadoEsperado],
+      `INSERT INTO notificaciones_pago (notificacion_id, pago_externo_id, recibida_en)
+       VALUES ($1, $2, now())
+       ON CONFLICT (notificacion_id) DO NOTHING`,
+      [notificacionId, pagoExternoId],
     );
     return filas.rowCount === 1;
   }
 
-  // buscarPorId(...) convierte la fila de la tabla en una entidad Pago
+  // yaProcesada(...) consulta la existencia del identificador
 }
 ```
 
-### 6.4 Presentación · controlador
+```typescript
+// infrastructure/pasarela/mercado-pago-checkout.adapter.ts
+export class MercadoPagoCheckoutAdapter implements PasarelaPagoPort {
+  constructor(private readonly cliente: ClienteMercadoPago) {}
+
+  async crearCobro(solicitud: SolicitudCobro): Promise<CobroCreado> {
+    const preferencia = await this.cliente.crearPreferencia({
+      referenciaExterna: solicitud.pedidoId,
+      monto: solicitud.montoTotal.valor,
+      expiraEn: solicitud.expiraEn,
+    });
+    return { referenciaCobro: preferencia.id, urlCheckout: preferencia.urlCheckout };
+  }
+
+  async consultarPago(pagoExternoId: string): Promise<ResultadoPasarela> {
+    const pago = await this.cliente.obtenerPago(pagoExternoId);
+    return ResultadoPasarela.desdeProveedor(pago.id, pago.referenciaExterna, pago.estado, pago.monto);
+  }
+
+  // reembolsar(...) invoca la API de reembolsos con el monto total o parcial
+}
+```
 
 ```typescript
-// presentation/controllers/pagos.controller.ts
-@Controller('api/v1/pagos')
-export class PagosController {
-  constructor(private readonly validarPago: ValidarPagoUseCase) {}
+// infrastructure/pasarela/verificador-firma-mercado-pago.ts
+import { createHmac, timingSafeEqual } from 'node:crypto';
 
-  @Post(':pagoId/validacion')
-  async validar(@Param('pagoId') pagoId: string, @UsuarioActual() usuario: UsuarioSesion, @Body() body: ValidarPagoDto) {
-    const estado = await this.validarPago.ejecutar({ pagoId, usuarioId: usuario.id, montoRecibido: body.montoRecibido });
-    return { pagoId, estado };
+export class VerificadorFirmaMercadoPago implements VerificadorFirmaWebhookPort {
+  constructor(private readonly claveSecreta: string) {}
+
+  esValida(firma: string | undefined, requestId: string | undefined, dataId: string | undefined): boolean {
+    if (!firma || !requestId || !dataId) return false;
+
+    const partes = Object.fromEntries(firma.split(',').map((p) => p.trim().split('=')));
+    const { ts, v1 } = partes;
+    if (!ts || !v1 || !this.dentroDeTolerancia(ts)) return false;
+
+    const manifiesto = `id:${dataId};request-id:${requestId};ts:${ts};`;
+    const esperado = createHmac('sha256', this.claveSecreta).update(manifiesto).digest('hex');
+
+    return esperado.length === v1.length && timingSafeEqual(Buffer.from(esperado), Buffer.from(v1));
+  }
+
+  // dentroDeTolerancia(...) rechaza marcas de tiempo fuera del margen configurado
+}
+```
+
+### 6.4 Adaptador de entrada · WebhookController
+
+```typescript
+// entry-adapters/webhooks/mercado-pago-webhook.controller.ts
+@Controller('api/v1/webhooks/mercado-pago')
+export class MercadoPagoWebhookController {
+  constructor(
+    @Inject(VERIFICADOR_FIRMA_WEBHOOK_PORT) private readonly verificador: VerificadorFirmaWebhookPort,
+    private readonly procesarNotificacion: ProcesarNotificacionPagoUseCase,
+  ) {}
+
+  @Post()
+  @HttpCode(200)
+  async recibir(
+    @Headers('x-signature') firma: string,
+    @Headers('x-request-id') requestId: string,
+    @Query('data.id') dataId: string,
+    @Body() body: NotificacionMercadoPagoDto,
+  ) {
+    if (!this.verificador.esValida(firma, requestId, dataId)) {
+      throw new UnauthorizedException();
+    }
+    if (body.type !== 'payment') return { recibida: true };
+
+    const resultado = await this.procesarNotificacion.ejecutar({
+      notificacionId: String(body.id),
+      pagoExternoId: dataId,
+    });
+    return { recibida: true, resultado };
   }
 }
 ```
+
+> El endpoint del Webhook no usa la sesión de usuario: su autenticación es la firma de Mercado Pago (R1).
 
 ### 6.5 Raíz de composición
 
 ```typescript
 // pagos.module.ts
+const pasarelaPorModo = {
+  checkout: MercadoPagoCheckoutAdapter,
+  split: MercadoPagoSplitAdapter,
+  local: PasarelaPagoLocalAdapter,
+};
+
 @Module({
-  imports: [ComerciantesModule, AuditoriaModule],
-  controllers: [PagosController],
+  imports: [AuditoriaModule],
+  controllers: [PagosController, MercadoPagoWebhookController],
   providers: [
     { provide: PAGO_REPOSITORY, useClass: PostgresPagoRepository },
-    { provide: PERMISOS_PUESTO_PORT, useClass: PermisosPuestoAdapter },
+    { provide: NOTIFICACION_PAGO_REPOSITORY, useClass: PostgresNotificacionPagoRepository },
+    { provide: UNIDAD_DE_TRABAJO, useClass: PostgresUnidadDeTrabajo },
+    { provide: OUTBOX_PORT, useClass: PostgresOutbox },
     { provide: AUDITORIA_PORT, useClass: AuditoriaAdapter },
-    { provide: EVENTOS_PORT, useClass: EventosNestAdapter },
     {
-      provide: ValidarPagoUseCase,
-      useFactory: (r, p, a, e) => new ValidarPagoUseCase(r, p, a, e),
-      inject: [PAGO_REPOSITORY, PERMISOS_PUESTO_PORT, AUDITORIA_PORT, EVENTOS_PORT],
+      provide: VERIFICADOR_FIRMA_WEBHOOK_PORT,
+      useFactory: (config: ConfigService) => new VerificadorFirmaMercadoPago(config.getOrThrow('MP_WEBHOOK_SECRET')),
+      inject: [ConfigService],
+    },
+    {
+      provide: PASARELA_PAGO_PORT,
+      useFactory: (config: ConfigService, moduleRef: ModuleRef) =>
+        moduleRef.create(pasarelaPorModo[config.getOrThrow<keyof typeof pasarelaPorModo>('PASARELA_PAGO_MODO')]),
+      inject: [ConfigService, ModuleRef],
+    },
+    {
+      provide: ProcesarNotificacionPagoUseCase,
+      useFactory: (r, n, p, u, o, a) => new ProcesarNotificacionPagoUseCase(r, n, p, u, o, a),
+      inject: [PAGO_REPOSITORY, NOTIFICACION_PAGO_REPOSITORY, PASARELA_PAGO_PORT, UNIDAD_DE_TRABAJO, OUTBOX_PORT, AUDITORIA_PORT],
     },
   ],
-  exports: [ObtenerDatosPagoUseCase],
+  exports: [IniciarPagoUseCase],
 })
 export class PagosModule {}
 ```
 
-> Solo `pagos.module.ts` conoce las clases concretas. Para probar el caso de uso se reemplazan los providers por implementaciones en memoria.
+> Solo `pagos.module.ts` conoce las clases concretas. La variable `PASARELA_PAGO_MODO` selecciona el adaptador de pasarela (`checkout`, `split` o `local`); en las pruebas se usa `local` junto con repositorios en memoria. Las credenciales y la clave del Webhook se leen de variables de entorno.
 
 ---
 
@@ -459,7 +666,7 @@ export class PagosModule {}
 |---|---|---|
 | Pedidos | `CrearPedido` | `PedidoRepository`, `ReservaInventarioPort`, `UnidadDeTrabajo` |
 | Inventario | `ReservarInventario` | `InventarioRepository` |
-| Comerciantes y puestos | `RegistrarCodigoQR` | `PuestoRepository`, `AlmacenamientoArchivosPort` |
+| Comerciantes y puestos | `VincularCuentaMercadoPago` | `CuentaMercadoPagoRepository`, `AutorizacionMercadoPagoPort`, `CifradoTokensPort` |
 | Notificaciones | `NotificarCambioEstado` | `CanalNotificacionPort` |
 
 El detalle del flujo `CrearPedido` se presenta en el [Nivel 4 del modelo C4](../../04-modelo-c4/Nivel4-DiagramadeCodigo.md).

@@ -40,9 +40,13 @@ Para facilitar la evaluación de la arquitectura se establecen los siguientes cr
 | AC01 - Rendimiento | Bajo una carga de prueba de 100 usuarios concurrentes, al menos el 95 % de las consultas del catálogo deberá responder en menos de 2 segundos. |
 | AC02 - Escalabilidad | La solución deberá permitir incorporar nuevos comerciantes y puestos sin modificar la estructura principal de los módulos existentes. |
 | AC03 - Disponibilidad | El sistema deberá recuperarse de fallos temporales sin perder operaciones previamente confirmadas. |
+| AC03 - Disponibilidad (dependencia de Mercado Pago) | Ante la indisponibilidad de Mercado Pago, el catálogo, el carrito y la preparación de pedidos ya aprobados deberán seguir operativos; ningún pedido deberá quedar con estado de pago indefinido, y los pagos cuya notificación no se reciba deberán actualizarse mediante la conciliación periódica en un plazo máximo de 15 minutos desde el restablecimiento del servicio. |
 | AC04 - Seguridad | Los usuarios no deberán acceder a recursos ni ejecutar operaciones fuera de los permisos asignados a sus roles. |
+| AC04 - Seguridad (pagos) | El 100 % de las notificaciones del Webhook con firma ausente, inválida o fuera del margen de tiempo permitido deberá rechazarse sin modificar estados; los tokens de acceso de Mercado Pago de los comerciantes deberán almacenarse cifrados y no aparecer en texto plano en la base de datos, los registros ni las respuestas de la API. |
 | AC05 - Mantenibilidad | Los cambios en un módulo deberán poder realizarse sin modificar innecesariamente las reglas de negocio de otros módulos. |
+| AC06 - Observabilidad (Webhooks) | El 100 % de las notificaciones recibidas deberá registrarse con su identificador, fecha, resultado de la verificación y resultado del procesamiento; las notificaciones duplicadas deberán quedar registradas como tales sin generar más de un cambio de estado por pago. |
 | AC07 - Concurrencia | Dos clientes no deberán poder confirmar simultáneamente reservas incompatibles sobre el mismo stock. |
 | AC08 - Integridad de la información | Las operaciones críticas deberán completarse correctamente o revertirse sin dejar registros inconsistentes. |
+| AC09 - Usabilidad | El cliente deberá completar el pago de un pedido multivendedor en 1 sola transacción, independientemente del número de puestos incluidos, y llegar al Checkout de Mercado Pago en no más de 2 acciones desde la confirmación del pedido. |
 
 Estos criterios servirán como referencia para seleccionar decisiones arquitectónicas y diseñar las pruebas correspondientes.

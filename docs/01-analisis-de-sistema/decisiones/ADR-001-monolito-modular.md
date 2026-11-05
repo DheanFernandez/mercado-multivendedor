@@ -10,14 +10,15 @@
 | Estado | Propuesta |
 | Fecha | 08/10/2026 |
 | Proyecto | Plataforma Integral Multivendedor para la Gestión Comercial y Operativa de un Mercado de Abastos |
-| Drivers relacionados | DA04, DA12, DA14 |
+| Estilo arquitectónico | Monolito Modular |
+| Drivers relacionados | DA04, DA12, DA14 - Desarrollo y despliegue como una sola unidad por un equipo reducido |
 | Atributos de calidad | AC02 - Escalabilidad, AC05 - Mantenibilidad |
 
 ## 2. Contexto
 
-La plataforma integrará diferentes procesos comerciales y operativos de un mercado de abastos, incluyendo la administración de comerciantes y puestos, productos, inventarios, carrito multivendedor, pedidos, pagos por puesto mediante códigos QR y la preparación y retiro de pedidos en los puestos.
+La plataforma integrará diferentes procesos comerciales y operativos de un mercado de abastos, incluyendo la administración de comerciantes y puestos, productos, inventarios, carrito multivendedor, pedidos, el pago único por pedido mediante la pasarela Mercado Pago y la preparación y retiro de pedidos en los puestos.
 
-Estos procesos requieren comunicación entre módulos y consistencia de la información, especialmente durante la generación de pedidos, la reserva de inventario y la validación de pagos por puesto.
+Estos procesos requieren comunicación entre módulos y consistencia de la información, especialmente durante la generación de pedidos, la reserva de inventario y la confirmación del pago recibida desde la pasarela.
 
 El proyecto académico debe desarrollarse de forma progresiva y mantenerse comprensible para el equipo de trabajo.
 
@@ -69,9 +70,11 @@ La decisión responde principalmente a:
 
 **DA12 - Mantenibilidad y evolución modular:** facilita separar responsabilidades y modificar funcionalidades sin afectar innecesariamente otros módulos.
 
-**DA14 - Arquitectura de tres capas:** permite implementar la lógica de negocio en un backend unificado dentro de la arquitectura cliente-servidor definida.
+**DA14 - Desarrollo y despliegue como una sola unidad:** el proyecto lo desarrolla un equipo reducido de 2 integrantes en un semestre, por lo que la lógica de negocio debe construirse, desplegarse y operarse como una única aplicación, manteniendo consistencia transaccional entre módulos (RC11, RC12, AC08).
 
-La elección también facilita la implementación de operaciones que requieren consistencia transaccional, como la reserva de inventario, la creación de pedidos multivendedor y la validación de pagos.
+Por estas razones, el estilo arquitectónico de la solución se define explícitamente como **Monolito Modular**.
+
+La elección también facilita la implementación de operaciones que requieren consistencia transaccional, como la reserva de inventario, la creación de pedidos multivendedor y el registro de la confirmación del pago recibida desde la pasarela.
 
 El monolito modular permite mantener dichas operaciones dentro de una misma aplicación, utilizando PostgreSQL como sistema principal de persistencia.
 
@@ -115,4 +118,5 @@ La solución conservará un despliegue inicial unificado, mientras que la separa
 
 - ADR-002: Aplicación de Clean Architecture.
 - ADR-003: Control de concurrencia en inventario.
-- ADR-004: Gestión de pagos externos mediante QR.
+- ADR-004: Gestión de pagos externos mediante QR (reemplazada por ADR-005).
+- [ADR-005](ADR-005-pago-unico-mercado-pago.md): Pago único por pedido mediante Mercado Pago.

@@ -37,21 +37,30 @@ Los requisitos funcionales describen las funciones principales que debe realizar
 | RF29 | El sistema debe mantener agrupados los productos correspondientes a cada puesto dentro del pedido. |
 | RF30 | El sistema debe permitir consultar el estado general de un pedido. |
 | RF31 | El sistema debe mantener un historial de cambios de estado del pedido. |
-| RF32 | El sistema debe mostrar al cliente, por cada puesto incluido en el pedido, el importe correspondiente y el código QR de Yape o Plin configurado por el comerciante, para que realice el pago desde la aplicación externa correspondiente, sin procesamiento bancario automático por parte de la plataforma. |
-| RF33 | El sistema debe permitir al comerciante registrar y actualizar los códigos QR de Yape o Plin de sus puestos. |
-| RF34 | El sistema debe permitir al comerciante o al trabajador de puesto autorizado validar el pago recibido correspondiente a su puesto. |
-| RF35 | El sistema debe impedir que los productos de un puesto pasen a preparación si el pago correspondiente a ese puesto no ha sido validado. |
+| RF32 | El sistema debe mostrar al cliente, antes de pagar, el subtotal de cada puesto incluido en el pedido y el importe total a cobrar en un único pago mediante Mercado Pago. |
+| RF33 | El sistema debe actualizar automáticamente el estado del pago del pedido y de cada una de sus agrupaciones por puesto a partir de la confirmación recibida de la pasarela, sin intervención manual. |
+| RF34 | El sistema debe mostrar al comerciante y al trabajador de puesto autorizado el estado del pago informado por la pasarela para los pedidos de su puesto, sin permitir su validación manual. |
+| RF35 | El sistema debe impedir que los productos de un puesto pasen a preparación si el pago del pedido no ha sido aprobado por la pasarela. |
 | RF36 | El sistema debe permitir al comerciante o al trabajador de puesto autorizado registrar la preparación de los productos de su puesto incluidos en el pedido. |
 | RF37 | El sistema debe permitir registrar variaciones de peso o precio cuando corresponda. |
 | RF38 | El sistema debe permitir actualizar el estado del pedido durante el proceso de pago, preparación y retiro. |
 | RF39 | El sistema debe permitir al comerciante o al trabajador de puesto autorizado marcar los productos de su puesto como listos para retiro y registrar su entrega al cliente en el puesto. |
-| RF40 | El sistema debe permitir gestionar cancelaciones, devoluciones e incidencias. |
+| RF40 | El sistema debe permitir gestionar cancelaciones, devoluciones e incidencias, ejecutando los reembolsos correspondientes mediante la API de Mercado Pago. |
 | RF41 | El sistema debe enviar notificaciones relacionadas con los principales cambios de estado del pedido. |
 | RF42 | El sistema debe registrar operaciones críticas para fines de auditoría. |
-| RF43 | El sistema debe permitir al administrador consultar pedidos activos, pagos registrados e incidencias. |
+| RF43 | El sistema debe permitir al administrador consultar pedidos activos, pagos e incidencias, así como el resultado de la conciliación entre los pagos registrados en la plataforma y los informados por Mercado Pago, y gestionar las discrepancias detectadas. |
 | RF44 | El sistema debe proporcionar reportes, indicadores y paneles de control. |
 | RF45 | El sistema debe permitir configurar reglas operativas como tiempos de reserva y tolerancias de peso o precio. |
 | RF46 | El sistema debe permitir al comerciante consultar los pedidos, ventas y operaciones correspondientes únicamente a los puestos comerciales que tiene asignados. |
+| RF47 | El sistema debe iniciar el pago único del pedido creando en Mercado Pago un cobro por la suma de los subtotales de cada puesto, con una referencia al pedido, y redirigir al cliente al Checkout. |
+| RF48 | El sistema debe recibir las notificaciones de pago de Mercado Pago mediante un Webhook, verificar su firma y confirmar el estado del pago consultando la API antes de modificar cualquier estado. |
+| RF49 | El sistema debe procesar las notificaciones del Webhook de forma idempotente, de modo que una notificación duplicada o repetida no genere cambios de estado, reservas ni registros adicionales. |
+| RF50 | El sistema debe realizar una conciliación periódica consultando a Mercado Pago el estado de los pagos pendientes o en proceso, para actualizar los pagos cuya notificación no haya sido recibida. |
+| RF51 | El sistema debe permitir ejecutar reembolsos totales o parciales de un pago aprobado mediante la API de Mercado Pago, registrando el importe, el puesto afectado y el motivo. |
+| RF52 | El sistema debe permitir al comerciante vincular y desvincular su cuenta de Mercado Pago, impidiendo que los productos de sus puestos se incluyan en un cobro mientras la cuenta no esté vinculada. |
+| RF53 | El sistema debe registrar, por cada pago aprobado, la comisión informada por la pasarela y el importe neto correspondiente a cada puesto. |
+| RF54 | El sistema debe asociar el vencimiento del pago al tiempo de reserva del inventario, expirando el pago y liberando las reservas cuando no se obtenga la aprobación dentro del plazo configurado. |
+| RF55 | El sistema debe permitir al comerciante consultar los cobros, comisiones, reembolsos e importes netos correspondientes a sus puestos. |
 
 
 ## Relación entre historias de usuario y requisitos funcionales
@@ -65,22 +74,25 @@ Los requisitos funcionales describen las funciones principales que debe realizar
 | HU05 Modificar carrito | RF24 |
 | HU06 Consultar subtotales y total | RF22, RF23 |
 | HU07 Generar pedido | RF25, RF26, RF27, RF28, RF29 |
-| HU08 Realizar pago por puesto | RF32, RF34, RF35 |
-| HU09 Consultar estado del pedido | RF30, RF31, RF38 |
+| HU08 Pagar el pedido en una sola transacción | RF32, RF33, RF47, RF48, RF49, RF54 |
+| HU09 Consultar estado del pedido | RF30, RF31, RF33, RF38 |
 | HU10 Retirar pedido en el puesto | RF39 |
-| HU11 Gestionar tienda | RF08, RF33 |
+| HU11 Gestionar tienda | RF08, RF52 |
 | HU12 Gestionar productos | RF09, RF10 |
 | HU13 Gestionar precios y presentaciones | RF11 |
 | HU14 Gestionar inventario | RF12, RF14, RF15 |
 | HU15 Consultar movimientos de inventario | RF13 |
 | HU16 Consultar operaciones del puesto | RF46, RF44 |
-| HU17 Validar pago | RF34, RF35 |
+| HU17 Consultar pagos aprobados por la pasarela | RF34, RF35 |
 | HU18 Registrar variaciones de peso o precio | RF37 |
 | HU19 Preparar y entregar pedido en el puesto | RF36, RF38, RF39 |
 | HU20 Acceder según permisos | RF03, RF04, RF05 |
 | HU21 Gestionar usuarios | RF01, RF02, RF03, RF04, RF05 |
 | HU22 Gestionar comerciantes y puestos | RF06, RF07 |
-| HU23 Supervisar pedidos e incidencias | RF40, RF43 |
+| HU23 Supervisar pedidos, conciliación e incidencias | RF40, RF43, RF50 |
 | HU24 Configurar reglas operativas | RF45 |
 | HU25 Consultar reportes | RF44 |
 | HU26 Consultar auditoría | RF42 |
+| HU27 Vincular cuenta de Mercado Pago | RF52 |
+| HU28 Consultar cobros y comisiones | RF53, RF55 |
+| HU29 Gestionar reembolsos | RF40, RF51 |

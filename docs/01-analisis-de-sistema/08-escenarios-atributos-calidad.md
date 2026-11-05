@@ -4,20 +4,20 @@ Los escenarios describen, de forma verificable, cómo debe responder la Platafor
 
 Las medidas se basan en los [criterios de evaluación](04-atributos-de-calidad.md#criterios-de-evaluación-de-los-atributos-prioritarios) definidos en el análisis. Los valores cuantitativos son objetivos propuestos y deberán validarse mediante pruebas durante la implementación.
 
-## EQ-01. Seguridad: validación de pagos por usuarios no autorizados
+## EQ-01. Seguridad: Webhook de pago falsificado o no autorizado
 
 | Elemento | Descripción |
 |---|---|
-| **Atributo de calidad** | AC04 - Seguridad, AC12 - Privacidad |
-| **Fuente** | Comerciante o trabajador de puesto que no pertenece al puesto, o usuario sin sesión |
-| **Estímulo** | Intenta validar el pago, registrar la preparación o consultar las operaciones de un puesto que no tiene asignado. |
-| **Condición** | La plataforma funciona normalmente y el usuario intenta la operación mediante la API REST. |
-| **Respuesta esperada** | El backend rechaza la operación, no modifica el estado del pago ni del pedido y no expone información del puesto. |
-| **Medida** | Rechazar el 100 % de los intentos no autorizados incluidos en las pruebas definidas, sin exposición de datos de otros puestos. |
-| **Verificación** | Ejecutar pruebas de autorización por rol y por puesto sobre los endpoints de pagos, pedidos y reportes. |
-| **Herramientas de medición** | **Vitest + Supertest** para la matriz de autorización (rol × endpoint × puesto ajeno), que verifica respuestas 401/403/404 y que el estado del pago no cambie. **OWASP ZAP** como complemento para vulnerabilidades generales de la API. |
-| **Drivers relacionados** | DA03, DA08 |
-| **Estado** | Pendiente de definir la estrategia general de seguridad (ver DA03 en [drivers](06-drivers-arquitectonicos.md)). |
+| **Atributo de calidad** | AC04 - Seguridad, AC08 - Integridad de la información |
+| **Fuente** | Atacante externo o cliente malintencionado |
+| **Estímulo** | Envía al endpoint del Webhook una notificación de pago aprobado con firma ausente, inválida, expirada o con un identificador de pago que no corresponde al pedido. |
+| **Condición** | La plataforma funciona normalmente, el pedido tiene un pago PENDIENTE y la integración opera en el entorno Sandbox de Mercado Pago. |
+| **Respuesta esperada** | El backend rechaza la notificación antes de procesarla, no modifica el estado del pago ni del pedido, no habilita la preparación y registra el intento. Una notificación con firma válida solo cambia el estado si la consulta a la API de Mercado Pago confirma el pago y su monto coincide con el pedido. |
+| **Medida** | Rechazar el 100 % de las notificaciones falsificadas o no autorizadas incluidas en las pruebas definidas, con 0 pedidos habilitados para preparación sin un pago aprobado por la pasarela. |
+| **Verificación** | Enviar notificaciones manipuladas (sin firma, firma alterada, marca de tiempo antigua, monto o referencia distintos) y comprobar el estado del pago, del pedido y del registro de auditoría. |
+| **Herramientas de medición** | **Vitest + Supertest** para enviar notificaciones manipuladas al endpoint del Webhook y verificar la respuesta y que el estado del pago no cambie. **MSW/nock** para simular la respuesta de la API de Mercado Pago. **Simulador de notificaciones de Mercado Pago (Sandbox)** para validar la firma real. **OWASP ZAP** como complemento para vulnerabilidades generales de la API. |
+| **Drivers relacionados** | DA03, DA08, DA09 · [ADR-005](decisiones/ADR-005-pago-unico-mercado-pago.md) |
+| **Estado** | Pendiente de implementar la verificación de firma del Webhook. |
 
 ## EQ-02. Integridad de la información: pedido multivendedor
 
@@ -86,40 +86,56 @@ Las medidas se basan en los [criterios de evaluación](04-atributos-de-calidad.m
 | **Atributo de calidad** | AC03 - Disponibilidad, AC11 - Recuperabilidad |
 | **Fuente** | Falla interna |
 | **Estímulo** | El servicio de notificaciones o el almacenamiento de archivos no responde durante el horario de operación del mercado. |
-| **Condición** | Los clientes y comerciantes están realizando pedidos y validando pagos. |
-| **Respuesta esperada** | Las operaciones de compra, validación de pago y preparación continúan; el error se registra y no se pierden operaciones confirmadas. |
+| **Condición** | Los clientes están realizando pedidos y pagos mediante Mercado Pago, y los comerciantes están preparando pedidos con pago aprobado. |
+| **Respuesta esperada** | Las operaciones de compra, recepción de la confirmación de pago y preparación continúan; el error se registra y no se pierden operaciones confirmadas. |
 | **Medida** | Ninguna operación confirmada se pierde en las pruebas de fallo definidas. La meta numérica de disponibilidad está por definir. |
 | **Verificación** | Simular la caída del servicio secundario y revisar los registros de errores y el estado de los pedidos. |
 | **Herramientas de medición** | **Toxiproxy** (o **MSW/nock**) para simular la caída o lentitud del servicio de notificaciones o del almacenamiento. **Pino + Sentry** para comprobar que el error queda registrado. **UptimeRobot** para medir el porcentaje de disponibilidad cuando se defina la meta. |
 | **Drivers relacionados** | DA11 |
 | **Estado** | Pendiente de definir los mecanismos de aislamiento de fallos (ver DA11 en [drivers](06-drivers-arquitectonicos.md)). |
 
-## EQ-07. Mantenibilidad: cambio en una regla de negocio
+## EQ-07. Mantenibilidad: intercambio del adaptador de pago (Split o cobro centralizado)
 
 | Elemento | Descripción |
 |---|---|
 | **Atributo de calidad** | AC05 - Mantenibilidad |
 | **Fuente** | Equipo de desarrollo |
-| **Estímulo** | Se modifica una regla del módulo Pagos, por ejemplo, para incorporar una pasarela de pago en una versión futura. |
-| **Condición** | Los módulos están organizados con Clean Architecture y cuentan con pruebas. |
-| **Respuesta esperada** | El cambio se concentra en el módulo Pagos y en su infraestructura, sin modificar las reglas de negocio de otros módulos. |
-| **Medida** | Las pruebas del módulo modificado y las pruebas de regresión acordadas se aprueban; las dependencias respetan la regla de dependencias. |
-| **Verificación** | Revisar los cambios de código, ejecutar las pruebas e inspeccionar los `import` entre capas y módulos. |
-| **Herramientas de medición** | **dependency-cruiser** con reglas que prohíben importaciones indebidas entre capas y módulos. **Vitest** (con cobertura) para las pruebas del módulo y de regresión. **SonarQube Cloud** como complemento para duplicación y complejidad del código. Todo ejecutado en **GitHub Actions** en cada pull request. |
-| **Drivers relacionados** | DA12 · [ADR-002](decisiones/ADR-002-clean-architecture.md) |
-| **Estado** | Pendiente de definir las pruebas obligatorias para los cambios. |
+| **Estímulo** | Se reemplaza el adaptador de pago vigente por una de las alternativas de respaldo de ADR-005: división de pagos (Split) entre las cuentas de los comerciantes o cobro centralizado con liquidación posterior. |
+| **Condición** | El módulo Pagos expone el puerto `PasarelaPagoPort` y ambos adaptadores implementan el mismo contrato; los módulos cuentan con pruebas. |
+| **Respuesta esperada** | El cambio se limita a la implementación del adaptador y a la composición de dependencias del módulo Pagos, sin modificar el dominio ni los casos de uso de Pagos, Pedidos e Inventario. |
+| **Medida** | 0 archivos modificados fuera de la infraestructura y la configuración del módulo Pagos; la misma suite de pruebas de contrato se aprueba con ambos adaptadores, y las pruebas de regresión acordadas se aprueban. |
+| **Verificación** | Sustituir el adaptador en un entorno de prueba, ejecutar la suite de contrato contra ambas implementaciones, revisar los cambios de código e inspeccionar los `import` entre módulos. |
+| **Herramientas de medición** | **Vitest** con una suite de pruebas de contrato parametrizada para `PasarelaPagoPort` ejecutada contra ambos adaptadores, usando **MSW/nock** para simular Mercado Pago. **dependency-cruiser** con reglas que prohíben importar el SDK de Mercado Pago fuera del adaptador. **`git diff --stat`** para evidenciar los archivos modificados. Todo ejecutado en **GitHub Actions** en cada pull request. |
+| **Drivers relacionados** | DA11, DA12 · [ADR-002](decisiones/ADR-002-clean-architecture.md), [ADR-005](decisiones/ADR-005-pago-unico-mercado-pago.md) |
+| **Estado** | Pendiente de definir el contrato de `PasarelaPagoPort` y la suite de pruebas de contrato. |
+
+## EQ-08. Disponibilidad: Webhook duplicado o caída de la pasarela
+
+| Elemento | Descripción |
+|---|---|
+| **Atributo de calidad** | AC03 - Disponibilidad, AC06 - Observabilidad, AC08 - Integridad de la información |
+| **Fuente** | Mercado Pago (servicio externo) |
+| **Estímulo** | Mercado Pago envía varias veces la misma notificación de pago aprobado, o deja de responder y no entrega la notificación de un pago ya aprobado. |
+| **Condición** | Existen pedidos con pagos pendientes y reservas de inventario vigentes durante el horario de operación del mercado. |
+| **Respuesta esperada** | Las notificaciones duplicadas se registran y se ignoran sin generar cambios de estado adicionales. Ante la caída de la pasarela, el catálogo, el carrito y la preparación de pedidos ya aprobados siguen operativos, y la conciliación periódica actualiza los pagos pendientes al restablecerse el servicio, liberando las reservas de los pagos no aprobados. |
+| **Medida** | 0 pagos procesados más de una vez y 0 pedidos con estado de pago indefinido en las pruebas definidas; los pagos sin notificación se concilian en un máximo de 15 minutos desde el restablecimiento del servicio. |
+| **Verificación** | Reenviar la misma notificación varias veces y simular la indisponibilidad de Mercado Pago durante el pago; revisar el estado de pagos, pedidos, reservas y registros de notificaciones. |
+| **Herramientas de medición** | **Vitest + Supertest** para reenviar notificaciones duplicadas y comprobar un único cambio de estado. **Toxiproxy** (o **MSW/nock**) para simular la caída o lentitud de la API de Mercado Pago. **Consultas SQL** para verificar pagos, reservas y registros de notificaciones. **Pino + Sentry** para comprobar que los errores quedan registrados. |
+| **Drivers relacionados** | DA08, DA10, DA11 · [ADR-003](decisiones/ADR-003-control-concurrencia.md), [ADR-005](decisiones/ADR-005-pago-unico-mercado-pago.md) |
+| **Estado** | Pendiente de implementar la idempotencia del Webhook y la conciliación periódica. |
 
 ## Resumen de escenarios
 
 | Código | Atributo de calidad | Qué se busca comprobar |
 |---|---|---|
-| EQ-01 | Seguridad | Que solo el comerciante o trabajador autorizado opere sobre su puesto. |
+| EQ-01 | Seguridad | Que un Webhook falsificado o no autorizado no modifique el estado de un pago. |
 | EQ-02 | Integridad de la información | Que un pedido multivendedor se registre completo o no se registre. |
 | EQ-03 | Concurrencia | Que no se reserve más stock del disponible. |
 | EQ-04 | Rendimiento | Que el catálogo responda dentro del tiempo establecido. |
 | EQ-05 | Escalabilidad | Que se incorporen puestos sin cambiar los módulos. |
 | EQ-06 | Disponibilidad | Que un fallo secundario no detenga las operaciones principales. |
-| EQ-07 | Mantenibilidad | Que los cambios se mantengan dentro del módulo responsable. |
+| EQ-07 | Mantenibilidad | Que el adaptador de pago se intercambie sin modificar otros módulos. |
+| EQ-08 | Disponibilidad | Que los Webhooks duplicados o la caída de la pasarela no dejen pagos ni pedidos inconsistentes. |
 
 ## Resumen de medición
 
@@ -127,10 +143,11 @@ Las medidas son objetivos propuestos; ninguna ha sido ejecutada ni medida todav�
 
 | Código | Métrica | Método de comprobación | Herramientas | Estado |
 |---|---|---|---|---|
-| EQ-01 | 100 % de intentos no autorizados rechazados | Pruebas de autorización por rol y puesto | Vitest, Supertest, OWASP ZAP | Pendiente |
+| EQ-01 | 100 % de Webhooks falsificados rechazados y 0 pedidos habilitados sin pago aprobado | Envío de notificaciones manipuladas al Webhook | Vitest, Supertest, MSW/nock, Sandbox de Mercado Pago, OWASP ZAP | Pendiente |
 | EQ-02 | 0 pedidos, reservas o agrupaciones inconsistentes tras un fallo | Fallos forzados y revisión de inventario y pedidos | Vitest, Testcontainers, SQL | Pendiente |
 | EQ-03 | 0 reservas incompatibles en pruebas concurrentes | Solicitudes simultáneas sobre el mismo producto | Vitest, Testcontainers, k6 | Pendiente |
 | EQ-04 | 95 % de consultas en menos de 2 s con 100 usuarios (propuesta por validar) | Pruebas de carga | k6, Lighthouse | Pendiente |
 | EQ-05 | Alta de puestos solo con registro de datos, sin cambios de código | Alta en entorno de prueba y flujo de compra | Drizzle + Faker, Playwright, `git diff` | Pendiente |
 | EQ-06 | 0 operaciones confirmadas perdidas (meta de disponibilidad por definir) | Simulación de caída de un servicio secundario | Toxiproxy o MSW, Pino, Sentry, UptimeRobot | Pendiente |
-| EQ-07 | Pruebas aprobadas y dependencias entre capas respetadas | Revisión de cambios, pruebas e inspección de `import` | dependency-cruiser, Vitest, SonarQube Cloud, GitHub Actions | Pendiente |
+| EQ-07 | 0 archivos modificados fuera del módulo Pagos y suite de contrato aprobada con ambos adaptadores | Sustitución del adaptador y pruebas de contrato | Vitest, MSW/nock, dependency-cruiser, `git diff`, GitHub Actions | Pendiente |
+| EQ-08 | 0 pagos duplicados, 0 pedidos con pago indefinido y conciliación en máximo 15 min | Reenvío de notificaciones y simulación de caída de la pasarela | Vitest, Supertest, Toxiproxy o MSW, SQL, Pino, Sentry | Pendiente |

@@ -1,14 +1,14 @@
 
-# Enfoque Arquitectónico: Clean Architecture
+# Organización Interna de los Módulos (Clean Architecture)
 
 ## 1. Información general
 
 | Campo | Descripción |
 |---|---|
 | Proyecto | Plataforma Integral Multivendedor para la Gestión Comercial y Operativa de un Mercado de Abastos |
-| Enfoque seleccionado | Clean Architecture |
-| Estilo global | Cliente-servidor de tres capas |
-| Organización del backend | Monolito modular |
+| Enfoque seleccionado | Clean Architecture con puertos y adaptadores |
+| Ámbito de aplicación | Organización interna del código de cada módulo del monolito |
+| Estilo arquitectónico | Monolito modular ([ADR-001](../01-analisis-de-sistema/decisiones/ADR-001-monolito-modular.md)) |
 | Tecnología backend | NestJS + TypeScript |
 | Tecnología frontend | Next.js + TypeScript |
 | Driver principal | DA12 - Mantenibilidad y evolución modular |
@@ -19,23 +19,27 @@
 
 La plataforma integrará múltiples procesos comerciales y operativos de un mercado de abastos.
 
-Entre sus funcionalidades se encuentran la gestión de comerciantes y puestos, productos, inventarios, pedidos multivendedor, pagos por puesto mediante QR y la preparación y retiro de pedidos en los puestos.
+Entre sus funcionalidades se encuentran la gestión de comerciantes y puestos, productos, inventarios, pedidos multivendedor, el pago único por pedido mediante Mercado Pago y la preparación y retiro de pedidos en los puestos.
 
 Estas funcionalidades necesitan reglas de negocio independientes de los frameworks y servicios tecnológicos empleados.
 
-Para facilitar su mantenimiento, evolución y pruebas se propone aplicar Clean Architecture dentro de los módulos del backend.
+Para facilitar su mantenimiento, evolución y pruebas se propone aplicar Clean Architecture dentro de los módulos del monolito.
 
 ## 3. Enfoque arquitectónico seleccionado
 
-Se selecciona Clean Architecture como enfoque para organizar las responsabilidades internas del sistema.
+Se selecciona Clean Architecture para organizar la **estructura interna de cada módulo** del monolito.
 
-Su principal objetivo es proteger las reglas del negocio de los cambios tecnológicos.
+Clean Architecture **no es el estilo arquitectónico global** de la solución ni define capas de despliegue. El estilo arquitectónico es el monolito modular, y todos los anillos descritos en este documento forman parte del mismo código que se despliega como una única aplicación.
 
-Las dependencias del código deberán orientarse hacia las capas internas, evitando que el dominio dependa directamente de NestJS, PostgreSQL, Supabase u otros servicios externos.
+Dentro de cada módulo, el código se organiza en anillos concéntricos y se integra con el exterior mediante **puertos y adaptadores**:
 
-El enfoque complementa al estilo cliente-servidor de tres capas y a la organización mediante monolito modular.
+- Los **puertos** son interfaces definidas por la aplicación para acceder a persistencia y servicios externos.
+- Los **adaptadores de entrada** reciben solicitudes (controladores REST, endpoint del Webhook) y las traducen a casos de uso.
+- Los **adaptadores de salida** implementan los puertos con tecnologías concretas (PostgreSQL, Supabase Storage, Mercado Pago).
 
-## 4. Capas de Clean Architecture
+Su principal objetivo es proteger las reglas del negocio de los cambios tecnológicos. Las dependencias del código deberán orientarse hacia los anillos internos, evitando que el dominio dependa directamente de NestJS, PostgreSQL, Supabase, Mercado Pago u otros servicios externos.
+
+## 4. Anillos de Clean Architecture dentro de un módulo
 
 ### 4.1. Dominio (Domain)
 
@@ -47,7 +51,7 @@ Contiene las entidades, objetos de valor y reglas fundamentales del negocio.
 - Aplicar reglas de negocio.
 - Validar invariantes del dominio.
 - Controlar transiciones permitidas.
-- Proteger las condiciones fundamentales de inventario y pedidos.
+- Proteger las condiciones fundamentales de inventario, pedidos y pagos.
 
 **Ejemplos:**
 
@@ -61,134 +65,139 @@ El dominio no dependerá directamente de frameworks, controladores HTTP ni repos
 
 ### 4.2. Aplicación (Application)
 
-Contiene los casos de uso encargados de coordinar las operaciones del sistema.
+Contiene los casos de uso encargados de coordinar las operaciones del sistema y los puertos que estos requieren.
 
 **Responsabilidades:**
 
 - Ejecutar casos de uso.
 - Coordinar entidades del dominio.
-- Definir interfaces de repositorios.
-- Establecer contratos para servicios externos.
+- Definir puertos de repositorios.
+- Establecer puertos para servicios externos, como `PasarelaPagoPort`.
 - Coordinar transacciones mediante abstracciones.
 
 **Ejemplos de casos de uso:**
 
 - CrearPedido.
 - ReservarInventario.
-- ValidarPago.
+- IniciarPago.
+- ProcesarNotificacionPago.
 - RegistrarPreparacion.
 - RegistrarEntregaEnPuesto.
 
-La aplicación dependerá del dominio y de interfaces, pero no directamente de implementaciones concretas de PostgreSQL.
+La aplicación dependerá del dominio y de sus puertos, pero no directamente de implementaciones concretas de PostgreSQL o Mercado Pago.
 
-### 4.3. Presentación y adaptadores de entrada
+### 4.3. Adaptadores de entrada (controladores REST)
 
-Permite recibir solicitudes y entregar respuestas a los usuarios.
+Reciben las solicitudes dirigidas a la API del monolito y entregan las respuestas correspondientes.
 
 **Responsabilidades:**
 
 - Recibir solicitudes HTTP.
 - Validar estructuras de entrada.
+- Verificar la firma de las notificaciones del Webhook de pago.
 - Ejecutar casos de uso.
 - Transformar respuestas.
 - Gestionar códigos y errores HTTP.
 
 **Elementos:**
 
-- Controladores REST.
+- Controladores REST de NestJS.
+- Controlador del Webhook de Mercado Pago.
 - DTO de entrada y salida.
 - Validadores.
-- Adaptadores de presentación.
 
-En el backend se utilizarán controladores NestJS.
+La aplicación Web/PWA desarrollada con Next.js es un contenedor separado que consume la API REST; no forma parte de los anillos de ningún módulo.
 
-La aplicación Next.js actuará como cliente de la API REST.
-
-### 4.4. Infraestructura (Infrastructure)
+### 4.4. Infraestructura y adaptadores de salida (Infrastructure)
 
 Contiene implementaciones concretas de persistencia e integración tecnológica.
 
 **Responsabilidades:**
 
-- Implementar interfaces de repositorios.
+- Implementar los puertos de repositorios.
 - Acceder a PostgreSQL.
 - Gestionar almacenamiento de archivos.
 - Implementar servicios de notificaciones.
-- Integrar servicios externos.
+- Integrar servicios externos, como Mercado Pago.
 - Configurar proveedores y frameworks.
 
 **Elementos:**
 
-- PostgreSQL.
-- Supabase.
-- Supabase Storage.
-- Repositorios concretos.
-- Adaptadores externos.
+- Repositorios concretos sobre PostgreSQL / Supabase.
+- Adaptador de Supabase Storage.
+- `MercadoPagoAdapter`, que implementa `PasarelaPagoPort`.
+- Otros adaptadores externos.
 
-La infraestructura implementará los contratos definidos por las capas internas.
+La infraestructura implementará los puertos definidos por los anillos internos.
 
 ## 5. Diagrama de Clean Architecture
 
-El siguiente diagrama representa las dependencias del código dentro de un módulo del backend.
+El siguiente diagrama representa las dependencias del código dentro de un módulo del monolito, tomando como ejemplo el módulo Pagos.
 
-Las flechas indican la dirección de las dependencias hacia las capas internas.
+Las flechas indican la dirección de las dependencias hacia los anillos internos.
 
 ```mermaid
 flowchart LR
 
-    subgraph PRESENTACION["PRESENTACIÓN / ADAPTADORES DE ENTRADA"]
+    subgraph ENTRADA["ADAPTADORES DE ENTRADA"]
         CTRL["Controlador REST<br/>NestJS"]
+        WH["Controlador Webhook<br/>Mercado Pago"]
     end
 
     subgraph APLICACION["APLICACIÓN"]
-        UC["Casos de uso<br/>CrearPedido / ReservarInventario"]
-        PORT["Interfaces<br/>Repository / Services"]
+        UC["Casos de uso<br/>IniciarPago / ProcesarNotificacionPago"]
+        PORT["Puertos<br/>PagoRepository / PasarelaPagoPort"]
     end
 
     subgraph DOMINIO["DOMINIO"]
-        ENT["Entidades y reglas<br/>Pedido / Inventario / Pago"]
+        ENT["Entidades y reglas<br/>Pago / Pedido"]
     end
 
-    subgraph INFRA["INFRAESTRUCTURA"]
-        REPO["Repositorios concretos"]
+    subgraph INFRA["INFRAESTRUCTURA · ADAPTADORES DE SALIDA"]
+        REPO["Repositorio PostgreSQL"]
+        MPA["MercadoPagoAdapter"]
         DB["PostgreSQL / Supabase"]
+        MP["API Mercado Pago"]
     end
 
     CTRL --> UC
+    WH --> UC
     UC --> ENT
     UC --> PORT
-    REPO -.->|"Implementa contrato"| PORT
+    REPO -.->|"Implementa puerto"| PORT
+    MPA -.->|"Implementa puerto"| PORT
     REPO --> DB
+    MPA --> MP
 
-    classDef presentation fill:#e8f4ff,stroke:#2374ab,color:#17354d
+    classDef entry fill:#e8f4ff,stroke:#2374ab,color:#17354d
     classDef application fill:#edf7ed,stroke:#458a55,color:#20452a
     classDef domain fill:#fff3dd,stroke:#b88a34,color:#604418
     classDef infrastructure fill:#f4ecff,stroke:#8662ae,color:#49316c
 
-    class CTRL presentation
+    class CTRL,WH entry
     class UC,PORT application
     class ENT domain
-    class REPO,DB infrastructure
+    class REPO,MPA,DB,MP infrastructure
 ```
 
-**Nota:** El diagrama representa dependencias del código y relaciones de implementación. El acceso a la base de datos ocurre en tiempo de ejecución a través de los repositorios concretos; el dominio no depende directamente de PostgreSQL.
+**Nota:** El diagrama representa dependencias del código y relaciones de implementación dentro de un único módulo desplegado con el resto del monolito. El acceso a la base de datos y a Mercado Pago ocurre en tiempo de ejecución a través de los adaptadores de salida; el dominio no depende directamente de esas tecnologías.
 
 ## 6. Regla de dependencias
 
-La regla fundamental establece que las dependencias del código deben apuntar hacia las capas internas.
+La regla fundamental establece que las dependencias del código deben apuntar hacia los anillos internos.
 
 | Componente | Puede depender de | No debe depender directamente de |
 |---|---|---|
-| Dominio | Elementos internos del dominio | NestJS, PostgreSQL, Next.js, infraestructura |
-| Aplicación | Dominio e interfaces propias | Repositorios concretos, controladores HTTP |
-| Presentación | Casos de uso y contratos de entrada/salida | Detalles concretos de persistencia |
-| Infraestructura | Contratos de aplicación y tipos del dominio | Controladores de presentación para implementar reglas de negocio |
+| Dominio | Elementos internos del dominio | NestJS, PostgreSQL, Next.js, Mercado Pago, infraestructura |
+| Aplicación | Dominio y puertos propios | Repositorios concretos, adaptadores externos, controladores HTTP |
+| Adaptadores de entrada | Casos de uso y contratos de entrada/salida | Detalles concretos de persistencia o de la pasarela |
+| Infraestructura | Puertos de aplicación y tipos del dominio | Controladores de entrada para implementar reglas de negocio |
 
-La conexión entre interfaces e implementaciones se resolverá mediante inyección de dependencias.
+La conexión entre puertos e implementaciones se resolverá mediante inyección de dependencias en la configuración de cada módulo NestJS.
 
 ## 7. Ejemplo aplicado: creación de pedido multivendedor
 
-### Presentación
+### Adaptador de entrada
 
 El cliente confirma un carrito que contiene productos de diferentes puestos.
 
@@ -220,39 +229,47 @@ Los repositorios concretos ejecutan las operaciones necesarias sobre PostgreSQL.
 
 Las operaciones críticas se realizarán mediante mecanismos transaccionales para evitar inconsistencias.
 
-## 8. Ejemplo aplicado: validación del pago de un puesto
+## 8. Ejemplo aplicado: procesamiento del Webhook de pago
 
-### Presentación
+### Adaptador de entrada
 
-El comerciante, o el trabajador de puesto autorizado, registra desde la aplicación Web/PWA la validación del pago recibido mediante Yape o Plin.
+Mercado Pago envía una notificación al endpoint del Webhook de la API del monolito.
+
+El controlador del Webhook verifica la firma de la notificación; si es inválida, la rechaza sin invocar ningún caso de uso. Si es válida, delega en `ProcesarNotificacionPago` el identificador del pago recibido.
 
 ### Aplicación
 
-El caso de uso `ValidarPago` coordina la verificación de autorización, el registro de la validación y la actualización del estado de la parte del pedido correspondiente al puesto.
+El caso de uso `ProcesarNotificacionPago` coordina:
+
+1. La consulta del estado real del pago mediante `PasarelaPagoPort`, sin confiar en el contenido de la notificación.
+2. La localización del pedido a partir de la referencia externa.
+3. La comprobación de que la notificación no haya sido procesada previamente (idempotencia).
+4. La actualización del estado del pago y de las agrupaciones por puesto dentro de una transacción.
+5. El registro de la notificación para auditoría y la publicación del evento de pago aprobado.
 
 ### Dominio
 
 Se validan reglas como:
 
-- El usuario debe pertenecer al puesto al que corresponde el pago.
-- El pago debe encontrarse en un estado que permita su validación.
-- Un mismo pago no puede validarse más de una vez.
-- Los productos del puesto solo pueden pasar a preparación cuando el pago esté validado.
+- El monto aprobado debe coincidir con la suma de los subtotales por puesto.
+- El pago debe encontrarse en un estado que permita la transición informada.
+- Una misma notificación no puede producir más de un cambio de estado.
+- Los productos de un puesto solo pueden pasar a preparación cuando el pago esté aprobado por la pasarela.
 
 ### Infraestructura
 
-El repositorio de pagos registra la validación y el cambio de estado mediante transacciones o actualizaciones condicionales de PostgreSQL.
+`MercadoPagoAdapter` consulta el pago en la API de Mercado Pago utilizando las credenciales configuradas.
 
-Esto evita que solicitudes repetidas o simultáneas generen confirmaciones incompatibles sobre el mismo pago.
+El repositorio de pagos registra la notificación y el cambio de estado mediante transacciones o actualizaciones condicionales de PostgreSQL, evitando que notificaciones repetidas o simultáneas generen estados incompatibles. El tratamiento de aprobaciones posteriores a la expiración de la reserva se describe en [ADR-003](../01-analisis-de-sistema/decisiones/ADR-003-control-concurrencia.md).
 
 ## 9. Estructura de carpetas propuesta
 
-La siguiente estructura es referencial para el desarrollo posterior del backend NestJS.
+La siguiente estructura es referencial para el desarrollo posterior del monolito NestJS.
 
 ```text
 src/
 ├── modules/
-│   ├── pedidos/
+│   ├── pagos/
 │   │   ├── domain/
 │   │   │   ├── entities/
 │   │   │   └── value-objects/
@@ -260,11 +277,13 @@ src/
 │   │   │   ├── use-cases/
 │   │   │   └── ports/
 │   │   ├── infrastructure/
-│   │   │   └── persistence/
-│   │   └── presentation/
-│   │       └── controllers/
+│   │   │   ├── persistence/
+│   │   │   └── mercado-pago/
+│   │   └── entry-adapters/
+│   │       ├── controllers/
+│   │       └── webhooks/
+│   ├── pedidos/
 │   ├── inventario/
-│   ├── pagos/
 │   ├── comerciantes/
 │   └── productos/
 ├── shared/
@@ -279,18 +298,19 @@ Esta estructura no implica que las carpetas ya estén implementadas.
 
 | Driver | Respuesta arquitectónica |
 |---|---|
-| DA03 - Seguridad | Separación de políticas de negocio y mecanismos técnicos de autenticación. |
+| DA03 - Seguridad | Separación de políticas de negocio y mecanismos técnicos de autenticación y verificación de Webhooks. |
 | DA04 - Escalabilidad y modularidad | Módulos organizados mediante contratos y responsabilidades definidas. |
 | DA05 - API REST | Controladores REST como adaptadores de entrada. |
-| DA11 - Aislamiento de fallos | Integraciones externas desacopladas mediante interfaces. |
+| DA08 - Pago único por pedido | Integración con Mercado Pago aislada mediante `PasarelaPagoPort` y `MercadoPagoAdapter`. |
+| DA11 - Aislamiento de fallos | Integraciones externas desacopladas mediante puertos. |
 | DA12 - Mantenibilidad | Dependencias dirigidas hacia las reglas del negocio. |
 
 ## 11. Beneficios esperados
 
-- Separación de responsabilidades.
+- Separación de responsabilidades dentro de cada módulo.
 - Menor acoplamiento entre reglas de negocio y tecnologías externas.
 - Facilidad para realizar pruebas unitarias.
-- Evolución independiente de implementaciones de infraestructura.
+- Posibilidad de sustituir adaptadores, como el de la pasarela de pago, sin modificar el dominio.
 - Mejor organización de casos de uso.
 - Mayor claridad de los límites entre módulos.
 
@@ -306,9 +326,9 @@ Esta estructura no implica que las carpetas ya estén implementadas.
 
 Clean Architecture se selecciona principalmente para responder al driver DA12, relacionado con la mantenibilidad y evolución modular.
 
-Este enfoque permitirá preservar las reglas de negocio de inventario, pedidos y pagos frente a cambios tecnológicos.
+Este enfoque permitirá preservar las reglas de negocio de inventario, pedidos y pagos frente a cambios tecnológicos, incluido un eventual cambio de proveedor o modalidad de pago.
 
-Su aplicación contribuirá a mantener una estructura comprensible y preparada para evolucionar durante el desarrollo de la plataforma.
+Su aplicación contribuirá a mantener una estructura comprensible dentro de cada módulo, sin alterar el estilo arquitectónico de monolito modular.
 
 ## 14. Relación con otros documentos
 
@@ -317,4 +337,4 @@ Su aplicación contribuirá a mantener una estructura comprensible y preparada p
 - [ADR-001: Monolito modular](../01-analisis-de-sistema/decisiones/ADR-001-monolito-modular.md)
 - [ADR-002: Clean Architecture](../01-analisis-de-sistema/decisiones/ADR-002-clean-architecture.md)
 - [ADR-003: Control de concurrencia](../01-analisis-de-sistema/decisiones/ADR-003-control-concurrencia.md)
-- [ADR-004: Pagos mediante QR](../01-analisis-de-sistema/decisiones/ADR-004-pagos-qr.md)
+- [ADR-005: Pago único mediante Mercado Pago](../01-analisis-de-sistema/decisiones/ADR-005-pago-unico-mercado-pago.md)

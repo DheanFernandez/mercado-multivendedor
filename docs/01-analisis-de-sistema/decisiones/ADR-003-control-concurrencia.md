@@ -104,6 +104,32 @@ Cuando se registre la venta efectiva de los productos en el puesto, el inventari
 
 Las variaciones de peso o precio deberán gestionarse de acuerdo con las reglas del pedido y la disponibilidad correspondiente.
 
+### 6.5. Expiración de reservas frente a pagos pendientes o aprobaciones tardías
+
+Las reservas de inventario de un pedido tendrán un tiempo de vigencia configurable (RF45), alineado con el tiempo de expiración del cobro generado en Mercado Pago según [ADR-005](ADR-005-pago-unico-mercado-pago.md).
+
+**Pago pendiente al vencer la reserva**
+
+1. Un proceso programado identificará los pedidos cuya reserva haya vencido sin un pago APROBADO.
+2. Antes de expirar, el sistema consultará a Mercado Pago el estado actual del pago para evitar liberar stock de un pago ya aprobado cuyo Webhook no haya llegado.
+3. Si el pago no está aprobado, se liberarán las cantidades reservadas mediante una operación atómica y el pago y el pedido pasarán a estado EXPIRADO.
+4. La liberación deberá ser idempotente: una reserva ya liberada no deberá liberarse por segunda vez.
+
+**Pago en revisión (EN_PROCESO)**
+
+Si al vencer la reserva Mercado Pago informa que el pago se encuentra en revisión, la reserva podrá extenderse por un tiempo máximo configurable antes de aplicar la expiración.
+
+**Aprobación tardía**
+
+Si se recibe un Webhook verificado con pago aprobado para un pedido cuya reserva ya expiró:
+
+1. El sistema intentará volver a reservar el inventario de todas las agrupaciones por puesto mediante la misma operación atómica descrita en 6.3.
+2. Si existe stock suficiente para el pedido completo, la reserva se confirmará y el pedido continuará su flujo normal.
+3. Si no existe stock suficiente, el pedido no pasará a preparación y se registrará la gestión de reembolso al cliente según [ADR-005](ADR-005-pago-unico-mercado-pago.md).
+4. Toda aprobación tardía y su resolución quedarán registradas para auditoría.
+
+La expiración de una reserva y el procesamiento de un Webhook sobre el mismo pedido deberán serializarse dentro de una transacción, de modo que nunca se libere el stock de un pedido cuyo pago ya fue aprobado.
+
 ## 7. Idempotencia y reintentos
 
 Las solicitudes de creación de pedidos y reserva de inventario deberán protegerse frente a reintentos duplicados.
@@ -159,6 +185,9 @@ Se realizarán pruebas para comprobar:
 3. Reintentos de creación de un mismo pedido.
 4. Fallos durante transacciones de inventario.
 5. Operaciones simultáneas sobre productos de diferentes puestos.
+6. Expiración de reservas con pagos pendientes.
+7. Aprobación tardía de un pago con y sin stock disponible.
+8. Recepción simultánea de un Webhook y del proceso de expiración sobre el mismo pedido.
 
 ## 11. Resultado esperado
 
@@ -170,4 +199,5 @@ La arquitectura utilizará PostgreSQL como fuente principal de coordinación tra
 
 - ADR-001: Monolito modular.
 - ADR-002: Clean Architecture.
-- ADR-004: Gestión de pagos mediante QR.
+- ADR-004: Gestión de pagos mediante QR (reemplazada por ADR-005).
+- [ADR-005](ADR-005-pago-unico-mercado-pago.md): Pago único por pedido mediante Mercado Pago.

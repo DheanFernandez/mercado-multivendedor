@@ -13,27 +13,31 @@ La plataforma permitirá integrar comerciantes, puestos comerciales, productos, 
 
 Cada comerciante podrá administrar de manera independiente la información de su puesto, productos, precios e inventario, mientras que los clientes podrán consultar y adquirir productos ofrecidos por diferentes comerciantes mediante un marketplace común.
 
-Los clientes pagarán a cada puesto mediante Yape o Plin y retirarán sus productos directamente en los puestos correspondientes. La plataforma no incluye servicio de delivery.
+Los clientes realizarán un pago único por pedido mediante el Checkout de Mercado Pago (entorno Sandbox), cuya confirmación la plataforma recibe automáticamente mediante un Webhook verificado, y retirarán sus productos directamente en los puestos correspondientes. La plataforma no incluye servicio de delivery.
 
 ## Objetivo
 
 Diseñar una arquitectura de software modular, segura y escalable que permita centralizar los principales procesos comerciales y operativos de un mercado de abastos.
 
-## Tipo de arquitectura
+## Estilo arquitectónico
 
-Arquitectura cliente-servidor de tres capas con enfoque modular.
+La solución adopta un único estilo arquitectónico: monolito modular. Toda la lógica de negocio se ejecuta en una sola aplicación desplegable (API NestJS) dividida en módulos por dominio. La aplicación Web/PWA (Next.js) es la interfaz de usuario que consume esa API mediante REST, y PostgreSQL (Supabase) es su almacén de datos. Dentro de cada módulo, el código se organiza con los principios de Clean Architecture (puertos y adaptadores); esto no es un segundo estilo.
 
-### Capa de presentación
+### Monolito modular
 
-Aplicación Web/PWA desarrollada con Next.js y TypeScript.
+API desarrollada con NestJS y TypeScript, desplegada como una única aplicación y organizada en módulos por dominio.
 
-### Capa de lógica de negocio
+### Aplicación Web/PWA
 
-Backend/API desarrollado con NestJS y TypeScript.
+Interfaz de usuario desarrollada con Next.js y TypeScript, que consume la API del monolito mediante REST.
 
-### Capa de datos
+### Almacenamiento
 
 PostgreSQL mediante Supabase para la información estructurada y Supabase Storage o Cloudflare R2 para imágenes, documentos y otros archivos.
+
+### Pasarela de pago
+
+Pago único por pedido mediante el Checkout de Mercado Pago (entorno Sandbox), con confirmación automática mediante Webhook verificado.
 
 ## Curso
 
@@ -50,7 +54,7 @@ El proyecto desarrolla progresivamente el análisis y diseño arquitectónico de
 ```text
 docs/
 ├── 01-analisis-de-sistema/
-│   └── decisiones/            ADR-001 a ADR-004
+│   └── decisiones/            ADR-001 a ADR-005
 ├── 02-arquitectura-software/
 ├── 03-diseño-de-software/
 │   └── diseño-interno/
@@ -72,7 +76,8 @@ docs/
 | ADR-001: Monolito modular | [Ver documento](docs/01-analisis-de-sistema/decisiones/ADR-001-monolito-modular.md) |
 | ADR-002: Clean Architecture | [Ver documento](docs/01-analisis-de-sistema/decisiones/ADR-002-clean-architecture.md) |
 | ADR-003: Control de concurrencia | [Ver documento](docs/01-analisis-de-sistema/decisiones/ADR-003-control-concurrencia.md) |
-| ADR-004: Pagos mediante QR | [Ver documento](docs/01-analisis-de-sistema/decisiones/ADR-004-pagos-qr.md) |
+| ADR-004: Pagos mediante QR (reemplazado por ADR-005) | [Ver documento](docs/01-analisis-de-sistema/decisiones/ADR-004-pagos-qr.md) |
+| ADR-005: Pago único mediante Mercado Pago | [Ver documento](docs/01-analisis-de-sistema/decisiones/ADR-005-pago-unico-mercado-pago.md) |
 
 ### 02. Arquitectura de software
 
@@ -80,7 +85,7 @@ docs/
 |---|---|
 | Arquitectura inicial y diagrama | [Ver documento](docs/02-arquitectura-software/arquitectura-inicial.md) |
 | Estilo arquitectónico | [Ver documento](docs/02-arquitectura-software/estilo-arquitectonico.md) |
-| Enfoque Clean Architecture | [Ver documento](docs/02-arquitectura-software/enfoque-arquitectonico.md) |
+| Organización interna de los módulos (Clean Architecture) | [Ver documento](docs/02-arquitectura-software/enfoque-arquitectonico.md) |
 | Componentes arquitectónicos | [Ver documento](docs/02-arquitectura-software/componentes-arquitectonicos.md) |
 
 ### 03. Diseño de software
@@ -102,13 +107,12 @@ docs/
 
 ### Arquitectura seleccionada
 
-- **Estilo global:** arquitectura cliente-servidor de tres capas.
-- **Organización del backend:** monolito modular.
-- **Enfoque interno:** Clean Architecture.
+- **Estilo:** monolito modular.
+- **Organización interna:** Clean Architecture (puertos y adaptadores dentro de cada módulo).
 - **Frontend:** Next.js y TypeScript.
 - **Backend:** NestJS y TypeScript.
 - **Base de datos:** PostgreSQL mediante Supabase.
 - **Comunicación:** API REST sobre HTTPS.
-- **Pagos:** Yape o Plin mediante códigos QR de cada puesto y validación del comerciante.
+- **Pasarela de pago:** pago único por pedido mediante el Checkout de Mercado Pago (Sandbox), con confirmación por Webhook verificado.
 
 La documentación representa decisiones y propuestas de diseño arquitectónico. No implica que los componentes descritos ya estén implementados.
