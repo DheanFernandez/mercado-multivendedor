@@ -46,3 +46,10 @@ Thumbs.db
 
 # Vercel
 .vercel/
+
+# Cliente Prisma generado
+backend/src/generated/
+
+# Prisma instalado por error en la raíz (las dependencias viven en backend/ y frontend/)
+/package.json
+/package-lock.json

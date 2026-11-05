@@ -1,0 +1,92 @@
+// Esquema de Prisma 7 del backend (monolito modular NestJS).
+// La URL de conexión NO va aquí: se define en prisma.config.ts (CLI) y en PrismaService (runtime, adapter-pg).
+//
+// Módulos modelados: Autenticación y usuarios (RF01–RF05) y Comerciantes y puestos (RF06–RF07).
+// Pendientes: tiendas virtuales, trabajadores de puesto y cuenta de Mercado Pago (RF08, RF52).
+
+generator client {
+  provider               = "prisma-client"
+  output                 = "../src/generated/prisma"
+  runtime                = "nodejs"
+  moduleFormat           = "esm"
+  generatedFileExtension = "ts"
+  importFileExtension    = "js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+/// Roles de la plataforma (docs/01-analisis-de-sistema/01-actores.md). Un usuario tiene un único rol (RF03).
+enum RolUsuario {
+  CLIENTE
+  COMERCIANTE
+  TRABAJADOR_PUESTO
+  ADMINISTRADOR
+}
+
+enum EstadoUsuario {
+  ACTIVO
+  INACTIVO
+}
+
+enum EstadoComerciante {
+  ACTIVO
+  SUSPENDIDO
+}
+
+enum EstadoPuesto {
+  ACTIVO
+  INACTIVO
+}
+
+model Usuario {
+  id            String        @id @default(uuid()) @db.Uuid
+  /// Siempre en minúsculas (lo garantiza el dominio y el CHECK de la migración).
+  email         String        @unique
+  nombres       String
+  apellidos     String
+  telefono      String?
+  rol           RolUsuario    @default(CLIENTE)
+  estado        EstadoUsuario @default(ACTIVO)
+  /// Identidad externa (p. ej. Supabase Auth). Reservada: el mecanismo de autenticación sigue pendiente (DA03).
+  authId        String?       @unique
+  creadoEn      DateTime      @default(now()) @db.Timestamptz(3)
+  actualizadoEn DateTime      @updatedAt @db.Timestamptz(3)
+
+  comerciante Comerciante?
+
+  @@index([rol])
+  @@map("usuarios")
+}
+
+model Comerciante {
+  id              String            @id @default(uuid()) @db.Uuid
+  /// Un usuario con rol COMERCIANTE es titular de, a lo sumo, un perfil de comerciante.
+  usuarioId       String            @unique @db.Uuid
+  nombreComercial String
+  estado          EstadoComerciante @default(ACTIVO)
+  creadoEn        DateTime          @default(now()) @db.Timestamptz(3)
+  actualizadoEn   DateTime          @updatedAt @db.Timestamptz(3)
+
+  usuario Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Restrict)
+  puestos Puesto[]
+
+  @@map("comerciantes")
+}
+
+model Puesto {
+  id            String       @id @default(uuid()) @db.Uuid
+  comercianteId String       @db.Uuid
+  /// Identificador del puesto dentro del mercado (p. ej. "A-12"); único en toda la plataforma.
+  codigo        String       @unique
+  nombre        String
+  estado        EstadoPuesto @default(ACTIVO)
+  creadoEn      DateTime     @default(now()) @db.Timestamptz(3)
+  actualizadoEn DateTime     @updatedAt @db.Timestamptz(3)
+
+  comerciante Comerciante @relation(fields: [comercianteId], references: [id], onDelete: Restrict)
+
+  @@index([comercianteId])
+  @@map("puestos")
+}
