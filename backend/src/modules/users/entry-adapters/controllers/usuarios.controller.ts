@@ -1,7 +1,8 @@
-import { Body, Controller, Get, Inject, Param, ParseUUIDPipe, Post, Query } from '@nestjs/common';
+import { Body, Controller, Get, Inject, Param, ParseUUIDPipe, Patch, Post, Query } from '@nestjs/common';
 import type { Actor } from '../../../../shared/domain/actor.js';
 import { ActorRequerido } from '../../../../shared/http/actor.js';
 import { ConsultarUsuario } from '../../application/use-cases/consultar-usuario.use-case.js';
+import { CambiarEstadoUsuario, CambiarRolUsuario } from '../../application/use-cases/gestion-usuarios.use-cases.js';
 import { ListarUsuarios } from '../../application/use-cases/listar-usuarios.use-case.js';
 import { RegistrarUsuario, type RegistrarUsuarioComando } from '../../application/use-cases/registrar-usuario.use-case.js';
 import type { Usuario } from '../../domain/usuario.entity.js';
@@ -22,6 +23,8 @@ export class UsuariosController {
     @Inject(RegistrarUsuario) private readonly registrar: RegistrarUsuario,
     @Inject(ConsultarUsuario) private readonly consultar: ConsultarUsuario,
     @Inject(ListarUsuarios) private readonly listar: ListarUsuarios,
+    @Inject(CambiarEstadoUsuario) private readonly cambiarEstado: CambiarEstadoUsuario,
+    @Inject(CambiarRolUsuario) private readonly cambiarRol: CambiarRolUsuario,
   ) {}
 
   /** Alta por un administrador (cualquier rol); envía una invitación para definir la contraseña. */
@@ -43,5 +46,17 @@ export class UsuariosController {
   @Get(':id')
   async consultarUsuario(@Param('id', new ParseUUIDPipe()) id: string, @ActorRequerido() actor: Actor) {
     return vistaUsuario(await this.consultar.ejecutar(id, actor));
+  }
+
+  /** Activa o desactiva el acceso de un usuario (solo administrador). */
+  @Patch(':id/estado')
+  async estado(@Param('id', new ParseUUIDPipe()) id: string, @Body() cuerpo: { activo: boolean }, @ActorRequerido() actor: Actor) {
+    return vistaUsuario(await this.cambiarEstado.ejecutar(id, cuerpo?.activo, actor));
+  }
+
+  /** Cambia el rol almacenado en PostgreSQL (solo administrador). */
+  @Patch(':id/rol')
+  async rol(@Param('id', new ParseUUIDPipe()) id: string, @Body() cuerpo: { rol: string }, @ActorRequerido() actor: Actor) {
+    return vistaUsuario(await this.cambiarRol.ejecutar(id, cuerpo?.rol, actor));
   }
 }
