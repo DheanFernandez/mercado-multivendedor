@@ -6,9 +6,9 @@ import 'dotenv/config';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { afterAll, describe, expect, it } from 'vitest';
 import { Prisma, PrismaClient } from '../src/generated/prisma/client.js';
+import { exigirBaseAislada } from '../scripts/base-aislada.mjs';
 
-const url = process.env['DATABASE_URL'];
-if (!url) throw new Error('DATABASE_URL no definida');
+const url = exigirBaseAislada(process.env['DATABASE_URL']); // solo la base local de Docker
 const prisma = new PrismaClient({ adapter: new PrismaPg({ connectionString: url, max: 2 }) });
 afterAll(() => prisma.$disconnect());
 

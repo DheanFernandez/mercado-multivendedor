@@ -53,3 +53,15 @@ backend/src/generated/
 # Prisma instalado por error en la raíz (las dependencias viven en backend/ y frontend/)
 /package.json
 /package-lock.json
+
+# Configuración personal de herramientas de IA (no forma parte del producto; Spec Kit se versiona en .specify/ y specs/)
+.claude/
+.agents/
+.windsurf/
+skills-lock.json
+
+# Resultados temporales de pruebas y mediciones
+test-results/
+playwright-report/
+.tmp-*
+*.tmp

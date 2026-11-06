@@ -1,0 +1,37 @@
+# PostgreSQL LOCAL, AISLADO y desechable para pruebas de integración y mediciones del marketplace.
+# Nombres propios (proyecto, contenedor, red y volumen): no comparte nada con otros proyectos.
+# Credenciales de desarrollo EXCLUSIVAMENTE locales (no son de Supabase ni de ningún servicio remoto).
+#
+#   Iniciar:   docker compose -f ops/medicion/docker-compose.yml up -d --wait     (o: npm run db:test:up, en backend/)
+#   Detener:   docker compose -f ops/medicion/docker-compose.yml stop             (conserva los datos)
+#   Eliminar:  docker compose -f ops/medicion/docker-compose.yml down -v         (borra SOLO este contenedor, red y volumen)
+name: mercado-test
+
+services:
+  db:
+    image: postgres:17-alpine
+    container_name: mercado-test-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: test
+      POSTGRES_DB: mercado_test
+    ports:
+      - "127.0.0.1:55433:5432"
+    volumes:
+      - mercado_test_pgdata:/var/lib/postgresql/data
+    networks:
+      - mercado_test_net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d mercado_test"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+      start_period: 3s
+
+volumes:
+  mercado_test_pgdata:
+    name: mercado_test_pgdata
+
+networks:
+  mercado_test_net:
+    name: mercado_test_net
