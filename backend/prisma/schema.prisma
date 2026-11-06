@@ -145,7 +145,10 @@ model Producto {
   puesto    Puesto           @relation(fields: [puestoId], references: [id], onDelete: Restrict)
   categoria Categoria        @relation(fields: [categoriaId], references: [id], onDelete: Restrict)
   imagenes  ProductoImagen[]
+  inventario Inventario?
 
+  /// Permite la clave foránea compuesta (producto, puesto) del inventario: el puesto del inventario no puede divergir del producto.
+  @@unique([id, puestoId])
   @@index([puestoId, estado])
   @@index([categoriaId, estado])
   @@index([estado, creadoEn])
@@ -165,4 +168,80 @@ model ProductoImagen {
 
   @@unique([productoId, orden])
   @@map("producto_imagenes")
+}
+
+// ───────────── Inventario (RF12–RF15, RF25; ADR-003) ─────────────
+
+enum TipoMovimientoInventario {
+  INGRESO
+  VENTA
+  DEVOLUCION
+  AJUSTE
+  RESERVA
+  LIBERACION
+}
+
+enum EstadoReservaInventario {
+  RESERVADA
+  LIBERADA
+  CONFIRMADA
+}
+
+/// Existencias de un producto en su puesto. Invariante (CHECK): 0 <= stock_reservado <= stock_fisico. Disponible = físico - reservado.
+model Inventario {
+  id             String   @id @default(uuid()) @db.Uuid
+  productoId     String   @unique @map("producto_id") @db.Uuid
+  puestoId       String   @map("puesto_id") @db.Uuid
+  stockFisico    Int      @default(0) @map("stock_fisico")
+  stockReservado Int      @default(0) @map("stock_reservado")
+  creadoEn       DateTime @default(now()) @map("creado_en") @db.Timestamptz(3)
+  actualizadoEn  DateTime @default(now()) @map("actualizado_en") @db.Timestamptz(3)
+
+  producto    Producto               @relation(fields: [productoId, puestoId], references: [id, puestoId], onDelete: Restrict)
+  movimientos MovimientoInventario[]
+  reservas    ReservaInventario[]
+
+  @@unique([productoId, puestoId])
+  @@index([puestoId])
+  @@map("inventarios")
+}
+
+/// Libro de movimientos (solo se inserta). Variaciones con signo; el saldo posterior permite auditar la cadena.
+model MovimientoInventario {
+  id                    String                   @id @default(uuid()) @db.Uuid
+  inventarioId          String                   @map("inventario_id") @db.Uuid
+  tipo                  TipoMovimientoInventario
+  variacionFisica       Int                      @map("variacion_fisica")
+  variacionReservada    Int                      @map("variacion_reservada")
+  stockFisicoDespues    Int                      @map("stock_fisico_despues")
+  stockReservadoDespues Int                      @map("stock_reservado_despues")
+  motivo                String?
+  /// Usuario que originó el movimiento (null en operaciones del sistema, p. ej. expiración). Sin FK: el libro es histórico.
+  actorId               String?                  @map("actor_id") @db.Uuid
+  /// Clave de operación de la reserva (pedido) que lo originó, si aplica.
+  referencia            String?
+  creadoEn              DateTime                 @default(now()) @map("creado_en") @db.Timestamptz(3)
+
+  inventario Inventario @relation(fields: [inventarioId], references: [id], onDelete: Restrict)
+
+  @@index([inventarioId, creadoEn])
+  @@map("movimientos_inventario")
+}
+
+/// Reserva de unidades para una operación (pedido). La clave de operación + inventario es única: base de la idempotencia.
+model ReservaInventario {
+  id             String                  @id @default(uuid()) @db.Uuid
+  claveOperacion String                  @map("clave_operacion")
+  inventarioId   String                  @map("inventario_id") @db.Uuid
+  cantidad       Int
+  estado         EstadoReservaInventario @default(RESERVADA)
+  expiraEn       DateTime                @map("expira_en") @db.Timestamptz(3)
+  creadoEn       DateTime                @default(now()) @map("creado_en") @db.Timestamptz(3)
+  actualizadoEn  DateTime                @default(now()) @map("actualizado_en") @db.Timestamptz(3)
+
+  inventario Inventario @relation(fields: [inventarioId], references: [id], onDelete: Restrict)
+
+  @@unique([claveOperacion, inventarioId])
+  @@index([estado, expiraEn])
+  @@map("reservas_inventario")
 }

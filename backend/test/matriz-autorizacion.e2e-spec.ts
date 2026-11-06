@@ -70,6 +70,10 @@ describe('AC04 · matriz de autorización rol × ruta', () => {
       { metodo: 'delete', ruta: `/api/v1/productos/${producto}/imagenes/${imagen}`, permitidos: ['comercianteTitular'] },
       { metodo: 'get', ruta: '/api/v1/catalogo/productos', permitidos: TODOS },
       { metodo: 'get', ruta: `/api/v1/catalogo/productos/${producto}`, permitidos: TODOS },
+      { metodo: 'get', ruta: '/api/v1/inventario', permitidos: [...ADMIN, ...COMERCIANTES] },
+      { metodo: 'get', ruta: `/api/v1/inventario/productos/${producto}`, permitidos: [...ADMIN, 'comercianteTitular'] },
+      { metodo: 'get', ruta: `/api/v1/inventario/productos/${producto}/movimientos`, permitidos: [...ADMIN, 'comercianteTitular'] },
+      { metodo: 'post', ruta: `/api/v1/inventario/productos/${producto}/movimientos`, cuerpo: { tipo: 'X' }, permitidos: ['comercianteTitular'], nota: 'el administrador solo lee el inventario' },
     ];
     for (const r of rutas) {
       for (const identidad of IDENTIDADES) {
