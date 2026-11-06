@@ -15,6 +15,8 @@ import { CATEGORIA_REPOSITORY, PRODUCTO_REPOSITORY } from '../../src/modules/pro
 import { AlmacenEnMemoria, CategoriasEnMemoria, ProductosEnMemoria } from '../../src/modules/products/application/use-cases/test-doubles.js';
 import { Categoria } from '../../src/modules/products/domain/categoria.entity.js';
 import { Producto } from '../../src/modules/products/domain/producto.entity.js';
+import { CARRITO_REPOSITORY } from '../../src/modules/cart/application/ports/ports.js';
+import { CarritoEnMemoria } from '../../src/modules/cart/application/use-cases/test-doubles.js';
 import { INVENTARIO_REPOSITORY } from '../../src/modules/inventory/application/ports/ports.js';
 import { InventarioEnMemoria } from '../../src/modules/inventory/application/use-cases/test-doubles.js';
 import { PROVEEDOR_IDENTIDAD } from '../../src/modules/users/application/ports/proveedor-identidad.port.js';
@@ -48,6 +50,7 @@ export async function crearAppEnMemoria() {
   const categorias = new CategoriasEnMemoria();
   const productos = new ProductosEnMemoria();
   const inventario = new InventarioEnMemoria();
+  const carritos = new CarritoEnMemoria();
   const sembrar = (n: number, rol: Rol, estado: 'ACTIVO' | 'INACTIVO' = 'ACTIVO') =>
     usuarios.datos.set(uid(n), Usuario.reconstruir({ id: uid(n), email: `u${n}@t.co`, nombres: 'N', apellidos: 'A', telefono: null, rol, estado, authId: authIdDe(n), creadoEn: new Date() }));
   sembrar(U.ADMIN, 'ADMINISTRADOR');
@@ -103,10 +106,25 @@ export async function crearAppEnMemoria() {
     .overrideProvider(CATEGORIA_REPOSITORY).useValue(categorias)
     .overrideProvider(PRODUCTO_REPOSITORY).useValue(productos)
     .overrideProvider(INVENTARIO_REPOSITORY).useValue(inventario)
-    .overrideProvider(CATALOGO_REPOSITORY).useValue({ async buscar() { return { items: [], total: 0 }; }, async detalle() { return null; } })
+    .overrideProvider(CARRITO_REPOSITORY).useValue(carritos)
+    .overrideProvider(CATALOGO_REPOSITORY).useValue({
+      async buscar() { return { items: [], total: 0 }; },
+      /** Mismas reglas de visibilidad que el catálogo real: publicado, categoría activa, puesto y comerciante activos. */
+      async detalle(id: string) {
+        const p = productos.datos.get(id);
+        const cat = p && categorias.datos.get(p.categoriaId);
+        const pu = p && puestos.find((x) => x.id === p.puestoId);
+        const co = pu && comerciantes.find((x) => x.id === pu.comercianteId);
+        if (!p || p.estado !== 'PUBLICADO' || !cat?.activa || pu?.estado !== 'ACTIVO' || !co?.activo) return null;
+        return {
+          id: p.id, nombre: p.nombre, descripcion: p.descripcion, precio: p.precio.toString(), unidadVenta: p.unidadVenta, presentacion: p.presentacion,
+          categoria: { id: cat.id, nombre: cat.nombre, slug: cat.slug }, puesto: { id: pu.id, codigo: pu.codigo, nombre: pu.nombre }, imagenes: [],
+        };
+      },
+    })
     .overrideProvider(ALMACEN_ARCHIVOS).useValue(new AlmacenEnMemoria())
     .compile();
   const app: INestApplication = modulo.createNestApplication();
   await app.init();
-  return { app, usuarios, comerciantes, puestos, categorias, productos, inventario, ids: { comercianteA: A.id, comercianteB: B.id, puestoA: uid(301), puestoB: uid(302), categoria: categoria.id, producto: producto.id, imagen: uid(601) } };
+  return { app, usuarios, comerciantes, puestos, categorias, productos, inventario, carritos, ids: { comercianteA: A.id, comercianteB: B.id, puestoA: uid(301), puestoB: uid(302), categoria: categoria.id, producto: producto.id, imagen: uid(601) } };
 }
