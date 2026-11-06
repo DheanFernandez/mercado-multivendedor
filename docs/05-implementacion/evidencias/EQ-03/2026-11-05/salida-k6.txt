@@ -1,0 +1,12 @@
+         /\      Grafana   /‾‾/  
+    /\  /  \     |\  __   /  /   
+   /  \/    \    | |/ /  /   ‾‾\ 
+  /          \   |   (  |  (‾)  |
+ / __________ \  |_|\_\  \_____/ 
+     execution: local
+        script: -
+        output: -
+     scenarios: (100.00%) 1 scenario, 200 max VUs, 1m30s max duration (incl. graceful stop):
+              * clientes: 200 looping VUs for 1m0s (gracefulStop: 30s)
+time="2026-11-06T03:41:45Z" level=info msg="ESTADO_FINAL {\"stockFisico\":10,\"stockReservado\":10,\"reservasAceptadas\":10,\"unidadesReservadas\":10,\"reservadoSuperaFisico\":0}" source=console
+clientes ✓ [ 100% ] 200 VUs  1m0s

@@ -1,0 +1,9 @@
+Fecha: 2026-11-05 20:51
+Commit base: 23bd5d3 (rama feat/productos-categorias); árbol con cambios locales sin confirmar
+Equipo: Intel(R) Core(TM) i5-4590 CPU @ 3.30GHz; 4 núcleos / 4 lógicos; RAM 15.9 GB; Microsoft Windows NT 10.0.26100.0
+Node: v24.19.0   Docker: 29.8.1
+Backend: node dist/main (NODE_ENV=production) en el equipo, puerto 3100, pool de pg por defecto (10 conexiones)
+Base de datos: PostgreSQL 16 en contenedor Docker (mercado-medicion-pg), 127.0.0.1:55440, datos en tmpfs, SIN Supabase
+Datos (seed reproducible, faker.seed 20261105): 50 comerciantes, 100 puestos, 20 categorías, 5000 productos publicados
+k6: imagen grafana/k6 (ver salida), ejecutado en contenedor contra http://host.docker.internal:3100
+Limitación: backend, base de datos y generador de carga comparten la misma máquina; no hay latencia de red ni capacidad de producción.

@@ -1,0 +1,130 @@
+# BORRADOR PROPUESTO (DEC-08, PENDIENTE). No instalado en Spec Kit y no ejecutado.
+# No reemplaza ni modifica .specify/workflows/speckit/workflow.yml.
+#
+# Ver el flujo sin ejecutarlo:   specify workflow info docs/06-gobernanza-sdd/workflows/mercado-sdd.yml
+# Ejecutarlo (solo tras aprobar DEC-08):
+#   specify workflow run docs/06-gobernanza-sdd/workflows/mercado-sdd.yml -i spec="<descripción citando HU, RF y ADR>"
+#
+# Las 8 etapas de la constitución (v1.1.x):
+#   1 Especificar · 2 Aclarar · 3 Planificar · 4 Tareas · 5 Analizar · 6 Implementar · 7 Probar · 8 Revisar
+# Cada etapa de decisión termina en una compuerta humana (gate). Los pasos "shell" se ejecutan en la raíz del proyecto
+# y fallan el flujo si algún comando devuelve un código distinto de 0.
+
+schema_version: "1.0"
+
+workflow:
+  id: "mercado-sdd"
+  name: "SDD Mercado de Abastos (8 etapas)"
+  version: "0.1.0"
+  author: "Equipo mercado-multivendedor"
+  description: "Especificar → Aclarar → Planificar → Tareas → Analizar → Implementar → Probar → Revisar, con compuertas humanas"
+
+requires:
+  speckit_version: ">=0.8.5"
+  integrations:
+    any:
+      - "claude"
+
+inputs:
+  spec:
+    type: string
+    required: true
+    prompt: "Describa la funcionalidad o el módulo (cite HU, RF y ADR; para una regularización, indique que es retroactiva)"
+  integration:
+    type: string
+    default: "auto"
+    prompt: "Integración a usar ('auto' usa la del proyecto)"
+
+steps:
+  # ── Etapa 1 · Especificar ──────────────────────────────────────────────
+  - id: specify
+    command: speckit.specify
+    integration: "{{ inputs.integration }}"
+    input:
+      args: "{{ inputs.spec }}"
+
+  - id: review-spec
+    type: gate
+    message: "Etapa 1. Revise spec.md: sección Trazabilidad con HU, RF, ADR y criterios de aceptación; sin detalles de implementación."
+    options: [approve, reject]
+    on_reject: abort
+
+  # ── Etapa 2 · Aclarar ──────────────────────────────────────────────────
+  - id: clarify
+    command: speckit.clarify
+    integration: "{{ inputs.integration }}"
+    input:
+      args: ""
+
+  - id: review-clarify
+    type: gate
+    message: "Etapa 2. ¿No quedan marcadores NEEDS CLARIFICATION ni decisiones DEC-xx sin aprobar de las que dependa esta especificación?"
+    options: [approve, reject]
+    on_reject: abort
+
+  # ── Etapa 3 · Planificar ───────────────────────────────────────────────
+  - id: plan
+    command: speckit.plan
+    integration: "{{ inputs.integration }}"
+    input:
+      args: "{{ inputs.spec }}"
+
+  - id: review-plan
+    type: gate
+    message: "Etapa 3. Revise plan.md y el Constitution Check (principios I–X): todas las compuertas en verde o justificadas."
+    options: [approve, reject]
+    on_reject: abort
+
+  # ── Etapa 4 · Generar tareas ───────────────────────────────────────────
+  - id: tasks
+    command: speckit.tasks
+    integration: "{{ inputs.integration }}"
+    input:
+      args: ""
+
+  # ── Etapa 5 · Analizar (solo lectura) ──────────────────────────────────
+  - id: analyze
+    command: speckit.analyze
+    integration: "{{ inputs.integration }}"
+    input:
+      args: ""
+
+  - id: review-analysis
+    type: gate
+    message: "Etapa 5. El análisis no debe tener hallazgos CRITICAL ni conflictos con la constitución. ¿Autoriza iniciar la implementación?"
+    options: [approve, reject]
+    on_reject: abort
+
+  # ── Etapa 6 · Implementar ──────────────────────────────────────────────
+  # La implementación no ejecuta migraciones sobre la base compartida, commits, push ni merge:
+  # esas acciones requieren orden explícita del equipo (constitución, flujo SDD).
+  - id: implement
+    command: speckit.implement
+    integration: "{{ inputs.integration }}"
+    input:
+      args: ""
+
+  # ── Etapa 7 · Probar ───────────────────────────────────────────────────
+  - id: test-backend
+    type: shell
+    run: "cd backend && npm run prisma:validate && npm run build && npm run lint && npm test && npm run test:e2e"
+    timeout: 900
+
+  - id: test-frontend
+    type: shell
+    run: "cd frontend && npm run lint && npm run build"
+    timeout: 900
+
+  # npm run test:db usa la base de desarrollo compartida: se ejecuta a mano, nunca de forma automática.
+  - id: test-db-manual
+    type: gate
+    message: "Etapa 7. Si la funcionalidad toca la base de datos, ejecute a mano 'npm run test:db' en backend/ (usa la base de desarrollo; limpia sus datos). Apruebe cuando esté verificado o no aplique."
+    options: [approve, reject]
+    on_reject: abort
+
+  # ── Etapa 8 · Revisar ──────────────────────────────────────────────────
+  - id: review-final
+    type: gate
+    message: "Etapa 8. Revisión final: ejecute /speckit-converge, aplique el checklist de Governance de la constitución y verifique que el informe indique lo implementado, lo verificado con resultados reales y lo pendiente."
+    options: [approve, reject]
+    on_reject: abort
