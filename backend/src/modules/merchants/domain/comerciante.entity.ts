@@ -11,18 +11,33 @@ export interface ComercianteProps {
   creadoEn: Date;
 }
 
+function validarNombre(valor: unknown): string {
+  const nombre = typeof valor === 'string' ? valor.trim() : '';
+  if (!nombre) throw new ErrorDeValidacion('El nombre comercial es obligatorio.');
+  if (nombre.length > 150) throw new ErrorDeValidacion('El nombre comercial es demasiado largo.');
+  return nombre;
+}
+
 export class Comerciante {
-  private constructor(private readonly props: ComercianteProps) {}
+  private constructor(private props: ComercianteProps) {}
 
   static crear(datos: { id: string; usuarioId: string; nombreComercial: string; creadoEn?: Date }): Comerciante {
-    const nombreComercial = (datos.nombreComercial ?? '').trim();
-    if (!nombreComercial) throw new ErrorDeValidacion('El nombre comercial es obligatorio.');
-    if (nombreComercial.length > 150) throw new ErrorDeValidacion('El nombre comercial es demasiado largo.');
+    const nombreComercial = validarNombre(datos.nombreComercial);
     return new Comerciante({ id: datos.id, usuarioId: datos.usuarioId, nombreComercial, estado: 'ACTIVO', creadoEn: datos.creadoEn ?? new Date() });
   }
 
   static reconstruir(props: ComercianteProps): Comerciante {
     return new Comerciante(props);
+  }
+
+  renombrar(nombreComercial: unknown): void {
+    this.props = { ...this.props, nombreComercial: validarNombre(nombreComercial) };
+  }
+
+  /** Suspender oculta sus productos del catálogo y bloquea nuevas publicaciones. */
+  cambiarEstado(activo: unknown): void {
+    if (typeof activo !== 'boolean') throw new ErrorDeValidacion('El estado debe ser verdadero o falso.');
+    this.props = { ...this.props, estado: activo ? 'ACTIVO' : 'SUSPENDIDO' };
   }
 
   get id() { return this.props.id; }

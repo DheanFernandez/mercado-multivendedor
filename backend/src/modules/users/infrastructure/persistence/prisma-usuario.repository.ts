@@ -25,18 +25,11 @@ export class PrismaUsuarioRepository implements UsuarioRepository {
 
   async guardar(usuario: Usuario): Promise<void> {
     try {
-      await this.prisma.usuario.create({
-        data: {
-          id: usuario.id,
-          email: usuario.email,
-          nombres: usuario.nombres,
-          apellidos: usuario.apellidos,
-          telefono: usuario.telefono,
-          rol: usuario.rol,
-          estado: usuario.estado,
-          authId: usuario.authId,
-          creadoEn: usuario.creadoEn,
-        },
+      const mutables = { nombres: usuario.nombres, apellidos: usuario.apellidos, telefono: usuario.telefono, rol: usuario.rol, estado: usuario.estado };
+      await this.prisma.usuario.upsert({
+        where: { id: usuario.id },
+        create: { id: usuario.id, email: usuario.email, authId: usuario.authId, creadoEn: usuario.creadoEn, ...mutables },
+        update: mutables, // el correo y el authId no cambian
       });
     } catch (e) {
       if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === 'P2002') throw new EmailYaRegistradoError();

@@ -86,7 +86,83 @@ model Puesto {
   actualizadoEn DateTime     @updatedAt @db.Timestamptz(3)
 
   comerciante Comerciante @relation(fields: [comercianteId], references: [id], onDelete: Restrict)
+  productos   Producto[]
 
   @@index([comercianteId])
   @@map("puestos")
+}
+
+// ───────────── Productos y categorías (RF09–RF11) / Catálogo (RF16–RF19) ─────────────
+
+enum UnidadVenta {
+  UNIDAD
+  KILOGRAMO
+  GRAMO
+  LITRO
+  DOCENA
+  MANOJO
+  PAQUETE
+}
+
+/// BORRADOR: aún no visible. PUBLICADO: visible en el catálogo. DESACTIVADO: retirado (RF09 "desactivar").
+enum EstadoPublicacion {
+  BORRADOR
+  PUBLICADO
+  DESACTIVADO
+}
+
+/// Clasificación plana y global del mercado, administrada por el administrador.
+model Categoria {
+  id            String   @id @default(uuid()) @db.Uuid
+  nombre        String
+  /// Derivado del nombre (sin tildes, minúsculas, con guiones). Único: impide categorías duplicadas.
+  slug          String   @unique
+  descripcion   String?
+  activa        Boolean  @default(true)
+  creadoEn      DateTime @default(now()) @db.Timestamptz(3)
+  actualizadoEn DateTime @updatedAt @db.Timestamptz(3)
+
+  productos Producto[]
+
+  @@map("categorias")
+}
+
+model Producto {
+  id            String            @id @default(uuid()) @db.Uuid
+  puestoId      String            @db.Uuid
+  categoriaId   String            @db.Uuid
+  nombre        String
+  descripcion   String?
+  /// Importe en soles con dos decimales (NUMERIC exacto; nunca coma flotante).
+  precio        Decimal           @db.Decimal(10, 2)
+  unidadVenta   UnidadVenta
+  /// Texto libre de la presentación comercial (p. ej. "bolsa de 1 kg").
+  presentacion  String?
+  estado        EstadoPublicacion @default(BORRADOR)
+  creadoEn      DateTime          @default(now()) @db.Timestamptz(3)
+  actualizadoEn DateTime          @updatedAt @db.Timestamptz(3)
+
+  puesto    Puesto           @relation(fields: [puestoId], references: [id], onDelete: Restrict)
+  categoria Categoria        @relation(fields: [categoriaId], references: [id], onDelete: Restrict)
+  imagenes  ProductoImagen[]
+
+  @@index([puestoId, estado])
+  @@index([categoriaId, estado])
+  @@index([estado, creadoEn])
+  @@map("productos")
+}
+
+model ProductoImagen {
+  id               String   @id @default(uuid()) @db.Uuid
+  productoId       String   @db.Uuid
+  /// Ruta del objeto dentro del bucket de almacenamiento (no una URL).
+  ruta             String   @unique
+  textoAlternativo String?
+  orden            Int
+  creadoEn         DateTime @default(now()) @db.Timestamptz(3)
+
+  producto Producto @relation(fields: [productoId], references: [id], onDelete: Cascade)
+
+  @@unique([productoId, orden])
+  @@map("producto_imagenes")
 }
