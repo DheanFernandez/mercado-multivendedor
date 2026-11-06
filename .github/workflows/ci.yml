@@ -9,6 +9,16 @@ on:
     branches: [main]
 
 jobs:
+  # Los commits de un pull request no pueden llevar atribuciones de IA (Co-Authored-By / Generated-By de Claude, etc.).
+  atribucion:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - run: sh .githooks/verificar-atribucion-ia.sh --rango "origin/${{ github.base_ref }}..HEAD^2"
+
   backend:
     runs-on: ubuntu-latest
     services:
