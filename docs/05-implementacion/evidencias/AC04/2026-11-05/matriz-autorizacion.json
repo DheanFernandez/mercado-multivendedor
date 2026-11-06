@@ -1,0 +1,1601 @@
+{
+  "medicion": "AC04 · matriz rol × ruta",
+  "rutas": 33,
+  "identidades": [
+    "anonimo",
+    "cliente",
+    "trabajador",
+    "comercianteAjeno",
+    "comercianteTitular",
+    "administrador"
+  ],
+  "casos": 198,
+  "conformes": 198,
+  "noConformes": 0,
+  "resultados": [
+    {
+      "metodo": "GET",
+      "ruta": "/",
+      "identidad": "anonimo",
+      "esperado": "permitido",
+      "obtenido": 200,
+      "conforme": true
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/",
+      "identidad": "cliente",
+      "esperado": "permitido",
+      "obtenido": 200,
+      "conforme": true
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/",
+      "identidad": "trabajador",
+      "esperado": "permitido",
+      "obtenido": 200,
+      "conforme": true
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/",
+      "identidad": "comercianteAjeno",
+      "esperado": "permitido",
+      "obtenido": 200,
+      "conforme": true
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/",
+      "identidad": "comercianteTitular",
+      "esperado": "permitido",
+      "obtenido": 200,
+      "conforme": true
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/",
+      "identidad": "administrador",
+      "esperado": "permitido",
+      "obtenido": 200,
+      "conforme": true
+    },
+    {
+      "metodo": "POST",
+      "ruta": "/api/v1/auth/registro",
+      "identidad": "anonimo",
+      "esperado": "permitido",
+      "obtenido": 400,
+      "conforme": true
+    },
+    {
+      "metodo": "POST",
+      "ruta": "/api/v1/auth/registro",
+      "identidad": "cliente",
+      "esperado": "permitido",
+      "obtenido": 400,
+      "conforme": true
+    },
+    {
+      "metodo": "POST",
+      "ruta": "/api/v1/auth/registro",
+      "identidad": "trabajador",
+      "esperado": "permitido",
+      "obtenido": 400,
+      "conforme": true
+    },
+    {
+      "metodo": "POST",
+      "ruta": "/api/v1/auth/registro",
+      "identidad": "comercianteAjeno",
+      "esperado": "permitido",
+      "obtenido": 400,
+      "conforme": true
+    },
+    {
+      "metodo": "POST",
+      "ruta": "/api/v1/auth/registro",
+      "identidad": "comercianteTitular",
+      "esperado": "permitido",
+      "obtenido": 400,
+      "conforme": true
+    },
+    {
+      "metodo": "POST",
+      "ruta": "/api/v1/auth/registro",
+      "identidad": "administrador",
+      "esperado": "permitido",
+      "obtenido": 400,
+      "conforme": true
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/auth/me",
+      "identidad": "anonimo",
+      "esperado": "401",
+      "obtenido": 401,
+      "conforme": true
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/auth/me",
+      "identidad": "cliente",
+      "esperado": "permitido",
+      "obtenido": 200,
+      "conforme": true
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/auth/me",
+      "identidad": "trabajador",
+      "esperado": "permitido",
+      "obtenido": 200,
+      "conforme": true
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/auth/me",
+      "identidad": "comercianteAjeno",
+      "esperado": "permitido",
+      "obtenido": 200,
+      "conforme": true
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/auth/me",
+      "identidad": "comercianteTitular",
+      "esperado": "permitido",
+      "obtenido": 200,
+      "conforme": true
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/auth/me",
+      "identidad": "administrador",
+      "esperado": "permitido",
+      "obtenido": 200,
+      "conforme": true
+    },
+    {
+      "metodo": "POST",
+      "ruta": "/api/v1/usuarios",
+      "identidad": "anonimo",
+      "esperado": "401",
+      "obtenido": 401,
+      "conforme": true
+    },
+    {
+      "metodo": "POST",
+      "ruta": "/api/v1/usuarios",
+      "identidad": "cliente",
+      "esperado": "403",
+      "obtenido": 403,
+      "conforme": true
+    },
+    {
+      "metodo": "POST",
+      "ruta": "/api/v1/usuarios",
+      "identidad": "trabajador",
+      "esperado": "403",
+      "obtenido": 403,
+      "conforme": true
+    },
+    {
+      "metodo": "POST",
+      "ruta": "/api/v1/usuarios",
+      "identidad": "comercianteAjeno",
+      "esperado": "403",
+      "obtenido": 403,
+      "conforme": true
+    },
+    {
+      "metodo": "POST",
+      "ruta": "/api/v1/usuarios",
+      "identidad": "comercianteTitular",
+      "esperado": "403",
+      "obtenido": 403,
+      "conforme": true
+    },
+    {
+      "metodo": "POST",
+      "ruta": "/api/v1/usuarios",
+      "identidad": "administrador",
+      "esperado": "permitido",
+      "obtenido": 400,
+      "conforme": true
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/usuarios",
+      "identidad": "anonimo",
+      "esperado": "401",
+      "obtenido": 401,
+      "conforme": true
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/usuarios",
+      "identidad": "cliente",
+      "esperado": "403",
+      "obtenido": 403,
+      "conforme": true
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/usuarios",
+      "identidad": "trabajador",
+      "esperado": "403",
+      "obtenido": 403,
+      "conforme": true
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/usuarios",
+      "identidad": "comercianteAjeno",
+      "esperado": "403",
+      "obtenido": 403,
+      "conforme": true
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/usuarios",
+      "identidad": "comercianteTitular",
+      "esperado": "403",
+      "obtenido": 403,
+      "conforme": true
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/usuarios",
+      "identidad": "administrador",
+      "esperado": "permitido",
+      "obtenido": 200,
+      "conforme": true
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/usuarios/00000000-0000-4000-8000-000000000006",
+      "identidad": "anonimo",
+      "esperado": "401",
+      "obtenido": 401,
+      "conforme": true
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/usuarios/00000000-0000-4000-8000-000000000006",
+      "identidad": "cliente",
+      "esperado": "403",
+      "obtenido": 403,
+      "conforme": true
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/usuarios/00000000-0000-4000-8000-000000000006",
+      "identidad": "trabajador",
+      "esperado": "403",
+      "obtenido": 403,
+      "conforme": true
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/usuarios/00000000-0000-4000-8000-000000000006",
+      "identidad": "comercianteAjeno",
+      "esperado": "403",
+      "obtenido": 403,
+      "conforme": true
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/usuarios/00000000-0000-4000-8000-000000000006",
+      "identidad": "comercianteTitular",
+      "esperado": "403",
+      "obtenido": 403,
+      "conforme": true
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/usuarios/00000000-0000-4000-8000-000000000006",
+      "identidad": "administrador",
+      "esperado": "permitido",
+      "obtenido": 200,
+      "conforme": true
+    },
+    {
+      "metodo": "PATCH",
+      "ruta": "/api/v1/usuarios/00000000-0000-4000-8000-000000000006/estado",
+      "identidad": "anonimo",
+      "esperado": "401",
+      "obtenido": 401,
+      "conforme": true
+    },
+    {
+      "metodo": "PATCH",
+      "ruta": "/api/v1/usuarios/00000000-0000-4000-8000-000000000006/estado",
+      "identidad": "cliente",
+      "esperado": "403",
+      "obtenido": 403,
+      "conforme": true
+    },
+    {
+      "metodo": "PATCH",
+      "ruta": "/api/v1/usuarios/00000000-0000-4000-8000-000000000006/estado",
+      "identidad": "trabajador",
+      "esperado": "403",
+      "obtenido": 403,
+      "conforme": true
+    },
+    {
+      "metodo": "PATCH",
+      "ruta": "/api/v1/usuarios/00000000-0000-4000-8000-000000000006/estado",
+      "identidad": "comercianteAjeno",
+      "esperado": "403",
+      "obtenido": 403,
+      "conforme": true
+    },
+    {
+      "metodo": "PATCH",
+      "ruta": "/api/v1/usuarios/00000000-0000-4000-8000-000000000006/estado",
+      "identidad": "comercianteTitular",
+      "esperado": "403",
+      "obtenido": 403,
+      "conforme": true
+    },
+    {
+      "metodo": "PATCH",
+      "ruta": "/api/v1/usuarios/00000000-0000-4000-8000-000000000006/estado",
+      "identidad": "administrador",
+      "esperado": "permitido",
+      "obtenido": 200,
+      "conforme": true
+    },
+    {
+      "metodo": "PATCH",
+      "ruta": "/api/v1/usuarios/00000000-0000-4000-8000-000000000006/rol",
+      "identidad": "anonimo",
+      "esperado": "401",
+      "obtenido": 401,
+      "conforme": true
+    },
+    {
+      "metodo": "PATCH",
+      "ruta": "/api/v1/usuarios/00000000-0000-4000-8000-000000000006/rol",
+      "identidad": "cliente",
+      "esperado": "403",
+      "obtenido": 403,
+      "conforme": true
+    },
+    {
+      "metodo": "PATCH",
+      "ruta": "/api/v1/usuarios/00000000-0000-4000-8000-000000000006/rol",
+      "identidad": "trabajador",
+      "esperado": "403",
+      "obtenido": 403,
+      "conforme": true
+    },
+    {
+      "metodo": "PATCH",
+      "ruta": "/api/v1/usuarios/00000000-0000-4000-8000-000000000006/rol",
+      "identidad": "comercianteAjeno",
+      "esperado": "403",
+      "obtenido": 403,
+      "conforme": true
+    },
+    {
+      "metodo": "PATCH",
+      "ruta": "/api/v1/usuarios/00000000-0000-4000-8000-000000000006/rol",
+      "identidad": "comercianteTitular",
+      "esperado": "403",
+      "obtenido": 403,
+      "conforme": true
+    },
+    {
+      "metodo": "PATCH",
+      "ruta": "/api/v1/usuarios/00000000-0000-4000-8000-000000000006/rol",
+      "identidad": "administrador",
+      "esperado": "permitido",
+      "obtenido": 200,
+      "conforme": true
+    },
+    {
+      "metodo": "POST",
+      "ruta": "/api/v1/comerciantes",
+      "identidad": "anonimo",
+      "esperado": "401",
+      "obtenido": 401,
+      "conforme": true
+    },
+    {
+      "metodo": "POST",
+      "ruta": "/api/v1/comerciantes",
+      "identidad": "cliente",
+      "esperado": "403",
+      "obtenido": 403,
+      "conforme": true
+    },
+    {
+      "metodo": "POST",
+      "ruta": "/api/v1/comerciantes",
+      "identidad": "trabajador",
+      "esperado": "403",
+      "obtenido": 403,
+      "conforme": true
+    },
+    {
+      "metodo": "POST",
+      "ruta": "/api/v1/comerciantes",
+      "identidad": "comercianteAjeno",
+      "esperado": "403",
+      "obtenido": 403,
+      "conforme": true
+    },
+    {
+      "metodo": "POST",
+      "ruta": "/api/v1/comerciantes",
+      "identidad": "comercianteTitular",
+      "esperado": "403",
+      "obtenido": 403,
+      "conforme": true
+    },
+    {
+      "metodo": "POST",
+      "ruta": "/api/v1/comerciantes",
+      "identidad": "administrador",
+      "esperado": "permitido",
+      "obtenido": 400,
+      "conforme": true
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/comerciantes",
+      "identidad": "anonimo",
+      "esperado": "401",
+      "obtenido": 401,
+      "conforme": true
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/comerciantes",
+      "identidad": "cliente",
+      "esperado": "403",
+      "obtenido": 403,
+      "conforme": true
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/comerciantes",
+      "identidad": "trabajador",
+      "esperado": "403",
+      "obtenido": 403,
+      "conforme": true
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/comerciantes",
+      "identidad": "comercianteAjeno",
+      "esperado": "403",
+      "obtenido": 403,
+      "conforme": true
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/comerciantes",
+      "identidad": "comercianteTitular",
+      "esperado": "403",
+      "obtenido": 403,
+      "conforme": true
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/comerciantes",
+      "identidad": "administrador",
+      "esperado": "permitido",
+      "obtenido": 200,
+      "conforme": true
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/comerciantes/00000000-0000-4000-8000-000000000201",
+      "identidad": "anonimo",
+      "esperado": "401",
+      "obtenido": 401,
+      "conforme": true
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/comerciantes/00000000-0000-4000-8000-000000000201",
+      "identidad": "cliente",
+      "esperado": "403",
+      "obtenido": 403,
+      "conforme": true
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/comerciantes/00000000-0000-4000-8000-000000000201",
+      "identidad": "trabajador",
+      "esperado": "403",
+      "obtenido": 403,
+      "conforme": true
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/comerciantes/00000000-0000-4000-8000-000000000201",
+      "identidad": "comercianteAjeno",
+      "esperado": "403",
+      "obtenido": 403,
+      "conforme": true
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/comerciantes/00000000-0000-4000-8000-000000000201",
+      "identidad": "comercianteTitular",
+      "esperado": "permitido",
+      "obtenido": 200,
+      "conforme": true
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/comerciantes/00000000-0000-4000-8000-000000000201",
+      "identidad": "administrador",
+      "esperado": "permitido",
+      "obtenido": 200,
+      "conforme": true
+    },
+    {
+      "metodo": "PATCH",
+      "ruta": "/api/v1/comerciantes/00000000-0000-4000-8000-000000000201",
+      "identidad": "anonimo",
+      "esperado": "401",
+      "obtenido": 401,
+      "conforme": true
+    },
+    {
+      "metodo": "PATCH",
+      "ruta": "/api/v1/comerciantes/00000000-0000-4000-8000-000000000201",
+      "identidad": "cliente",
+      "esperado": "403",
+      "obtenido": 403,
+      "conforme": true
+    },
+    {
+      "metodo": "PATCH",
+      "ruta": "/api/v1/comerciantes/00000000-0000-4000-8000-000000000201",
+      "identidad": "trabajador",
+      "esperado": "403",
+      "obtenido": 403,
+      "conforme": true
+    },
+    {
+      "metodo": "PATCH",
+      "ruta": "/api/v1/comerciantes/00000000-0000-4000-8000-000000000201",
+      "identidad": "comercianteAjeno",
+      "esperado": "403",
+      "obtenido": 403,
+      "conforme": true
+    },
+    {
+      "metodo": "PATCH",
+      "ruta": "/api/v1/comerciantes/00000000-0000-4000-8000-000000000201",
+      "identidad": "comercianteTitular",
+      "esperado": "403",
+      "obtenido": 403,
+      "conforme": true
+    },
+    {
+      "metodo": "PATCH",
+      "ruta": "/api/v1/comerciantes/00000000-0000-4000-8000-000000000201",
+      "identidad": "administrador",
+      "esperado": "permitido",
+      "obtenido": 200,
+      "conforme": true
+    },
+    {
+      "metodo": "PATCH",
+      "ruta": "/api/v1/comerciantes/00000000-0000-4000-8000-000000000201/estado",
+      "identidad": "anonimo",
+      "esperado": "401",
+      "obtenido": 401,
+      "conforme": true
+    },
+    {
+      "metodo": "PATCH",
+      "ruta": "/api/v1/comerciantes/00000000-0000-4000-8000-000000000201/estado",
+      "identidad": "cliente",
+      "esperado": "403",
+      "obtenido": 403,
+      "conforme": true
+    },
+    {
+      "metodo": "PATCH",
+      "ruta": "/api/v1/comerciantes/00000000-0000-4000-8000-000000000201/estado",
+      "identidad": "trabajador",
+      "esperado": "403",
+      "obtenido": 403,
+      "conforme": true
+    },
+    {
+      "metodo": "PATCH",
+      "ruta": "/api/v1/comerciantes/00000000-0000-4000-8000-000000000201/estado",
+      "identidad": "comercianteAjeno",
+      "esperado": "403",
+      "obtenido": 403,
+      "conforme": true
+    },
+    {
+      "metodo": "PATCH",
+      "ruta": "/api/v1/comerciantes/00000000-0000-4000-8000-000000000201/estado",
+      "identidad": "comercianteTitular",
+      "esperado": "403",
+      "obtenido": 403,
+      "conforme": true
+    },
+    {
+      "metodo": "PATCH",
+      "ruta": "/api/v1/comerciantes/00000000-0000-4000-8000-000000000201/estado",
+      "identidad": "administrador",
+      "esperado": "permitido",
+      "obtenido": 200,
+      "conforme": true
+    },
+    {
+      "metodo": "POST",
+      "ruta": "/api/v1/puestos",
+      "identidad": "anonimo",
+      "esperado": "401",
+      "obtenido": 401,
+      "conforme": true
+    },
+    {
+      "metodo": "POST",
+      "ruta": "/api/v1/puestos",
+      "identidad": "cliente",
+      "esperado": "403",
+      "obtenido": 403,
+      "conforme": true
+    },
+    {
+      "metodo": "POST",
+      "ruta": "/api/v1/puestos",
+      "identidad": "trabajador",
+      "esperado": "403",
+      "obtenido": 403,
+      "conforme": true
+    },
+    {
+      "metodo": "POST",
+      "ruta": "/api/v1/puestos",
+      "identidad": "comercianteAjeno",
+      "esperado": "403",
+      "obtenido": 403,
+      "conforme": true
+    },
+    {
+      "metodo": "POST",
+      "ruta": "/api/v1/puestos",
+      "identidad": "comercianteTitular",
+      "esperado": "403",
+      "obtenido": 403,
+      "conforme": true
+    },
+    {
+      "metodo": "POST",
+      "ruta": "/api/v1/puestos",
+      "identidad": "administrador",
+      "esperado": "permitido",
+      "obtenido": 400,
+      "conforme": true
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/puestos",
+      "identidad": "anonimo",
+      "esperado": "401",
+      "obtenido": 401,
+      "conforme": true
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/puestos",
+      "identidad": "cliente",
+      "esperado": "403",
+      "obtenido": 403,
+      "conforme": true
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/puestos",
+      "identidad": "trabajador",
+      "esperado": "403",
+      "obtenido": 403,
+      "conforme": true
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/puestos",
+      "identidad": "comercianteAjeno",
+      "esperado": "permitido",
+      "obtenido": 200,
+      "conforme": true
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/puestos",
+      "identidad": "comercianteTitular",
+      "esperado": "permitido",
+      "obtenido": 200,
+      "conforme": true
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/puestos",
+      "identidad": "administrador",
+      "esperado": "permitido",
+      "obtenido": 200,
+      "conforme": true
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/puestos/publicos",
+      "identidad": "anonimo",
+      "esperado": "permitido",
+      "obtenido": 200,
+      "conforme": true
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/puestos/publicos",
+      "identidad": "cliente",
+      "esperado": "permitido",
+      "obtenido": 200,
+      "conforme": true
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/puestos/publicos",
+      "identidad": "trabajador",
+      "esperado": "permitido",
+      "obtenido": 200,
+      "conforme": true
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/puestos/publicos",
+      "identidad": "comercianteAjeno",
+      "esperado": "permitido",
+      "obtenido": 200,
+      "conforme": true
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/puestos/publicos",
+      "identidad": "comercianteTitular",
+      "esperado": "permitido",
+      "obtenido": 200,
+      "conforme": true
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/puestos/publicos",
+      "identidad": "administrador",
+      "esperado": "permitido",
+      "obtenido": 200,
+      "conforme": true
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/puestos/00000000-0000-4000-8000-000000000301",
+      "identidad": "anonimo",
+      "esperado": "401",
+      "obtenido": 401,
+      "conforme": true
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/puestos/00000000-0000-4000-8000-000000000301",
+      "identidad": "cliente",
+      "esperado": "403",
+      "obtenido": 403,
+      "conforme": true
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/puestos/00000000-0000-4000-8000-000000000301",
+      "identidad": "trabajador",
+      "esperado": "403",
+      "obtenido": 403,
+      "conforme": true
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/puestos/00000000-0000-4000-8000-000000000301",
+      "identidad": "comercianteAjeno",
+      "esperado": "403",
+      "obtenido": 403,
+      "conforme": true
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/puestos/00000000-0000-4000-8000-000000000301",
+      "identidad": "comercianteTitular",
+      "esperado": "permitido",
+      "obtenido": 200,
+      "conforme": true
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/puestos/00000000-0000-4000-8000-000000000301",
+      "identidad": "administrador",
+      "esperado": "permitido",
+      "obtenido": 200,
+      "conforme": true
+    },
+    {
+      "metodo": "PATCH",
+      "ruta": "/api/v1/puestos/00000000-0000-4000-8000-000000000301",
+      "identidad": "anonimo",
+      "esperado": "401",
+      "obtenido": 401,
+      "conforme": true
+    },
+    {
+      "metodo": "PATCH",
+      "ruta": "/api/v1/puestos/00000000-0000-4000-8000-000000000301",
+      "identidad": "cliente",
+      "esperado": "403",
+      "obtenido": 403,
+      "conforme": true
+    },
+    {
+      "metodo": "PATCH",
+      "ruta": "/api/v1/puestos/00000000-0000-4000-8000-000000000301",
+      "identidad": "trabajador",
+      "esperado": "403",
+      "obtenido": 403,
+      "conforme": true
+    },
+    {
+      "metodo": "PATCH",
+      "ruta": "/api/v1/puestos/00000000-0000-4000-8000-000000000301",
+      "identidad": "comercianteAjeno",
+      "esperado": "403",
+      "obtenido": 403,
+      "conforme": true
+    },
+    {
+      "metodo": "PATCH",
+      "ruta": "/api/v1/puestos/00000000-0000-4000-8000-000000000301",
+      "identidad": "comercianteTitular",
+      "esperado": "403",
+      "obtenido": 403,
+      "conforme": true
+    },
+    {
+      "metodo": "PATCH",
+      "ruta": "/api/v1/puestos/00000000-0000-4000-8000-000000000301",
+      "identidad": "administrador",
+      "esperado": "permitido",
+      "obtenido": 200,
+      "conforme": true
+    },
+    {
+      "metodo": "PATCH",
+      "ruta": "/api/v1/puestos/00000000-0000-4000-8000-000000000301/estado",
+      "identidad": "anonimo",
+      "esperado": "401",
+      "obtenido": 401,
+      "conforme": true
+    },
+    {
+      "metodo": "PATCH",
+      "ruta": "/api/v1/puestos/00000000-0000-4000-8000-000000000301/estado",
+      "identidad": "cliente",
+      "esperado": "403",
+      "obtenido": 403,
+      "conforme": true
+    },
+    {
+      "metodo": "PATCH",
+      "ruta": "/api/v1/puestos/00000000-0000-4000-8000-000000000301/estado",
+      "identidad": "trabajador",
+      "esperado": "403",
+      "obtenido": 403,
+      "conforme": true
+    },
+    {
+      "metodo": "PATCH",
+      "ruta": "/api/v1/puestos/00000000-0000-4000-8000-000000000301/estado",
+      "identidad": "comercianteAjeno",
+      "esperado": "403",
+      "obtenido": 403,
+      "conforme": true
+    },
+    {
+      "metodo": "PATCH",
+      "ruta": "/api/v1/puestos/00000000-0000-4000-8000-000000000301/estado",
+      "identidad": "comercianteTitular",
+      "esperado": "403",
+      "obtenido": 403,
+      "conforme": true
+    },
+    {
+      "metodo": "PATCH",
+      "ruta": "/api/v1/puestos/00000000-0000-4000-8000-000000000301/estado",
+      "identidad": "administrador",
+      "esperado": "permitido",
+      "obtenido": 200,
+      "conforme": true
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/categorias",
+      "identidad": "anonimo",
+      "esperado": "permitido",
+      "obtenido": 200,
+      "conforme": true
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/categorias",
+      "identidad": "cliente",
+      "esperado": "permitido",
+      "obtenido": 200,
+      "conforme": true
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/categorias",
+      "identidad": "trabajador",
+      "esperado": "permitido",
+      "obtenido": 200,
+      "conforme": true
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/categorias",
+      "identidad": "comercianteAjeno",
+      "esperado": "permitido",
+      "obtenido": 200,
+      "conforme": true
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/categorias",
+      "identidad": "comercianteTitular",
+      "esperado": "permitido",
+      "obtenido": 200,
+      "conforme": true
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/categorias",
+      "identidad": "administrador",
+      "esperado": "permitido",
+      "obtenido": 200,
+      "conforme": true
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/categorias/gestion",
+      "identidad": "anonimo",
+      "esperado": "401",
+      "obtenido": 401,
+      "conforme": true
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/categorias/gestion",
+      "identidad": "cliente",
+      "esperado": "403",
+      "obtenido": 403,
+      "conforme": true
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/categorias/gestion",
+      "identidad": "trabajador",
+      "esperado": "403",
+      "obtenido": 403,
+      "conforme": true
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/categorias/gestion",
+      "identidad": "comercianteAjeno",
+      "esperado": "403",
+      "obtenido": 403,
+      "conforme": true
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/categorias/gestion",
+      "identidad": "comercianteTitular",
+      "esperado": "403",
+      "obtenido": 403,
+      "conforme": true
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/categorias/gestion",
+      "identidad": "administrador",
+      "esperado": "permitido",
+      "obtenido": 200,
+      "conforme": true
+    },
+    {
+      "metodo": "POST",
+      "ruta": "/api/v1/categorias",
+      "identidad": "anonimo",
+      "esperado": "401",
+      "obtenido": 401,
+      "conforme": true
+    },
+    {
+      "metodo": "POST",
+      "ruta": "/api/v1/categorias",
+      "identidad": "cliente",
+      "esperado": "403",
+      "obtenido": 403,
+      "conforme": true
+    },
+    {
+      "metodo": "POST",
+      "ruta": "/api/v1/categorias",
+      "identidad": "trabajador",
+      "esperado": "403",
+      "obtenido": 403,
+      "conforme": true
+    },
+    {
+      "metodo": "POST",
+      "ruta": "/api/v1/categorias",
+      "identidad": "comercianteAjeno",
+      "esperado": "403",
+      "obtenido": 403,
+      "conforme": true
+    },
+    {
+      "metodo": "POST",
+      "ruta": "/api/v1/categorias",
+      "identidad": "comercianteTitular",
+      "esperado": "403",
+      "obtenido": 403,
+      "conforme": true
+    },
+    {
+      "metodo": "POST",
+      "ruta": "/api/v1/categorias",
+      "identidad": "administrador",
+      "esperado": "permitido",
+      "obtenido": 400,
+      "conforme": true
+    },
+    {
+      "metodo": "PATCH",
+      "ruta": "/api/v1/categorias/00000000-0000-4000-8000-000000000401",
+      "identidad": "anonimo",
+      "esperado": "401",
+      "obtenido": 401,
+      "conforme": true
+    },
+    {
+      "metodo": "PATCH",
+      "ruta": "/api/v1/categorias/00000000-0000-4000-8000-000000000401",
+      "identidad": "cliente",
+      "esperado": "403",
+      "obtenido": 403,
+      "conforme": true
+    },
+    {
+      "metodo": "PATCH",
+      "ruta": "/api/v1/categorias/00000000-0000-4000-8000-000000000401",
+      "identidad": "trabajador",
+      "esperado": "403",
+      "obtenido": 403,
+      "conforme": true
+    },
+    {
+      "metodo": "PATCH",
+      "ruta": "/api/v1/categorias/00000000-0000-4000-8000-000000000401",
+      "identidad": "comercianteAjeno",
+      "esperado": "403",
+      "obtenido": 403,
+      "conforme": true
+    },
+    {
+      "metodo": "PATCH",
+      "ruta": "/api/v1/categorias/00000000-0000-4000-8000-000000000401",
+      "identidad": "comercianteTitular",
+      "esperado": "403",
+      "obtenido": 403,
+      "conforme": true
+    },
+    {
+      "metodo": "PATCH",
+      "ruta": "/api/v1/categorias/00000000-0000-4000-8000-000000000401",
+      "identidad": "administrador",
+      "esperado": "permitido",
+      "obtenido": 200,
+      "conforme": true
+    },
+    {
+      "metodo": "PATCH",
+      "ruta": "/api/v1/categorias/00000000-0000-4000-8000-000000000401/estado",
+      "identidad": "anonimo",
+      "esperado": "401",
+      "obtenido": 401,
+      "conforme": true
+    },
+    {
+      "metodo": "PATCH",
+      "ruta": "/api/v1/categorias/00000000-0000-4000-8000-000000000401/estado",
+      "identidad": "cliente",
+      "esperado": "403",
+      "obtenido": 403,
+      "conforme": true
+    },
+    {
+      "metodo": "PATCH",
+      "ruta": "/api/v1/categorias/00000000-0000-4000-8000-000000000401/estado",
+      "identidad": "trabajador",
+      "esperado": "403",
+      "obtenido": 403,
+      "conforme": true
+    },
+    {
+      "metodo": "PATCH",
+      "ruta": "/api/v1/categorias/00000000-0000-4000-8000-000000000401/estado",
+      "identidad": "comercianteAjeno",
+      "esperado": "403",
+      "obtenido": 403,
+      "conforme": true
+    },
+    {
+      "metodo": "PATCH",
+      "ruta": "/api/v1/categorias/00000000-0000-4000-8000-000000000401/estado",
+      "identidad": "comercianteTitular",
+      "esperado": "403",
+      "obtenido": 403,
+      "conforme": true
+    },
+    {
+      "metodo": "PATCH",
+      "ruta": "/api/v1/categorias/00000000-0000-4000-8000-000000000401/estado",
+      "identidad": "administrador",
+      "esperado": "permitido",
+      "obtenido": 200,
+      "conforme": true
+    },
+    {
+      "metodo": "POST",
+      "ruta": "/api/v1/productos",
+      "identidad": "anonimo",
+      "esperado": "401",
+      "obtenido": 401,
+      "conforme": true
+    },
+    {
+      "metodo": "POST",
+      "ruta": "/api/v1/productos",
+      "identidad": "cliente",
+      "esperado": "403",
+      "obtenido": 403,
+      "conforme": true
+    },
+    {
+      "metodo": "POST",
+      "ruta": "/api/v1/productos",
+      "identidad": "trabajador",
+      "esperado": "403",
+      "obtenido": 403,
+      "conforme": true
+    },
+    {
+      "metodo": "POST",
+      "ruta": "/api/v1/productos",
+      "identidad": "comercianteAjeno",
+      "esperado": "permitido",
+      "obtenido": 400,
+      "conforme": true
+    },
+    {
+      "metodo": "POST",
+      "ruta": "/api/v1/productos",
+      "identidad": "comercianteTitular",
+      "esperado": "permitido",
+      "obtenido": 400,
+      "conforme": true
+    },
+    {
+      "metodo": "POST",
+      "ruta": "/api/v1/productos",
+      "identidad": "administrador",
+      "esperado": "403",
+      "obtenido": 403,
+      "conforme": true
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/productos",
+      "identidad": "anonimo",
+      "esperado": "401",
+      "obtenido": 401,
+      "conforme": true
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/productos",
+      "identidad": "cliente",
+      "esperado": "403",
+      "obtenido": 403,
+      "conforme": true
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/productos",
+      "identidad": "trabajador",
+      "esperado": "403",
+      "obtenido": 403,
+      "conforme": true
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/productos",
+      "identidad": "comercianteAjeno",
+      "esperado": "permitido",
+      "obtenido": 200,
+      "conforme": true
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/productos",
+      "identidad": "comercianteTitular",
+      "esperado": "permitido",
+      "obtenido": 200,
+      "conforme": true
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/productos",
+      "identidad": "administrador",
+      "esperado": "permitido",
+      "obtenido": 200,
+      "conforme": true
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/productos/00000000-0000-4000-8000-000000000501",
+      "identidad": "anonimo",
+      "esperado": "401",
+      "obtenido": 401,
+      "conforme": true
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/productos/00000000-0000-4000-8000-000000000501",
+      "identidad": "cliente",
+      "esperado": "403",
+      "obtenido": 403,
+      "conforme": true
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/productos/00000000-0000-4000-8000-000000000501",
+      "identidad": "trabajador",
+      "esperado": "403",
+      "obtenido": 403,
+      "conforme": true
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/productos/00000000-0000-4000-8000-000000000501",
+      "identidad": "comercianteAjeno",
+      "esperado": "403",
+      "obtenido": 403,
+      "conforme": true
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/productos/00000000-0000-4000-8000-000000000501",
+      "identidad": "comercianteTitular",
+      "esperado": "permitido",
+      "obtenido": 200,
+      "conforme": true
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/productos/00000000-0000-4000-8000-000000000501",
+      "identidad": "administrador",
+      "esperado": "permitido",
+      "obtenido": 200,
+      "conforme": true
+    },
+    {
+      "metodo": "PATCH",
+      "ruta": "/api/v1/productos/00000000-0000-4000-8000-000000000501",
+      "identidad": "anonimo",
+      "esperado": "401",
+      "obtenido": 401,
+      "conforme": true
+    },
+    {
+      "metodo": "PATCH",
+      "ruta": "/api/v1/productos/00000000-0000-4000-8000-000000000501",
+      "identidad": "cliente",
+      "esperado": "403",
+      "obtenido": 403,
+      "conforme": true
+    },
+    {
+      "metodo": "PATCH",
+      "ruta": "/api/v1/productos/00000000-0000-4000-8000-000000000501",
+      "identidad": "trabajador",
+      "esperado": "403",
+      "obtenido": 403,
+      "conforme": true
+    },
+    {
+      "metodo": "PATCH",
+      "ruta": "/api/v1/productos/00000000-0000-4000-8000-000000000501",
+      "identidad": "comercianteAjeno",
+      "esperado": "403",
+      "obtenido": 403,
+      "conforme": true
+    },
+    {
+      "metodo": "PATCH",
+      "ruta": "/api/v1/productos/00000000-0000-4000-8000-000000000501",
+      "identidad": "comercianteTitular",
+      "esperado": "permitido",
+      "obtenido": 200,
+      "conforme": true
+    },
+    {
+      "metodo": "PATCH",
+      "ruta": "/api/v1/productos/00000000-0000-4000-8000-000000000501",
+      "identidad": "administrador",
+      "esperado": "403",
+      "obtenido": 403,
+      "conforme": true
+    },
+    {
+      "metodo": "PATCH",
+      "ruta": "/api/v1/productos/00000000-0000-4000-8000-000000000501/estado",
+      "identidad": "anonimo",
+      "esperado": "401",
+      "obtenido": 401,
+      "conforme": true
+    },
+    {
+      "metodo": "PATCH",
+      "ruta": "/api/v1/productos/00000000-0000-4000-8000-000000000501/estado",
+      "identidad": "cliente",
+      "esperado": "403",
+      "obtenido": 403,
+      "conforme": true
+    },
+    {
+      "metodo": "PATCH",
+      "ruta": "/api/v1/productos/00000000-0000-4000-8000-000000000501/estado",
+      "identidad": "trabajador",
+      "esperado": "403",
+      "obtenido": 403,
+      "conforme": true
+    },
+    {
+      "metodo": "PATCH",
+      "ruta": "/api/v1/productos/00000000-0000-4000-8000-000000000501/estado",
+      "identidad": "comercianteAjeno",
+      "esperado": "403",
+      "obtenido": 403,
+      "conforme": true
+    },
+    {
+      "metodo": "PATCH",
+      "ruta": "/api/v1/productos/00000000-0000-4000-8000-000000000501/estado",
+      "identidad": "comercianteTitular",
+      "esperado": "permitido",
+      "obtenido": 400,
+      "conforme": true
+    },
+    {
+      "metodo": "PATCH",
+      "ruta": "/api/v1/productos/00000000-0000-4000-8000-000000000501/estado",
+      "identidad": "administrador",
+      "esperado": "403",
+      "obtenido": 403,
+      "conforme": true
+    },
+    {
+      "metodo": "POST",
+      "ruta": "/api/v1/productos/00000000-0000-4000-8000-000000000501/imagenes",
+      "identidad": "anonimo",
+      "esperado": "401",
+      "obtenido": 401,
+      "conforme": true
+    },
+    {
+      "metodo": "POST",
+      "ruta": "/api/v1/productos/00000000-0000-4000-8000-000000000501/imagenes",
+      "identidad": "cliente",
+      "esperado": "403",
+      "obtenido": 403,
+      "conforme": true
+    },
+    {
+      "metodo": "POST",
+      "ruta": "/api/v1/productos/00000000-0000-4000-8000-000000000501/imagenes",
+      "identidad": "trabajador",
+      "esperado": "403",
+      "obtenido": 403,
+      "conforme": true
+    },
+    {
+      "metodo": "POST",
+      "ruta": "/api/v1/productos/00000000-0000-4000-8000-000000000501/imagenes",
+      "identidad": "comercianteAjeno",
+      "esperado": "403",
+      "obtenido": 403,
+      "conforme": true
+    },
+    {
+      "metodo": "POST",
+      "ruta": "/api/v1/productos/00000000-0000-4000-8000-000000000501/imagenes",
+      "identidad": "comercianteTitular",
+      "esperado": "permitido",
+      "obtenido": 400,
+      "conforme": true
+    },
+    {
+      "metodo": "POST",
+      "ruta": "/api/v1/productos/00000000-0000-4000-8000-000000000501/imagenes",
+      "identidad": "administrador",
+      "esperado": "403",
+      "obtenido": 403,
+      "conforme": true
+    },
+    {
+      "metodo": "DELETE",
+      "ruta": "/api/v1/productos/00000000-0000-4000-8000-000000000501/imagenes/00000000-0000-4000-8000-000000000601",
+      "identidad": "anonimo",
+      "esperado": "401",
+      "obtenido": 401,
+      "conforme": true
+    },
+    {
+      "metodo": "DELETE",
+      "ruta": "/api/v1/productos/00000000-0000-4000-8000-000000000501/imagenes/00000000-0000-4000-8000-000000000601",
+      "identidad": "cliente",
+      "esperado": "403",
+      "obtenido": 403,
+      "conforme": true
+    },
+    {
+      "metodo": "DELETE",
+      "ruta": "/api/v1/productos/00000000-0000-4000-8000-000000000501/imagenes/00000000-0000-4000-8000-000000000601",
+      "identidad": "trabajador",
+      "esperado": "403",
+      "obtenido": 403,
+      "conforme": true
+    },
+    {
+      "metodo": "DELETE",
+      "ruta": "/api/v1/productos/00000000-0000-4000-8000-000000000501/imagenes/00000000-0000-4000-8000-000000000601",
+      "identidad": "comercianteAjeno",
+      "esperado": "403",
+      "obtenido": 403,
+      "conforme": true
+    },
+    {
+      "metodo": "DELETE",
+      "ruta": "/api/v1/productos/00000000-0000-4000-8000-000000000501/imagenes/00000000-0000-4000-8000-000000000601",
+      "identidad": "comercianteTitular",
+      "esperado": "permitido",
+      "obtenido": 200,
+      "conforme": true
+    },
+    {
+      "metodo": "DELETE",
+      "ruta": "/api/v1/productos/00000000-0000-4000-8000-000000000501/imagenes/00000000-0000-4000-8000-000000000601",
+      "identidad": "administrador",
+      "esperado": "403",
+      "obtenido": 403,
+      "conforme": true
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/catalogo/productos",
+      "identidad": "anonimo",
+      "esperado": "permitido",
+      "obtenido": 200,
+      "conforme": true
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/catalogo/productos",
+      "identidad": "cliente",
+      "esperado": "permitido",
+      "obtenido": 200,
+      "conforme": true
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/catalogo/productos",
+      "identidad": "trabajador",
+      "esperado": "permitido",
+      "obtenido": 200,
+      "conforme": true
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/catalogo/productos",
+      "identidad": "comercianteAjeno",
+      "esperado": "permitido",
+      "obtenido": 200,
+      "conforme": true
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/catalogo/productos",
+      "identidad": "comercianteTitular",
+      "esperado": "permitido",
+      "obtenido": 200,
+      "conforme": true
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/catalogo/productos",
+      "identidad": "administrador",
+      "esperado": "permitido",
+      "obtenido": 200,
+      "conforme": true
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/catalogo/productos/00000000-0000-4000-8000-000000000501",
+      "identidad": "anonimo",
+      "esperado": "permitido",
+      "obtenido": 404,
+      "conforme": true
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/catalogo/productos/00000000-0000-4000-8000-000000000501",
+      "identidad": "cliente",
+      "esperado": "permitido",
+      "obtenido": 404,
+      "conforme": true
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/catalogo/productos/00000000-0000-4000-8000-000000000501",
+      "identidad": "trabajador",
+      "esperado": "permitido",
+      "obtenido": 404,
+      "conforme": true
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/catalogo/productos/00000000-0000-4000-8000-000000000501",
+      "identidad": "comercianteAjeno",
+      "esperado": "permitido",
+      "obtenido": 404,
+      "conforme": true
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/catalogo/productos/00000000-0000-4000-8000-000000000501",
+      "identidad": "comercianteTitular",
+      "esperado": "permitido",
+      "obtenido": 404,
+      "conforme": true
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/catalogo/productos/00000000-0000-4000-8000-000000000501",
+      "identidad": "administrador",
+      "esperado": "permitido",
+      "obtenido": 404,
+      "conforme": true
+    }
+  ]
+}

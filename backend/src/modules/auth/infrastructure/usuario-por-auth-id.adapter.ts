@@ -1,5 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { ResolverUsuarioPorAuthId } from '../../users/application/use-cases/resolver-usuario-por-auth-id.use-case.js';
+import { ResolverUsuarioPorAuthId } from '../../users/index.js';
 import type { UsuarioPorAuthIdPort } from '../application/ports/ports.js';
 
 /** Adaptador hacia la API pública del módulo de usuarios. */

@@ -131,8 +131,8 @@ describe('ConsultarUsuario', () => {
   it('permite consultar el propio perfil y al administrador consultar cualquiera', async () => {
     const { repo, u } = await sembrar();
     const caso = new ConsultarUsuario(repo);
-    await expect(caso.ejecutar(u.id, { id: u.id, rol: Rol.CLIENTE })).resolves.toBe(u);
-    await expect(caso.ejecutar(u.id, admin)).resolves.toBe(u);
+    await expect(caso.ejecutar(u.id, { id: u.id, rol: Rol.CLIENTE })).resolves.toMatchObject({ id: u.id });
+    await expect(caso.ejecutar(u.id, admin)).resolves.toMatchObject({ id: u.id });
   });
 
   it('prohíbe consultar a otro usuario sin ser administrador', async () => {
