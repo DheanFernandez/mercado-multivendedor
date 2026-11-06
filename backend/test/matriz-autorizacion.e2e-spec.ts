@@ -19,6 +19,7 @@ const TODOS = IDENTIDADES;
 const AUTENTICADOS = IDENTIDADES.filter((i) => i !== 'anonimo');
 const ADMIN: Identidad[] = ['administrador'];
 const COMERCIANTES: Identidad[] = ['comercianteAjeno', 'comercianteTitular'];
+const CLIENTES: Identidad[] = ['cliente'];
 
 const cabecera = (i: Identidad) =>
   i === 'anonimo' ? {} : bearer({ cliente: U.CLIENTE, trabajador: U.TRABAJADOR, comercianteAjeno: U.COM_B, comercianteTitular: U.COM_A, administrador: U.ADMIN }[i]);
@@ -74,6 +75,11 @@ describe('AC04 · matriz de autorización rol × ruta', () => {
       { metodo: 'get', ruta: `/api/v1/inventario/productos/${producto}`, permitidos: [...ADMIN, 'comercianteTitular'] },
       { metodo: 'get', ruta: `/api/v1/inventario/productos/${producto}/movimientos`, permitidos: [...ADMIN, 'comercianteTitular'] },
       { metodo: 'post', ruta: `/api/v1/inventario/productos/${producto}/movimientos`, cuerpo: { tipo: 'X' }, permitidos: ['comercianteTitular'], nota: 'el administrador solo lee el inventario' },
+      { metodo: 'get', ruta: '/api/v1/carrito', permitidos: CLIENTES },
+      { metodo: 'post', ruta: '/api/v1/carrito/items', cuerpo: {}, permitidos: CLIENTES },
+      { metodo: 'patch', ruta: `/api/v1/carrito/items/${producto}`, cuerpo: {}, permitidos: CLIENTES },
+      { metodo: 'delete', ruta: `/api/v1/carrito/items/${producto}`, permitidos: CLIENTES },
+      { metodo: 'delete', ruta: '/api/v1/carrito', permitidos: CLIENTES },
     ];
     for (const r of rutas) {
       for (const identidad of IDENTIDADES) {
@@ -101,7 +107,7 @@ describe('AC04 · matriz de autorización rol × ruta', () => {
   });
 
   it('cubre todas las rutas declaradas en los controladores', () => {
-    expect(rutas.length).toBeGreaterThanOrEqual(33);
+    expect(rutas.length).toBeGreaterThanOrEqual(38);
     expect(resultados.length).toBe(rutas.length * IDENTIDADES.length);
   });
 

@@ -4,7 +4,7 @@ import { ConsultarCatalogo, ObtenerDetalleCatalogo } from './application/use-cas
 import { CatalogoController } from './entry-adapters/catalogo.controller.js';
 import { PrismaCatalogoRepository } from './infrastructure/prisma-catalogo.repository.js';
 
-/** Marketplace y catálogo (lectura pública). Sin carrito ni pagos todavía. */
+/** Marketplace y catálogo (lectura pública). Su API pública (index.ts) la consume el carrito. */
 @Module({
   controllers: [CatalogoController],
   providers: [
@@ -12,5 +12,6 @@ import { PrismaCatalogoRepository } from './infrastructure/prisma-catalogo.repos
     { provide: ConsultarCatalogo, useFactory: (r: CatalogoRepository) => new ConsultarCatalogo(r), inject: [CATALOGO_REPOSITORY] },
     { provide: ObtenerDetalleCatalogo, useFactory: (r: CatalogoRepository) => new ObtenerDetalleCatalogo(r), inject: [CATALOGO_REPOSITORY] },
   ],
+  exports: [ObtenerDetalleCatalogo],
 })
 export class CatalogModule {}

@@ -55,6 +55,7 @@ model Usuario {
   actualizadoEn DateTime      @updatedAt @db.Timestamptz(3)
 
   comerciante Comerciante?
+  carrito     Carrito?
 
   @@index([rol])
   @@map("usuarios")
@@ -146,6 +147,7 @@ model Producto {
   categoria Categoria        @relation(fields: [categoriaId], references: [id], onDelete: Restrict)
   imagenes  ProductoImagen[]
   inventario Inventario?
+  carritoItems CarritoItem[]
 
   /// Permite la clave foránea compuesta (producto, puesto) del inventario: el puesto del inventario no puede divergir del producto.
   @@unique([id, puestoId])
@@ -244,4 +246,35 @@ model ReservaInventario {
   @@unique([claveOperacion, inventarioId])
   @@index([estado, expiraEn])
   @@map("reservas_inventario")
+}
+
+/// Carrito multivendedor: uno por cliente (RF20–RF24). Guarda solo producto y cantidad; precio y disponibilidad se leen vigentes.
+model Carrito {
+  id            String   @id @default(uuid()) @db.Uuid
+  usuarioId     String   @unique @map("usuario_id") @db.Uuid
+  creadoEn      DateTime @default(now()) @map("creado_en") @db.Timestamptz(3)
+  actualizadoEn DateTime @default(now()) @map("actualizado_en") @db.Timestamptz(3)
+
+  usuario Usuario       @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  items   CarritoItem[]
+
+  @@map("carritos")
+}
+
+model CarritoItem {
+  id            String   @id @default(uuid()) @db.Uuid
+  carritoId     String   @map("carrito_id") @db.Uuid
+  productoId    String   @map("producto_id") @db.Uuid
+  /// Puesto del producto (RF21); la clave foránea compuesta impide que diverja del puesto real del producto.
+  puestoId      String   @map("puesto_id") @db.Uuid
+  cantidad      Int
+  creadoEn      DateTime @default(now()) @map("creado_en") @db.Timestamptz(3)
+  actualizadoEn DateTime @default(now()) @map("actualizado_en") @db.Timestamptz(3)
+
+  carrito  Carrito  @relation(fields: [carritoId], references: [id], onDelete: Cascade)
+  producto Producto @relation(fields: [productoId, puestoId], references: [id, puestoId], onDelete: Cascade)
+
+  @@unique([carritoId, productoId])
+  @@index([productoId])
+  @@map("carrito_items")
 }
