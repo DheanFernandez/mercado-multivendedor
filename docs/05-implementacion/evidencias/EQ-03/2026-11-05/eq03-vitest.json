@@ -1,0 +1,58 @@
+{
+  "medicion": "EQ-03 · reserva simultánea del mismo stock (Vitest + PostgreSQL local)",
+  "umbral": "0 reservas incompatibles en el 100 % de las pruebas concurrentes",
+  "iteracionesTotales": 400,
+  "iteracionesConResultadoCorrecto": 400,
+  "reservasIncompatibles": 0,
+  "consultaSql": "SELECT count(*) FROM inventarios WHERE stock_reservado > stock_fisico",
+  "series": [
+    {
+      "nombre": "N2",
+      "clientes": 2,
+      "stock": 1,
+      "iteraciones": 100,
+      "exitosEsperados": 1,
+      "incorrectas": 0,
+      "erroresNoControlados": 0,
+      "reservasIncompatibles": 0,
+      "msPorIteracionMediana": 15.7,
+      "msPorIteracionMax": 58.4
+    },
+    {
+      "nombre": "N5",
+      "clientes": 5,
+      "stock": 1,
+      "iteraciones": 100,
+      "exitosEsperados": 1,
+      "incorrectas": 0,
+      "erroresNoControlados": 0,
+      "reservasIncompatibles": 0,
+      "msPorIteracionMediana": 24.9,
+      "msPorIteracionMax": 45
+    },
+    {
+      "nombre": "N20",
+      "clientes": 20,
+      "stock": 1,
+      "iteraciones": 100,
+      "exitosEsperados": 1,
+      "incorrectas": 0,
+      "erroresNoControlados": 0,
+      "reservasIncompatibles": 0,
+      "msPorIteracionMediana": 75.6,
+      "msPorIteracionMax": 172.9
+    },
+    {
+      "nombre": "S10-200",
+      "clientes": 200,
+      "stock": 10,
+      "iteraciones": 100,
+      "exitosEsperados": 10,
+      "incorrectas": 0,
+      "erroresNoControlados": 0,
+      "reservasIncompatibles": 0,
+      "msPorIteracionMediana": 596.5,
+      "msPorIteracionMax": 1591.2
+    }
+  ]
+}

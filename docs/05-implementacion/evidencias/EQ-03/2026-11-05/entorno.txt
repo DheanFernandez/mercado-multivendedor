@@ -1,0 +1,26 @@
+EQ-03 · entorno de medición (2026-11-05T22:42:05-05:00)
+Máquina: Intel Core i5-4590 @ 3.30 GHz, 16 GB RAM, Windows 11 Pro
+Node: v24.19.0 · npm: 11.17.0
+Docker: Docker version 29.8.1, build 4a63305
+Base: PostgreSQL 17.11 on x86_64-pc-linux-musl, compiled by gcc (A — contenedor mercado-test-db, imagen postgres:17-alpine, 127.0.0.1:55433, base mercado_test
+Migraciones aplicadas: 20261105000000_usuarios_comerciantes_puestos, 20261106000000_productos_categorias, 20261107000000_inventario
+k6: k6 v2.3.0 (commit/e088784614, go1.27.1, linux/amd64)
+Prisma: prisma               : 7.10.1
+Pool de conexiones del backend: 10 (valor por defecto DATABASE_POOL_MAX)
+Control de versiones: rama feat/productos-categorias, último commit 23bd5d3, 89 rutas con cambios sin confirmar (el código medido incluye el módulo Inventario, aún sin commit). Código medido: backend/src/modules/inventory (reserva atómica condicional, ADR-003 §6.3).
+
+Reproducción (desde backend/):
+  Vitest : EVIDENCIA_DIR=<carpeta> npm run test:db -- test/eq03-concurrencia.db-spec.ts
+  k6     : npm run build; node dist/scripts/servidor-eq03.js   y, en otra terminal desde la raíz:
+           docker run --rm -i -v "<carpeta>:/resultados" -e BASE_URL=http://host.docker.internal:3101 -e VUS=200 -e DURACION=1m -e STOCK=10 grafana/k6 run - < ops/k6/eq03-reserva.js
+
+Limitaciones: máquina única (resultados no extrapolables); se mide ReservarInventario, la operación que invocará CrearPedido, porque orders/cart aún no existen; la base PostgreSQL desechable de Docker sustituye a Testcontainers; k6 y el arnés comparten la máquina con la base de datos.
+
+Reproducción verificada el 2026-11-05 tras la revisión técnica: Vitest idéntico (400/400) y k6 con exactamente 10 reservas aceptadas, 0 inesperadas, 0 filas con reservado > físico.
+Huellas SHA-256 (16 primeros caracteres) del código medido:
+  83857bce4e92102c  *backend/src/modules/inventory/infrastructure/prisma-inventario.repository.ts
+  fc607674bcadf432  *backend/src/modules/inventory/application/use-cases/inventario.use-cases.ts
+  adb01b1b0fbe5db4  *backend/test/eq03-concurrencia.db-spec.ts
+  edd21a6e220135a6  *backend/src/scripts/servidor-eq03.ts
+  d9145796dee0f071  *ops/k6/eq03-reserva.js
+  88c10034f4172961  *backend/prisma/migrations/20261107000000_inventario/migration.sql

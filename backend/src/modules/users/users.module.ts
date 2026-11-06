@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { PROVEEDOR_IDENTIDAD, type ProveedorIdentidad } from './application/ports/proveedor-identidad.port.js';
 import { USUARIO_REPOSITORY, type UsuarioRepository } from './application/ports/usuario.repository.js';
 import { ConsultarUsuario } from './application/use-cases/consultar-usuario.use-case.js';
+import { CambiarEstadoUsuario, CambiarRolUsuario } from './application/use-cases/gestion-usuarios.use-cases.js';
 import { ListarUsuarios } from './application/use-cases/listar-usuarios.use-case.js';
 import { ObtenerResumenUsuario } from './application/use-cases/obtener-resumen-usuario.use-case.js';
 import { RegistrarCliente } from './application/use-cases/registrar-cliente.use-case.js';
@@ -26,6 +27,8 @@ const caso = <T>(provide: new (...a: any[]) => T, build: (r: UsuarioRepository, 
     caso(RegistrarUsuario, (r, i) => new RegistrarUsuario(r, i)),
     caso(RegistrarCliente, (r, i) => new RegistrarCliente(r, i)),
     caso(ConsultarUsuario, (r) => new ConsultarUsuario(r)),
+    caso(CambiarEstadoUsuario, (r) => new CambiarEstadoUsuario(r)),
+    caso(CambiarRolUsuario, (r) => new CambiarRolUsuario(r)),
     caso(ListarUsuarios, (r) => new ListarUsuarios(r)),
     caso(ObtenerResumenUsuario, (r) => new ObtenerResumenUsuario(r)),
     caso(ResolverUsuarioPorAuthId, (r) => new ResolverUsuarioPorAuthId(r)),
