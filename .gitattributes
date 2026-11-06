@@ -9,3 +9,4 @@
 *.ico binary
 *.pdf binary
 *.woff2 binary
+.githooks/* text eol=lf

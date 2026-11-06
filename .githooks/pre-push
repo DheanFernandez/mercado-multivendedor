@@ -1,0 +1,9 @@
+#!/bin/sh
+# Revisa solo los commits que se van a publicar (los que ningun remoto tiene todavia).
+cero=0000000000000000000000000000000000000000
+while read -r ref_local sha_local ref_remota sha_remota; do
+  [ "$sha_local" = "$cero" ] && continue
+  if [ "$sha_remota" = "$cero" ]; then rango="$sha_local --not --remotes"; else rango="$sha_remota..$sha_local"; fi
+  sh "$(dirname "$0")/verificar-atribucion-ia.sh" --rango "$rango" || exit 1
+done
+exit 0
