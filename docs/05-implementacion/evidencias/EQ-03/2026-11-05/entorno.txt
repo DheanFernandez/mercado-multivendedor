@@ -24,3 +24,5 @@ Huellas SHA-256 (16 primeros caracteres) del código medido:
   edd21a6e220135a6  *backend/src/scripts/servidor-eq03.ts
   d9145796dee0f071  *ops/k6/eq03-reserva.js
   88c10034f4172961  *backend/prisma/migrations/20261107000000_inventario/migration.sql
+
+Nota posterior (2026-11-06): la huella del repositorio de inventario cambio por una correccion en variarStock (INSERT ... ON CONFLICT DO NOTHING sin objetivo, al crear existencias de forma simultanea). La ruta de reserva medida en EQ-03 (reservar) no se modifico.

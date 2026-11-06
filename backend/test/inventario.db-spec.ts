@@ -74,11 +74,14 @@ describe('movimientos y actualizaciones de stock (RF12, RF13)', () => {
     expect(movs.items.map((x) => x.tipo)).toEqual(['RESERVA']); // el ajuste fallido no dejó movimiento
   });
 
-  it('actualizaciones simultáneas: 60 ingresos de +1 en paralelo suman exactamente 60 (ninguna se pisa)', async () => {
-    const { productoId, puestoId } = await fx.productoConStock(0);
-    const res = await Promise.all(Array.from({ length: 60 }, () => intentar(() => repo.variarStock({ productoId, puestoId, tipo: 'INGRESO', delta: 1, motivo: null, actorId: '00000000-0000-4000-8000-000000000001' }))));
-    expect(res.every((r) => r.ok)).toBe(true);
-    expect(await SQL(productoId)).toEqual({ fisico: 60, reservado: 0, sumaMovimientosFisicos: 60 });
+  it('actualizaciones simultáneas: 60 ingresos de +1 en paralelo suman exactamente 60 (ninguna se pisa), también al crear las existencias', async () => {
+    // Producto sin fila de existencias: las 60 transacciones compiten por crearla (regresión: ON CONFLICT debía cubrir ambos índices únicos).
+    for (let ronda = 0; ronda < 15; ronda++) {
+      const { productoId, puestoId } = await fx.productoConStock(0);
+      const res = await Promise.all(Array.from({ length: 60 }, () => intentar(() => repo.variarStock({ productoId, puestoId, tipo: 'INGRESO', delta: 1, motivo: null, actorId: '00000000-0000-4000-8000-000000000001' }))));
+      expect(res.filter((r) => !r.ok)).toEqual([]);
+      expect(await SQL(productoId)).toEqual({ fisico: 60, reservado: 0, sumaMovimientosFisicos: 60 });
+    }
   });
 
   it('prevención de stock negativo bajo concurrencia: 30 ajustes de −1 sobre stock 10 → exactamente 10 se aplican', async () => {

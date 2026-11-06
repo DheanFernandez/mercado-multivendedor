@@ -107,7 +107,7 @@ export class PrismaInventarioRepository implements InventarioRepository {
     return this.conReintento(() =>
       this.prisma.$transaction(async (tx) => {
         await tx.$executeRaw`INSERT INTO inventarios (id, producto_id, puesto_id, stock_fisico, stock_reservado)
-          VALUES (gen_random_uuid(), ${c.productoId}::uuid, ${c.puestoId}::uuid, 0, 0) ON CONFLICT (producto_id) DO NOTHING`;
+          VALUES (gen_random_uuid(), ${c.productoId}::uuid, ${c.puestoId}::uuid, 0, 0) ON CONFLICT DO NOTHING`; // sin objetivo: cubre ambos indices unicos (producto) y (producto, puesto) ante creaciones simultaneas
         // El delta se suma en la propia sentencia: dos actualizaciones simultáneas nunca se pisan.
         const filas = await tx.$queryRaw<(FilaStock & { id: string })[]>`
           UPDATE inventarios SET stock_fisico = stock_fisico + ${c.delta}::int, actualizado_en = now()
