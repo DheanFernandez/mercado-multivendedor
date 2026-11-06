@@ -3,7 +3,7 @@ import type { Comerciante } from '../../domain/comerciante.entity.js';
 import type { Puesto } from '../../domain/puesto.entity.js';
 
 export interface ComercianteRepository {
-  /** Crea o actualiza (nombre y estado). @throws ComercianteYaRegistradoError */
+  /** @throws ComercianteYaRegistradoError */
   guardar(comerciante: Comerciante): Promise<void>;
   buscarPorId(id: string): Promise<Comerciante | null>;
   buscarPorUsuarioId(usuarioId: string): Promise<Comerciante | null>;
@@ -11,11 +11,8 @@ export interface ComercianteRepository {
 }
 
 export interface PuestoRepository {
-  /** Crea o actualiza (código, nombre, comerciante y estado). @throws CodigoPuestoDuplicadoError */
+  /** @throws CodigoPuestoDuplicadoError */
   guardar(puesto: Puesto): Promise<void>;
-  buscarPorId(id: string): Promise<Puesto | null>;
-  /** Puestos activos cuyo comerciante también está activo (visibles para el público). */
-  listarOperativos(opciones: { limite: number; desplazamiento: number }): Promise<Puesto[]>;
   listar(opciones: { comercianteId?: string; limite: number; desplazamiento: number }): Promise<Puesto[]>;
 }
 

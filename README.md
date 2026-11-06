@@ -39,89 +39,6 @@ PostgreSQL mediante Supabase para la información estructurada y Supabase Storag
 
 Pago único por pedido mediante el Checkout de Mercado Pago (entorno Sandbox), con confirmación automática mediante Webhook verificado.
 
-## Problema que busca resolver
-
-Los mercados de abastos suelen operar de forma fragmentada: cada puesto gestiona por separado sus precios, su stock y sus ventas, y el cliente debe recorrer el mercado puesto por puesto para comparar y comprar. La plataforma propone un **marketplace común** donde el cliente consulta productos de varios puestos y, en versiones posteriores, los compra en un solo pedido con un único pago, mientras cada comerciante conserva el control de su propio puesto.
-
-## Actores principales
-
-Definidos en [Actores del sistema](docs/01-analisis-de-sistema/01-actores.md):
-
-| Actor | Rol en la plataforma |
-|---|---|
-| Cliente | Consulta el catálogo, y (en versiones posteriores) arma pedidos, paga y retira en los puestos |
-| Comerciante | Administra sus puestos y sus productos |
-| Trabajador de puesto | Apoya en la operación del puesto con permisos limitados (aún sin implementar) |
-| Administrador | Administra usuarios, comerciantes, puestos y categorías |
-
-## Tecnologías
-
-| Capa | Tecnología |
-|---|---|
-| Frontend | Next.js 16, React 19, TypeScript, Tailwind CSS 4 |
-| Backend | NestJS 12, TypeScript (ESM) |
-| ORM y base de datos | Prisma 7 y PostgreSQL (Supabase) con el adaptador `@prisma/adapter-pg` |
-| Autenticación | Supabase Auth (correo y contraseña) y verificación de JWT en el backend con `jose` |
-| Archivos | Supabase Storage (imágenes de productos) |
-| Pruebas | Vitest y Supertest |
-| Calidad | oxlint (backend) y ESLint (frontend) |
-| Pasarela de pago | Mercado Pago Checkout, entorno Sandbox (**propuesta, sin implementar**) |
-
-## Estructura del repositorio
-
-```text
-mercado-multivendedor/
-├── backend/     API NestJS (monolito modular) con Prisma    → ver backend/README.md
-├── frontend/    Aplicación web Next.js                      → ver frontend/README.md
-├── docs/        Documentación de arquitectura e implementación
-└── README.md
-```
-
-Dentro de cada módulo del backend se aplica Clean Architecture (`domain/`, `application/`, `infrastructure/`, `entry-adapters/`). El detalle está en el [README del backend](backend/README.md).
-
-## Estado de implementación
-
-### Implementado y verificado
-
-- Autenticación con Supabase Auth: registro (solo rol `CLIENTE`), inicio y cierre de sesión, recuperación de contraseña, y verificación de JWT en NestJS con roles leídos desde PostgreSQL.
-- Usuarios: alta por el administrador (con invitación por correo), consulta y listado.
-- Comerciantes y puestos: registro y consulta mediante la API y el panel de administración.
-- Panel de administración: usuarios, comerciantes, puestos y categorías.
-- Categorías de productos: gestión por el administrador y listado público.
-- Productos: alta, edición, publicación y desactivación por el comerciante titular del puesto; carga de imágenes (requiere configurar Supabase Storage).
-- Catálogo público: búsqueda por texto, filtros por categoría, puesto y precio, orden y paginación; detalle del producto con su puesto.
-- Interfaz web: catálogo, detalle, registro, inicio de sesión, recuperación de contraseña, cuenta, panel de productos del comerciante y panel de administración (usuarios, comerciantes, puestos y categorías).
-
-### En desarrollo (estructura creada, sin lógica)
-
-Los módulos `inventory`, `cart`, `orders` y `payments` existen en `backend/src/modules/` como módulos vacíos.
-
-### Propuesto (solo documentado en `docs/`)
-
-Inventario con reservas atómicas ([ADR-003](docs/01-analisis-de-sistema/decisiones/ADR-003-control-concurrencia.md)), carrito multivendedor, pedidos, pago único con Mercado Pago ([ADR-005](docs/01-analisis-de-sistema/decisiones/ADR-005-pago-unico-mercado-pago.md)), incidencias, notificaciones, auditoría, reportes, configuración operativa, tiendas virtuales, trabajadores de puesto y aplicación PWA.
-
-## Instalación rápida
-
-Requisitos: **Node.js 24** (versión usada en el desarrollo), npm y un proyecto de Supabase (PostgreSQL y Auth).
-
-```bash
-# 1. Backend
-cd backend
-npm install
-cp .env.example .env          # completar con los valores reales (ver backend/README.md)
-npm run prisma:generate
-npx prisma migrate deploy     # aplica las migraciones a la base configurada
-npm run start:dev             # http://localhost:3000
-
-# 2. Frontend (en otra terminal)
-cd frontend
-npm install
-cp .env.example .env.local    # completar con los valores públicos de Supabase
-npm run dev -- -p 3001        # http://localhost:3001
-```
-
-En Windows PowerShell, `cp` equivale a `Copy-Item`. Las instrucciones completas, las variables de entorno y los comandos de prueba están en [backend/README.md](backend/README.md) y [frontend/README.md](frontend/README.md).
-
 ## Curso
 
 Arquitectura de Software - IS488
@@ -141,8 +58,7 @@ docs/
 ├── 02-arquitectura-software/
 ├── 03-diseño-de-software/
 │   └── diseño-interno/
-├── 04-modelo-c4/
-└── 05-implementacion/         Notas de lo implementado
+└── 04-modelo-c4/
 ```
 
 ### 01. Análisis del sistema
@@ -189,15 +105,6 @@ docs/
 | Nivel 3 · Diagrama de componentes | [Ver documento](docs/04-modelo-c4/Nivel3-Diagrama-de-Componentes.md) |
 | Nivel 4 · Diagrama de código | [Ver documento](docs/04-modelo-c4/Nivel4-DiagramadeCodigo.md) |
 
-### 05. Implementación
-
-| Documento | Enlace |
-|---|---|
-| Usuarios, comerciantes y puestos | [Ver documento](docs/05-implementacion/01-usuarios-comerciantes-y-puestos.md) |
-| Autenticación con Supabase Auth | [Ver documento](docs/05-implementacion/02-autenticacion-supabase.md) |
-| Productos, categorías y catálogo | [Ver documento](docs/05-implementacion/03-productos-categorias-catalogo.md) |
-| Administración y Storage | [Ver documento](docs/05-implementacion/04-administracion-y-storage.md) |
-
 ### Arquitectura seleccionada
 
 - **Estilo:** monolito modular.
@@ -208,4 +115,4 @@ docs/
 - **Comunicación:** API REST sobre HTTPS.
 - **Pasarela de pago:** pago único por pedido mediante el Checkout de Mercado Pago (Sandbox), con confirmación por Webhook verificado.
 
-La documentación de las carpetas 01 a 04 representa decisiones y propuestas de diseño arquitectónico. No implica que los componentes descritos ya estén implementados: el estado real se resume en [Estado de implementación](#estado-de-implementación) y en la carpeta `05-implementacion`.
+La documentación representa decisiones y propuestas de diseño arquitectónico. No implica que los componentes descritos ya estén implementados.

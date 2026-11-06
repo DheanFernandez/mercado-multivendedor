@@ -37,8 +37,6 @@ const usuarios: UsuarioConsultaPort = {
 class ComerciantesEnMemoria implements ComercianteRepository {
   datos: Comerciante[] = [];
   async guardar(c: Comerciante) {
-    const i = this.datos.findIndex((x) => x.id === c.id);
-    if (i >= 0) { this.datos[i] = c; return; }
     if (this.datos.some((x) => x.usuarioId === c.usuarioId)) throw new ComercianteYaRegistradoError();
     this.datos.push(c);
   }
@@ -50,12 +48,9 @@ class ComerciantesEnMemoria implements ComercianteRepository {
 class PuestosEnMemoria implements PuestoRepository {
   datos: Puesto[] = [];
   async guardar(p: Puesto) {
-    if (this.datos.some((x) => x.id !== p.id && x.codigo === p.codigo)) throw new CodigoPuestoDuplicadoError();
-    const i = this.datos.findIndex((x) => x.id === p.id);
-    if (i >= 0) this.datos[i] = p; else this.datos.push(p);
+    if (this.datos.some((x) => x.codigo === p.codigo)) throw new CodigoPuestoDuplicadoError();
+    this.datos.push(p);
   }
-  async buscarPorId(i: string) { return this.datos.find((p) => p.id === i) ?? null; }
-  async listarOperativos() { return this.datos.filter((p) => p.estado === 'ACTIVO'); }
   async listar({ comercianteId }: { comercianteId?: string }) { return this.datos.filter((p) => !comercianteId || p.comercianteId === comercianteId); }
 }
 

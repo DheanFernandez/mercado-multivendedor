@@ -21,11 +21,8 @@ export class PrismaComercianteRepository implements ComercianteRepository {
 
   async guardar(c: Comerciante): Promise<void> {
     try {
-      const mutables = { nombreComercial: c.nombreComercial, estado: c.estado };
-      await this.prisma.comerciante.upsert({
-        where: { id: c.id },
-        create: { id: c.id, usuarioId: c.usuarioId, creadoEn: c.toJSON().creadoEn, ...mutables },
-        update: mutables, // el titular (usuarioId) no cambia
+      await this.prisma.comerciante.create({
+        data: { id: c.id, usuarioId: c.usuarioId, nombreComercial: c.nombreComercial, estado: c.estado, creadoEn: c.toJSON().creadoEn },
       });
     } catch (e) {
       if (esUnico(e)) throw new ComercianteYaRegistradoError();
@@ -55,31 +52,13 @@ export class PrismaPuestoRepository implements PuestoRepository {
 
   async guardar(p: Puesto): Promise<void> {
     try {
-      const mutables = { comercianteId: p.comercianteId, codigo: p.codigo, nombre: p.nombre, estado: p.estado };
-      await this.prisma.puesto.upsert({
-        where: { id: p.id },
-        create: { id: p.id, creadoEn: p.toJSON().creadoEn, ...mutables },
-        update: mutables,
+      await this.prisma.puesto.create({
+        data: { id: p.id, comercianteId: p.comercianteId, codigo: p.codigo, nombre: p.nombre, estado: p.estado, creadoEn: p.toJSON().creadoEn },
       });
     } catch (e) {
       if (esUnico(e)) throw new CodigoPuestoDuplicadoError();
       throw e;
     }
-  }
-
-  async buscarPorId(id: string) {
-    const f = await this.prisma.puesto.findUnique({ where: { id } });
-    return f ? puestoADominio(f) : null;
-  }
-
-  async listarOperativos({ limite, desplazamiento }: { limite: number; desplazamiento: number }) {
-    const filas = await this.prisma.puesto.findMany({
-      where: { estado: 'ACTIVO', comerciante: { estado: 'ACTIVO' } },
-      orderBy: [{ codigo: 'asc' }],
-      take: limite,
-      skip: desplazamiento,
-    });
-    return filas.map(puestoADominio);
   }
 
   async listar({ comercianteId, limite, desplazamiento }: { comercianteId?: string; limite: number; desplazamiento: number }) {

@@ -41,7 +41,6 @@ class ComerciantesMem {
 class PuestosMem {
   datos: Puesto[] = [];
   async guardar(p: Puesto) { this.datos.push(p); }
-  async buscarPorId(id: string) { return this.datos.find((p) => p.id === id) ?? null; }
   async listar({ comercianteId }: { comercianteId?: string }) { return this.datos.filter((p) => !comercianteId || p.comercianteId === comercianteId); }
 }
 

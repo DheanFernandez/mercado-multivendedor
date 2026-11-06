@@ -9,15 +9,7 @@ import {
   type UsuarioConsultaPort,
 } from './application/ports/ports.js';
 import { ConsultarComerciante, ListarComerciantes, RegistrarComerciante } from './application/use-cases/comerciantes.use-cases.js';
-import {
-  ActualizarComerciante,
-  ActualizarPuesto,
-  CambiarEstadoComerciante,
-  CambiarEstadoPuesto,
-  ListarPuestosPublicos,
-  ObtenerPuesto,
-} from './application/use-cases/gestion-merchants.use-cases.js';
-import { ListarIdsPuestosDeTitular, ListarPuestos, ObtenerPuestoParaProductos, RegistrarPuesto } from './application/use-cases/puestos.use-cases.js';
+import { ListarPuestos, RegistrarPuesto } from './application/use-cases/puestos.use-cases.js';
 import { ComerciantesController } from './entry-adapters/controllers/comerciantes.controller.js';
 import { UsuarioConsultaAdapter } from './infrastructure/adapters/usuario-consulta.adapter.js';
 import { PrismaComercianteRepository, PrismaPuestoRepository } from './infrastructure/persistence/prisma-merchants.repositories.js';
@@ -47,31 +39,6 @@ import { PrismaComercianteRepository, PrismaPuestoRepository } from './infrastru
       useFactory: (p: PuestoRepository, c: ComercianteRepository) => new ListarPuestos(p, c),
       inject: [PUESTO_REPOSITORY, COMERCIANTE_REPOSITORY],
     },
-    {
-      provide: ObtenerPuestoParaProductos,
-      useFactory: (p: PuestoRepository, c: ComercianteRepository) => new ObtenerPuestoParaProductos(p, c),
-      inject: [PUESTO_REPOSITORY, COMERCIANTE_REPOSITORY],
-    },
-    {
-      provide: ListarIdsPuestosDeTitular,
-      useFactory: (p: PuestoRepository, c: ComercianteRepository) => new ListarIdsPuestosDeTitular(p, c),
-      inject: [PUESTO_REPOSITORY, COMERCIANTE_REPOSITORY],
-    },
-    { provide: ActualizarComerciante, useFactory: (c: ComercianteRepository) => new ActualizarComerciante(c), inject: [COMERCIANTE_REPOSITORY] },
-    { provide: CambiarEstadoComerciante, useFactory: (c: ComercianteRepository) => new CambiarEstadoComerciante(c), inject: [COMERCIANTE_REPOSITORY] },
-    {
-      provide: ActualizarPuesto,
-      useFactory: (p: PuestoRepository, c: ComercianteRepository) => new ActualizarPuesto(p, c),
-      inject: [PUESTO_REPOSITORY, COMERCIANTE_REPOSITORY],
-    },
-    { provide: CambiarEstadoPuesto, useFactory: (p: PuestoRepository) => new CambiarEstadoPuesto(p), inject: [PUESTO_REPOSITORY] },
-    {
-      provide: ObtenerPuesto,
-      useFactory: (p: PuestoRepository, c: ComercianteRepository) => new ObtenerPuesto(p, c),
-      inject: [PUESTO_REPOSITORY, COMERCIANTE_REPOSITORY],
-    },
-    { provide: ListarPuestosPublicos, useFactory: (p: PuestoRepository) => new ListarPuestosPublicos(p), inject: [PUESTO_REPOSITORY] },
   ],
-  exports: [ObtenerPuestoParaProductos, ListarIdsPuestosDeTitular],
 })
 export class MerchantsModule {}

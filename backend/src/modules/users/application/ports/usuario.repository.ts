@@ -1,7 +1,7 @@
 import type { Usuario } from '../../domain/usuario.entity.js';
 
 export interface UsuarioRepository {
-  /** Crea o actualiza (rol, estado y datos personales). @throws EmailYaRegistradoError si el correo o el authId ya existen. */
+  /** @throws EmailYaRegistradoError si el correo o el authId ya existen (incluye carreras entre solicitudes). */
   guardar(usuario: Usuario): Promise<void>;
   buscarPorId(id: string): Promise<Usuario | null>;
   buscarPorEmail(email: string): Promise<Usuario | null>;

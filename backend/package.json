@@ -23,17 +23,8 @@
     "prisma:validate": "prisma validate",
     "prisma:generate": "prisma generate",
     "postinstall": "prisma generate",
-    "test:db": "node ../ops/medicion/test-db.mjs test",
-    "usuarios:promover": "node dist/scripts/promover-rol.js",
-    "storage:verificar": "node dist/scripts/verificar-storage.js",
-    "seed:medicion": "node dist/scripts/seed-medicion.js",
-    "db:test:up": "node ../ops/medicion/test-db.mjs up",
-    "db:test:stop": "node ../ops/medicion/test-db.mjs stop",
-    "db:test:down": "node ../ops/medicion/test-db.mjs down",
-    "db:test:status": "node ../ops/medicion/test-db.mjs status",
-    "db:test:migrate": "node ../ops/medicion/test-db.mjs migrate",
-    "db:test:ping": "node ../ops/medicion/test-db.mjs ping",
-    "arquitectura": "depcruise src --config .dependency-cruiser.cjs"
+    "test:db": "vitest run --config ./vitest.config.db.ts",
+    "usuarios:promover": "node dist/scripts/promover-rol.js"
   },
   "dependencies": {
     "@nestjs/common": "^12.0.1",
@@ -45,12 +36,10 @@
     "dotenv": "^18.0.9",
     "jose": "^6.2.15",
     "pg": "^8.23.1",
-    "pino": "^10.4.0",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1"
   },
   "devDependencies": {
-    "@faker-js/faker": "^10.6.0",
     "@nestjs/cli": "^12.0.0",
     "@nestjs/mau": "^0.2.6",
     "@nestjs/schematics": "^12.0.0",
@@ -60,8 +49,6 @@
     "@types/pg": "^8.23.1",
     "@types/supertest": "^7.0.0",
     "@vitest/coverage-v8": "^4.1.2",
-    "dependency-cruiser": "^18.7.2",
-    "msw": "^2.15.0",
     "oxlint": "^1.58.0",
     "oxlint-tsgolint": "^7.0.2001",
     "prettier": "^3.4.2",

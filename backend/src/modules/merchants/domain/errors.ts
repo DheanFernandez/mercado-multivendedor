@@ -25,11 +25,6 @@ export class ComercianteInactivoError extends ErrorDeConflicto {
     super('El comerciante no está activo.');
   }
 }
-export class PuestoNoEncontradoError extends ErrorNoEncontrado {
-  constructor() {
-    super('Puesto no encontrado.');
-  }
-}
 export class CodigoPuestoDuplicadoError extends ErrorDeConflicto {
   constructor() {
     super('Ya existe un puesto con ese código.');

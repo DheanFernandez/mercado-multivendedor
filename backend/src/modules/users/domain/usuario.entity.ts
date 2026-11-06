@@ -20,7 +20,7 @@ const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const TELEFONO = /^\+?[0-9 ()-]{6,20}$/;
 
 export class Usuario {
-  private constructor(private props: UsuarioProps) {}
+  private constructor(private readonly props: UsuarioProps) {}
 
   /** Crea un usuario nuevo validando las reglas del dominio. */
   static crear(datos: {
@@ -58,18 +58,6 @@ export class Usuario {
   /** Reconstruye un usuario ya persistido (sin revalidar). */
   static reconstruir(props: UsuarioProps): Usuario {
     return new Usuario(props);
-  }
-
-  /** HU21 / RF05: el rol solo cambia a un valor conocido. */
-  cambiarRol(rol: Rol): void {
-    if (!(Object.values(Rol) as string[]).includes(rol)) throw new ErrorDeValidacion('El rol no es válido.');
-    this.props = { ...this.props, rol };
-  }
-
-  /** HU21: una cuenta inactiva no puede acceder (lo comprueba la autenticación). */
-  cambiarEstado(activo: unknown): void {
-    if (typeof activo !== 'boolean') throw new ErrorDeValidacion('El estado debe ser verdadero o falso.');
-    this.props = { ...this.props, estado: activo ? 'ACTIVO' : 'INACTIVO' };
   }
 
   get id() { return this.props.id; }
