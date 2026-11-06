@@ -18,7 +18,7 @@ revisar() { # $1 = texto del mensaje, $2 = etiqueta
 case "$1" in
   --mensaje) revisar "$(cat "$2")" "el mensaje del commit" ;;
   --rango)
-    for c in $(git rev-list "$2"); do
+    for c in $(git rev-list $2); do # sin comillas: el rango puede ser "sha --not --remotes"
       revisar "$(git log -1 --format=%B "$c")" "el commit $(git log -1 --format='%h %s' "$c")"
     done ;;
   *) echo "Uso: $0 --mensaje <archivo> | --rango <a..b>" >&2; exit 2 ;;
