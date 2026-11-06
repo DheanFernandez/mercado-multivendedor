@@ -1,9 +1,7 @@
 import { Body, Controller, Get, Inject, Post } from '@nestjs/common';
 import type { Actor } from '../../../shared/domain/actor.js';
 import { ActorRequerido, Public } from '../../../shared/http/actor.js';
-import { ConsultarUsuario } from '../../users/application/use-cases/consultar-usuario.use-case.js';
-import { RegistrarCliente } from '../../users/application/use-cases/registrar-cliente.use-case.js';
-import { vistaUsuario } from '../../users/entry-adapters/controllers/usuarios.controller.js';
+import { ConsultarUsuario, RegistrarCliente, vistaUsuario } from '../../users/index.js';
 
 interface RegistroDto {
   email: string;
