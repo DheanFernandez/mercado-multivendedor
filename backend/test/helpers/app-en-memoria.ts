@@ -15,6 +15,8 @@ import { CATEGORIA_REPOSITORY, PRODUCTO_REPOSITORY } from '../../src/modules/pro
 import { AlmacenEnMemoria, CategoriasEnMemoria, ProductosEnMemoria } from '../../src/modules/products/application/use-cases/test-doubles.js';
 import { Categoria } from '../../src/modules/products/domain/categoria.entity.js';
 import { Producto } from '../../src/modules/products/domain/producto.entity.js';
+import { INVENTARIO_REPOSITORY } from '../../src/modules/inventory/application/ports/ports.js';
+import { InventarioEnMemoria } from '../../src/modules/inventory/application/use-cases/test-doubles.js';
 import { PROVEEDOR_IDENTIDAD } from '../../src/modules/users/application/ports/proveedor-identidad.port.js';
 import { USUARIO_REPOSITORY } from '../../src/modules/users/application/ports/usuario.repository.js';
 import { IdentidadFalsa, UsuariosEnMemoria } from '../../src/modules/users/application/use-cases/test-doubles.js';
@@ -45,6 +47,7 @@ export async function crearAppEnMemoria() {
   const puestos: Puesto[] = [];
   const categorias = new CategoriasEnMemoria();
   const productos = new ProductosEnMemoria();
+  const inventario = new InventarioEnMemoria();
   const sembrar = (n: number, rol: Rol, estado: 'ACTIVO' | 'INACTIVO' = 'ACTIVO') =>
     usuarios.datos.set(uid(n), Usuario.reconstruir({ id: uid(n), email: `u${n}@t.co`, nombres: 'N', apellidos: 'A', telefono: null, rol, estado, authId: authIdDe(n), creadoEn: new Date() }));
   sembrar(U.ADMIN, 'ADMINISTRADOR');
@@ -99,10 +102,11 @@ export async function crearAppEnMemoria() {
     })
     .overrideProvider(CATEGORIA_REPOSITORY).useValue(categorias)
     .overrideProvider(PRODUCTO_REPOSITORY).useValue(productos)
+    .overrideProvider(INVENTARIO_REPOSITORY).useValue(inventario)
     .overrideProvider(CATALOGO_REPOSITORY).useValue({ async buscar() { return { items: [], total: 0 }; }, async detalle() { return null; } })
     .overrideProvider(ALMACEN_ARCHIVOS).useValue(new AlmacenEnMemoria())
     .compile();
   const app: INestApplication = modulo.createNestApplication();
   await app.init();
-  return { app, usuarios, comerciantes, puestos, categorias, productos, ids: { comercianteA: A.id, comercianteB: B.id, puestoA: uid(301), puestoB: uid(302), categoria: categoria.id, producto: producto.id, imagen: uid(601) } };
+  return { app, usuarios, comerciantes, puestos, categorias, productos, inventario, ids: { comercianteA: A.id, comercianteB: B.id, puestoA: uid(301), puestoB: uid(302), categoria: categoria.id, producto: producto.id, imagen: uid(601) } };
 }
