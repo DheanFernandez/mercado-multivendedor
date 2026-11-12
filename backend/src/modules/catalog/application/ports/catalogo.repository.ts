@@ -31,4 +31,14 @@ export interface CatalogoRepository {
   detalle(id: string): Promise<ProductoCatalogo | null>;
 }
 
+/**
+ * Lectura en lote por identificadores. Es un puerto APARTE de `CatalogoRepository` (segregación de interfaces): lo usa
+ * Carrito para convertir el carrito en pedido y así no cambia la interfaz que ya implementan las pruebas existentes.
+ */
+export interface CatalogoDetallesRepository {
+  /** Los productos que el catálogo expone entre `ids` (publicados, con categoría, puesto y comerciante activos); omite el resto. */
+  detalles(ids: string[]): Promise<ProductoCatalogo[]>;
+}
+
 export const CATALOGO_REPOSITORY = Symbol('CATALOGO_REPOSITORY');
+export const CATALOGO_DETALLES_REPOSITORY = Symbol('CATALOGO_DETALLES_REPOSITORY');

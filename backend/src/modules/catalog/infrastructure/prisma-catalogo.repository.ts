@@ -1,7 +1,8 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { Prisma } from '../../../generated/prisma/client.js';
 import { PrismaService } from '../../../shared/infrastructure/prisma/prisma.service.js';
-import type { CatalogoRepository, FiltroCatalogo, ProductoCatalogo } from '../application/ports/catalogo.repository.js';
+import { db } from '../../../shared/infrastructure/prisma/unidad-de-trabajo.js';
+import type { CatalogoDetallesRepository, CatalogoRepository, FiltroCatalogo, ProductoCatalogo } from '../application/ports/catalogo.repository.js';
 
 /** Visibilidad pública: producto publicado, categoría activa, puesto activo y comerciante activo. */
 const VISIBLE: Prisma.ProductoWhereInput = {
@@ -33,7 +34,7 @@ const aLectura = (f: Fila): ProductoCatalogo => ({
 const centimos = (c: number) => new Prisma.Decimal(c).div(100);
 
 @Injectable()
-export class PrismaCatalogoRepository implements CatalogoRepository {
+export class PrismaCatalogoRepository implements CatalogoRepository, CatalogoDetallesRepository {
   constructor(@Inject(PrismaService) private readonly prisma: PrismaService) {}
 
   async buscar(f: FiltroCatalogo) {
@@ -69,5 +70,15 @@ export class PrismaCatalogoRepository implements CatalogoRepository {
   async detalle(id: string) {
     const fila = await this.prisma.producto.findFirst({ where: { AND: [VISIBLE, { id }] }, include: INCLUIR });
     return fila ? aLectura(fila) : null;
+  }
+
+  /**
+   * Lectura en lote por la conexión ACTIVA (`db`): dentro de una unidad de trabajo usa su transacción y no abre otra conexión;
+   * fuera de ella, el cliente de siempre. Las demás lecturas de este repositorio no cambian.
+   */
+  async detalles(ids: string[]): Promise<ProductoCatalogo[]> {
+    if (ids.length === 0) return [];
+    const filas = await db(this.prisma).producto.findMany({ where: { AND: [VISIBLE, { id: { in: ids } }] }, include: INCLUIR });
+    return filas.map(aLectura);
   }
 }

@@ -1,5 +1,6 @@
 /** Dobles de prueba en memoria (solo para pruebas). Aplican las mismas reglas que la consulta SQL del repositorio real. */
-import type { CarritoRepository, DisponibilidadPort, ItemGuardado, ProductoVendible, ProductoVendiblePort, ResultadoAgregar } from '../ports/ports.js';
+import { UnidadDeTrabajoRequeridaError } from '../../../../shared/domain/unidad-de-trabajo.error.js';
+import type { CarritoRepository, DisponibilidadPort, ItemGuardado, ProductoVendible, ProductosVendiblesLotePort, ProductoVendiblePort, ResultadoAgregar } from '../ports/ports.js';
 
 export class CarritoEnMemoria implements CarritoRepository {
   readonly carritos = new Map<string, ItemGuardado[]>();
@@ -37,11 +38,43 @@ export class CarritoEnMemoria implements CarritoRepository {
     return true;
   }
   async vaciar(usuarioId: string) { this.carritos.set(usuarioId, []); }
+
+  /** Simula la unidad de trabajo: `bloquearYListar` y `vaciarItems` solo funcionan dentro de `conUnidad`. */
+  private unidadVigente = false;
+  async conUnidad<T>(trabajo: () => Promise<T>): Promise<T> {
+    this.unidadVigente = true;
+    try { return await trabajo(); } finally { this.unidadVigente = false; }
+  }
+  /** Llamadas realizadas a `bloquearYListar` (para comprobar cuántas veces se lee). */
+  bloqueos = 0;
+  async bloquearYListar(usuarioId: string) {
+    if (!this.unidadVigente) throw new UnidadDeTrabajoRequeridaError('bloquearYListar');
+    this.bloqueos++;
+    const items = this.carritos.get(usuarioId);
+    if (!items) return { carritoId: null, items: [] };
+    return { carritoId: `carrito-${usuarioId}`, items: items.map((i) => ({ ...i })).sort((a, b) => (a.productoId < b.productoId ? -1 : 1)) };
+  }
+  async vaciarItems(usuarioId: string) {
+    if (!this.unidadVigente) throw new UnidadDeTrabajoRequeridaError('vaciarItems');
+    const n = this.carritos.get(usuarioId)?.length ?? 0;
+    this.carritos.set(usuarioId, []);
+    return n;
+  }
 }
 
 export class ProductosVendiblesFalsos implements ProductoVendiblePort {
   constructor(readonly productos: Record<string, ProductoVendible> = {}) {}
   async obtener(id: string) { return this.productos[id] ?? null; }
+}
+
+export class ProductosVendiblesLoteFalsos implements ProductosVendiblesLotePort {
+  /** Una entrada por consulta realizada (los identificadores pedidos). */
+  readonly llamadas: string[][] = [];
+  constructor(readonly productos: Record<string, ProductoVendible> = {}) {}
+  async obtener(ids: string[]) {
+    this.llamadas.push([...ids]);
+    return new Map(ids.filter((i) => this.productos[i]).map((i) => [i, this.productos[i]!] as const));
+  }
 }
 
 export class DisponibilidadFalsa implements DisponibilidadPort {

@@ -5,9 +5,11 @@ import {
   CARRITO_REPOSITORY,
   DISPONIBILIDAD_PORT,
   PRODUCTO_VENDIBLE_PORT,
+  PRODUCTOS_VENDIBLES_LOTE_PORT,
   type CarritoRepository,
   type DisponibilidadPort,
   type ProductoVendiblePort,
+  type ProductosVendiblesLotePort,
 } from './application/ports/ports.js';
 import {
   ActualizarCantidadCarrito,
@@ -17,8 +19,9 @@ import {
   VaciarCarrito,
   type DependenciasCarrito,
 } from './application/use-cases/carrito.use-cases.js';
+import { ObtenerCarritoParaPedido, VaciarCarritoDelPedido } from './application/use-cases/pedido.use-cases.js';
 import { CarritoController } from './entry-adapters/carrito.controller.js';
-import { DisponibilidadAdapter, ProductoVendibleAdapter } from './infrastructure/adaptadores.js';
+import { DisponibilidadAdapter, ProductosVendiblesLoteAdapter, ProductoVendibleAdapter } from './infrastructure/adaptadores.js';
 import { PrismaCarritoRepository } from './infrastructure/prisma-carrito.repository.js';
 
 const deps = (carrito: CarritoRepository, productos: ProductoVendiblePort, inventario: DisponibilidadPort): DependenciasCarrito => ({ carrito, productos, inventario });
@@ -28,10 +31,14 @@ const INYECTAR = [CARRITO_REPOSITORY, PRODUCTO_VENDIBLE_PORT, DISPONIBILIDAD_POR
 @Module({
   imports: [CatalogModule, InventoryModule],
   controllers: [CarritoController],
+  exports: [ObtenerCarritoParaPedido, VaciarCarritoDelPedido],
   providers: [
     { provide: CARRITO_REPOSITORY, useClass: PrismaCarritoRepository },
     { provide: PRODUCTO_VENDIBLE_PORT, useClass: ProductoVendibleAdapter },
     { provide: DISPONIBILIDAD_PORT, useClass: DisponibilidadAdapter },
+    { provide: PRODUCTOS_VENDIBLES_LOTE_PORT, useClass: ProductosVendiblesLoteAdapter },
+    { provide: ObtenerCarritoParaPedido, useFactory: (c: CarritoRepository, l: ProductosVendiblesLotePort) => new ObtenerCarritoParaPedido(c, l), inject: [CARRITO_REPOSITORY, PRODUCTOS_VENDIBLES_LOTE_PORT] },
+    { provide: VaciarCarritoDelPedido, useFactory: (c: CarritoRepository) => new VaciarCarritoDelPedido(c), inject: [CARRITO_REPOSITORY] },
     { provide: ConsultarCarrito, useFactory: (c: CarritoRepository, p: ProductoVendiblePort, i: DisponibilidadPort) => new ConsultarCarrito(deps(c, p, i)), inject: INYECTAR },
     {
       provide: AgregarAlCarrito,

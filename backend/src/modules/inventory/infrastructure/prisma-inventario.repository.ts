@@ -1,6 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import type { Prisma } from '../../../generated/prisma/client.js';
 import { PrismaService } from '../../../shared/infrastructure/prisma/prisma.service.js';
+import { atomico } from '../../../shared/infrastructure/prisma/unidad-de-trabajo.js';
 import {
   ClaveOperacionReutilizadaError,
   ReservaNoEncontradaError,
@@ -23,11 +24,6 @@ type Tx = Prisma.TransactionClient;
 type FilaStock = { stock_fisico: number; stock_reservado: number };
 
 const EPOCH = new Date(0);
-/** Esperar una conexión del pool ante ráfagas de solicitudes no debe fallar; la transacción en sí es de milisegundos. */
-const OPCIONES_TX = { maxWait: 20_000, timeout: 15_000 } as const;
-const esperar = (ms: number) => new Promise((r) => setTimeout(r, ms));
-/** Interbloqueo o fallo de serialización: PostgreSQL ya revirtió la transacción y es seguro reintentarla (ADR-003 §5.6). */
-const esReintentable = (e: unknown) => /deadlock|could not serialize|40P01|40001|P2034/i.test(`${(e as { code?: string })?.code ?? ''} ${(e as Error)?.message ?? ''} ${JSON.stringify((e as { meta?: unknown })?.meta ?? '')}`);
 
 const vista = (productoId: string, puestoId: string, f: { stockFisico: number; stockReservado: number }): ExistenciasProducto => ({
   productoId, puestoId, stockFisico: f.stockFisico, stockReservado: f.stockReservado, stockDisponible: f.stockFisico - f.stockReservado,
@@ -37,21 +33,14 @@ const vista = (productoId: string, puestoId: string, f: { stockFisico: number; s
  * Inventario sobre PostgreSQL. Cada operación es UNA transacción corta. La comprobación y la actualización de
  * disponibilidad se hacen en la MISMA sentencia (UPDATE condicional), de modo que dos solicitudes simultáneas
  * nunca ven la misma disponibilidad (ADR-003 §6.3). Los CHECK de la tabla son la última barrera.
+ *
+ * Las escrituras usan `atomico()`: fuera de una unidad de trabajo abren su transacción corta con el reintento de siempre;
+ * dentro de una unidad (p. ej. «crear pedido») se UNEN a la transacción de la unidad. Las lecturas siguen usando el cliente
+ * base y, por tanto, el resguardo las rechaza si se llaman dentro de una unidad.
  */
 @Injectable()
 export class PrismaInventarioRepository implements InventarioRepository {
   constructor(@Inject(PrismaService) private readonly prisma: PrismaService) {}
-
-  private async conReintento<T>(op: () => Promise<T>): Promise<T> {
-    for (let intento = 0; ; intento++) {
-      try {
-        return await op();
-      } catch (e) {
-        if (intento >= 4 || !esReintentable(e)) throw e;
-        await esperar(10 * (intento + 1));
-      }
-    }
-  }
 
   private movimiento(
     tx: Tx,
@@ -104,8 +93,7 @@ export class PrismaInventarioRepository implements InventarioRepository {
   // ───────────── escrituras atómicas ─────────────
 
   variarStock(c: { productoId: string; puestoId: string; tipo: 'INGRESO' | 'DEVOLUCION' | 'AJUSTE'; delta: number; motivo: string | null; actorId: string }) {
-    return this.conReintento(() =>
-      this.prisma.$transaction(async (tx) => {
+    return atomico(this.prisma, async (tx) => {
         await tx.$executeRaw`INSERT INTO inventarios (id, producto_id, puesto_id, stock_fisico, stock_reservado)
           VALUES (gen_random_uuid(), ${c.productoId}::uuid, ${c.puestoId}::uuid, 0, 0) ON CONFLICT DO NOTHING`; // sin objetivo: cubre ambos indices unicos (producto) y (producto, puesto) ante creaciones simultaneas
         // El delta se suma en la propia sentencia: dos actualizaciones simultáneas nunca se pisan.
@@ -117,13 +105,11 @@ export class PrismaInventarioRepository implements InventarioRepository {
         const f = filas[0]!;
         await this.movimiento(tx, { inventarioId: f.id, tipo: c.tipo, vf: c.delta, vr: 0, despues: f, motivo: c.motivo, actorId: c.actorId });
         return vista(c.productoId, c.puestoId, { stockFisico: f.stock_fisico, stockReservado: f.stock_reservado });
-      }, OPCIONES_TX),
-    );
+    });
   }
 
   reservar(c: { claveOperacion: string; items: ItemReserva[]; expiraEn: Date }): Promise<ResultadoReservar> {
-    return this.conReintento(() =>
-      this.prisma.$transaction(async (tx) => {
+    return atomico(this.prisma, async (tx) => {
         const existentes = async () =>
           tx.$queryRaw<{ producto_id: string; cantidad: number; estado: EstadoReserva }[]>`
             SELECT i.producto_id, r.cantidad, r.estado::text AS estado
@@ -168,13 +154,11 @@ export class PrismaInventarioRepository implements InventarioRepository {
         if (nuevas === 0) return resultadoPrevio(await existentes());
         if (nuevas !== c.items.length) throw new ClaveOperacionReutilizadaError();
         return { reservas: c.items.map((i) => ({ ...i, estado: 'RESERVADA' as const })), repetida: false };
-      }, OPCIONES_TX),
-    );
+    });
   }
 
   liberar(c: { claveOperacion: string; soloVencidasAl?: Date; motivo: string }) {
-    return this.conReintento(() =>
-      this.prisma.$transaction(async (tx) => {
+    return atomico(this.prisma, async (tx) => {
         // Cambiar el estado es lo que hace idempotente la operación: solo quien lo cambia toca el stock.
         const cambiadas = await tx.$queryRaw<{ inventario_id: string; cantidad: number }[]>`
           UPDATE reservas_inventario SET estado = 'LIBERADA', actualizado_en = now()
@@ -198,13 +182,11 @@ export class PrismaInventarioRepository implements InventarioRepository {
           liberadas += r.cantidad;
         }
         return { liberadas };
-      }, OPCIONES_TX),
-    );
+    });
   }
 
   confirmarVenta(c: { claveOperacion: string }) {
-    return this.conReintento(() =>
-      this.prisma.$transaction(async (tx) => {
+    return atomico(this.prisma, async (tx) => {
         const cambiadas = await tx.$queryRaw<{ inventario_id: string; cantidad: number }[]>`
           UPDATE reservas_inventario SET estado = 'CONFIRMADA', actualizado_en = now()
           WHERE clave_operacion = ${c.claveOperacion} AND estado = 'RESERVADA' RETURNING inventario_id, cantidad`;
@@ -224,7 +206,6 @@ export class PrismaInventarioRepository implements InventarioRepository {
           confirmadas += r.cantidad;
         }
         return { confirmadas };
-      }, OPCIONES_TX),
-    );
+    });
   }
 }

@@ -1,7 +1,7 @@
 import { ErrorDeValidacion, ErrorNoEncontrado } from '../../../../shared/domain/errors.js';
 import { Precio } from '../../../../shared/domain/precio.js';
 import { esUuid, paginar, type Pagina } from '../../../../shared/application/paginacion.js';
-import type { CatalogoRepository, OrdenCatalogo, ProductoCatalogo } from '../ports/catalogo.repository.js';
+import type { CatalogoDetallesRepository, CatalogoRepository, OrdenCatalogo, ProductoCatalogo } from '../ports/catalogo.repository.js';
 
 const ORDENES: OrdenCatalogo[] = ['recientes', 'precio_asc', 'precio_desc', 'nombre'];
 
@@ -63,5 +63,27 @@ export class ObtenerDetalleCatalogo {
     const producto = await this.catalogo.detalle(id);
     if (!producto) throw new CatalogoProductoNoEncontradoError();
     return producto;
+  }
+}
+
+/** Máximo de identificadores distintos por consulta en lote (igual al máximo de productos de un carrito). */
+export const MAX_IDS_DETALLES = 50;
+
+/**
+ * RF19 en lote (API pública del módulo para Carrito): devuelve, por identificador, los productos que el catálogo expone entre
+ * los pedidos; los no publicados o de puestos o categorías inactivos, y los inexistentes, simplemente no aparecen.
+ * Una sola llamada al repositorio, y por la transacción activa si el llamador está en una unidad de trabajo.
+ */
+export class ObtenerDetallesCatalogo {
+  constructor(private readonly catalogo: CatalogoDetallesRepository) {}
+
+  async ejecutar(ids: unknown): Promise<Map<string, ProductoCatalogo>> {
+    if (!Array.isArray(ids)) throw new ErrorDeValidacion('Los productos deben indicarse como una lista.');
+    const unicos = [...new Set<unknown>(ids)];
+    if (!unicos.every((i): i is string => esUuid(i))) throw new ErrorDeValidacion('Algún producto no es válido.');
+    if (unicos.length > MAX_IDS_DETALLES) throw new ErrorDeValidacion(`Se admiten como máximo ${MAX_IDS_DETALLES} productos distintos por consulta.`);
+    if (unicos.length === 0) return new Map();
+    const filas = await this.catalogo.detalles(unicos);
+    return new Map(filas.map((p) => [p.id, p]));
   }
 }

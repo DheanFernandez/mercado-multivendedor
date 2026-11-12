@@ -6,3 +6,5 @@ export {
   LiberarReserva,
   ReservarInventario,
 } from './application/use-cases/inventario.use-cases.js';
+/** Error de falta de stock (trae `productoId`): contrato público para que otros módulos identifiquen el producto sin stock. */
+export { StockInsuficienteError } from './domain/errors.js';
