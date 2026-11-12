@@ -56,6 +56,7 @@ model Usuario {
 
   comerciante Comerciante?
   carrito     Carrito?
+  pedidos     Pedido[]
 
   @@index([rol])
   @@map("usuarios")
@@ -88,6 +89,7 @@ model Puesto {
 
   comerciante Comerciante @relation(fields: [comercianteId], references: [id], onDelete: Restrict)
   productos   Producto[]
+  subpedidos  Subpedido[]
 
   @@index([comercianteId])
   @@map("puestos")
@@ -148,6 +150,7 @@ model Producto {
   imagenes  ProductoImagen[]
   inventario Inventario?
   carritoItems CarritoItem[]
+  lineasPedido LineaPedido[]
 
   /// Permite la clave foránea compuesta (producto, puesto) del inventario: el puesto del inventario no puede divergir del producto.
   @@unique([id, puestoId])
@@ -277,4 +280,102 @@ model CarritoItem {
   @@unique([carritoId, productoId])
   @@index([productoId])
   @@map("carrito_items")
+}
+
+// ───────────── Pedidos y subpedidos (RF25–RF31; spec 003-pedidos-subpedidos, data-model §2–§3) ─────────────
+// Restricciones que Prisma no expresa (CHECK, triggers de inmutabilidad, RLS): en la migración `<ts>_pedidos`.
+
+/// Estados de un subpedido (C4 N4 §3). `MIXTO` NO es un estado: es solo el estado general derivado de consulta.
+enum EstadoPedidoPuesto {
+  ESPERANDO_PAGO
+  PAGO_APROBADO
+  EN_PREPARACION
+  LISTO_PARA_RETIRO
+  ENTREGADO
+  EXPIRADO
+  CANCELADO
+}
+
+/// Pedido del cliente. Idempotente por (cliente, clave). Inmutable tras crearse (trigger); total = Σ subpedidos (dominio).
+model Pedido {
+  id                String   @id @default(uuid()) @db.Uuid
+  /// `PED-` + 8 caracteres legibles (CHECK de formato).
+  codigo            String   @unique
+  clienteId         String   @map("cliente_id") @db.Uuid
+  claveIdempotencia String   @map("clave_idempotencia")
+  /// Carrito realmente procesado (trazabilidad). Sin clave foránea: el carrito puede cambiar o desaparecer.
+  carritoId         String   @map("carrito_id") @db.Uuid
+  /// SHA-256 hexadecimal del contenido bloqueado; solo trazabilidad (DE-5).
+  huellaCarrito     String   @map("huella_carrito") @db.Char(64)
+  total             Decimal  @db.Decimal(16, 2)
+  reservaVenceEn    DateTime @map("reserva_vence_en") @db.Timestamptz(3)
+  creadoEn          DateTime @default(now()) @map("creado_en") @db.Timestamptz(3)
+
+  cliente    Usuario     @relation(fields: [clienteId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  subpedidos Subpedido[]
+
+  @@unique([clienteId, claveIdempotencia])
+  @@index([clienteId, creadoEn(sort: Desc), id])
+  @@map("pedidos")
+}
+
+/// Parte del pedido de un puesto. Solo cambian `estado` y `actualizado_en` (trigger).
+model Subpedido {
+  id            String             @id @default(uuid()) @db.Uuid
+  pedidoId      String             @map("pedido_id") @db.Uuid
+  puestoId      String             @map("puesto_id") @db.Uuid
+  /// Instantánea del puesto: Pedidos no lee tablas de Comerciantes.
+  puestoCodigo  String             @map("puesto_codigo")
+  puestoNombre  String             @map("puesto_nombre")
+  estado        EstadoPedidoPuesto @default(ESPERANDO_PAGO)
+  subtotal      Decimal            @db.Decimal(16, 2)
+  creadoEn      DateTime           @default(now()) @map("creado_en") @db.Timestamptz(3)
+  actualizadoEn DateTime           @default(now()) @map("actualizado_en") @db.Timestamptz(3)
+
+  pedido    Pedido                      @relation(fields: [pedidoId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  puesto    Puesto                      @relation(fields: [puestoId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  lineas    LineaPedido[]
+  historial HistorialEstadoSubpedido[]
+
+  @@unique([pedidoId, puestoId])
+  // Permite la clave foránea compuesta de las líneas: una línea no puede declarar otro puesto que el de su subpedido.
+  @@unique([id, puestoId])
+  @@index([puestoId, estado])
+  @@map("subpedidos")
+}
+
+/// Línea del pedido con el precio histórico. Inmutable (trigger); subtotal = precio × cantidad (CHECK).
+model LineaPedido {
+  id             String      @id @default(uuid()) @db.Uuid
+  subpedidoId    String      @map("subpedido_id") @db.Uuid
+  puestoId       String      @map("puesto_id") @db.Uuid
+  productoId     String      @map("producto_id") @db.Uuid
+  nombreProducto String      @map("nombre_producto")
+  unidadVenta    UnidadVenta @map("unidad_venta")
+  presentacion   String?
+  cantidad       Int
+  precioUnitario Decimal     @map("precio_unitario") @db.Decimal(10, 2)
+  subtotal       Decimal     @db.Decimal(14, 2)
+
+  subpedido Subpedido @relation(fields: [subpedidoId, puestoId], references: [id, puestoId], onDelete: Restrict, onUpdate: Restrict)
+  producto  Producto  @relation(fields: [productoId, puestoId], references: [id, puestoId], onDelete: Restrict, onUpdate: Restrict)
+
+  @@unique([subpedidoId, productoId])
+  @@map("lineas_pedido")
+}
+
+/// Historial inmutable de estados por subpedido (RF31). `actor_id` sin clave foránea: libro histórico.
+model HistorialEstadoSubpedido {
+  id             String              @id @default(uuid()) @db.Uuid
+  subpedidoId    String              @map("subpedido_id") @db.Uuid
+  estadoAnterior EstadoPedidoPuesto? @map("estado_anterior")
+  estadoNuevo    EstadoPedidoPuesto  @map("estado_nuevo")
+  origen         String
+  actorId        String?             @map("actor_id") @db.Uuid
+  creadoEn       DateTime            @default(now()) @map("creado_en") @db.Timestamptz(3)
+
+  subpedido Subpedido @relation(fields: [subpedidoId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+
+  @@index([subpedidoId, creadoEn])
+  @@map("historial_estados_subpedido")
 }
