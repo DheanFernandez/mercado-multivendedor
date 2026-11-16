@@ -1,0 +1,10 @@
+
+ RUN  v4.1.12 D:/LABO_Lizbeth/mercado-multivendedor/backend
+
+
+ Test Files  1 passed (1)
+      Tests  3 passed (3)
+   Start at  16:02:54
+   Duration  4.41s (transform 951ms, setup 0ms, import 2.80s, tests 1.33s, environment 0ms)
+
+exit=0

@@ -1,0 +1,190 @@
+{
+  "herramienta": "Vitest 4.1.12",
+  "comando": "npx vitest run src (desde backend/)",
+  "fecha": "2026-11-16",
+  "total": 558,
+  "pasan": 558,
+  "fallan": 0,
+  "archivos": [
+    {
+      "archivo": "src/app.controller.spec.ts",
+      "pruebas": 1,
+      "pasan": 1
+    },
+    {
+      "archivo": "src/modules/inventory/index.spec.ts",
+      "pruebas": 2,
+      "pasan": 2
+    },
+    {
+      "archivo": "src/modules/auth/infrastructure/jose-verificador-token.spec.ts",
+      "pruebas": 13,
+      "pasan": 13
+    },
+    {
+      "archivo": "src/modules/cart/domain/calculo.spec.ts",
+      "pruebas": 9,
+      "pasan": 9
+    },
+    {
+      "archivo": "src/modules/inventory/domain/stock.spec.ts",
+      "pruebas": 17,
+      "pasan": 17
+    },
+    {
+      "archivo": "src/modules/orders/domain/codigo-pedido.spec.ts",
+      "pruebas": 29,
+      "pasan": 29
+    },
+    {
+      "archivo": "src/modules/orders/domain/estado-general.spec.ts",
+      "pruebas": 11,
+      "pasan": 11
+    },
+    {
+      "archivo": "src/modules/orders/domain/estado-subpedido.spec.ts",
+      "pruebas": 14,
+      "pasan": 14
+    },
+    {
+      "archivo": "src/modules/orders/domain/huella-carrito.spec.ts",
+      "pruebas": 12,
+      "pasan": 12
+    },
+    {
+      "archivo": "src/modules/orders/domain/pedido-reconstitucion.spec.ts",
+      "pruebas": 13,
+      "pasan": 13
+    },
+    {
+      "archivo": "src/modules/orders/domain/pedido.entity.spec.ts",
+      "pruebas": 68,
+      "pasan": 68
+    },
+    {
+      "archivo": "src/modules/orders/infrastructure/importes.spec.ts",
+      "pruebas": 14,
+      "pasan": 14
+    },
+    {
+      "archivo": "src/modules/products/domain/dominio.spec.ts",
+      "pruebas": 39,
+      "pasan": 39
+    },
+    {
+      "archivo": "src/shared/infrastructure/prisma/errores-transitorios.spec.ts",
+      "pruebas": 22,
+      "pasan": 22
+    },
+    {
+      "archivo": "src/shared/infrastructure/prisma/prisma.service.spec.ts",
+      "pruebas": 9,
+      "pasan": 9
+    },
+    {
+      "archivo": "src/shared/infrastructure/storage/supabase-almacen.adapter.spec.ts",
+      "pruebas": 41,
+      "pasan": 41
+    },
+    {
+      "archivo": "src/modules/auth/application/use-cases/autenticar-solicitud.use-case.spec.ts",
+      "pruebas": 5,
+      "pasan": 5
+    },
+    {
+      "archivo": "src/modules/cart/application/use-cases/carrito.use-cases.spec.ts",
+      "pruebas": 18,
+      "pasan": 18
+    },
+    {
+      "archivo": "src/modules/cart/application/use-cases/pedido.use-cases.spec.ts",
+      "pruebas": 14,
+      "pasan": 14
+    },
+    {
+      "archivo": "src/modules/catalog/application/use-cases/catalogo-detalles.use-cases.spec.ts",
+      "pruebas": 11,
+      "pasan": 11
+    },
+    {
+      "archivo": "src/modules/catalog/application/use-cases/catalogo.use-cases.spec.ts",
+      "pruebas": 16,
+      "pasan": 16
+    },
+    {
+      "archivo": "src/modules/merchants/application/use-cases/gestion-merchants.use-cases.spec.ts",
+      "pruebas": 13,
+      "pasan": 13
+    },
+    {
+      "archivo": "src/modules/merchants/application/use-cases/merchants.use-cases.spec.ts",
+      "pruebas": 11,
+      "pasan": 11
+    },
+    {
+      "archivo": "src/modules/inventory/application/use-cases/inventario.use-cases.spec.ts",
+      "pruebas": 23,
+      "pasan": 23
+    },
+    {
+      "archivo": "src/modules/orders/application/use-cases/crear-pedido.use-cases.spec.ts",
+      "pruebas": 52,
+      "pasan": 52
+    },
+    {
+      "archivo": "src/modules/orders/application/use-cases/test-doubles.spec.ts",
+      "pruebas": 9,
+      "pasan": 9
+    },
+    {
+      "archivo": "src/modules/products/application/use-cases/productos.use-cases.spec.ts",
+      "pruebas": 25,
+      "pasan": 25
+    },
+    {
+      "archivo": "src/modules/users/application/use-cases/gestion-usuarios.use-cases.spec.ts",
+      "pruebas": 15,
+      "pasan": 15
+    },
+    {
+      "archivo": "src/modules/users/application/use-cases/usuarios.use-cases.spec.ts",
+      "pruebas": 23,
+      "pasan": 23
+    },
+    {
+      "archivo": "src/modules/users/infrastructure/identity/supabase-identidad.adapter.spec.ts",
+      "pruebas": 9,
+      "pasan": 9
+    }
+  ],
+  "eq02_caso_de_uso_con_dobles_en_memoria": [
+    {
+      "prueba": "un fallo no transitorio tras pedidos.bloquearCliente restaura todos los almacenes, se propaga tal cual y no se reintenta",
+      "estado": "passed"
+    },
+    {
+      "prueba": "un fallo no transitorio tras carrito.obtenerParaPedido restaura todos los almacenes, se propaga tal cual y no se reintenta",
+      "estado": "passed"
+    },
+    {
+      "prueba": "un fallo no transitorio tras pedidos.insertar restaura todos los almacenes, se propaga tal cual y no se reintenta",
+      "estado": "passed"
+    },
+    {
+      "prueba": "un fallo no transitorio tras pedidos.guardarDetalle restaura todos los almacenes, se propaga tal cual y no se reintenta",
+      "estado": "passed"
+    },
+    {
+      "prueba": "un fallo no transitorio tras carrito.vaciar restaura todos los almacenes, se propaga tal cual y no se reintenta",
+      "estado": "passed"
+    },
+    {
+      "prueba": "un fallo no transitorio tras inventario.reservar restaura todos los almacenes, se propaga tal cual y no se reintenta",
+      "estado": "passed"
+    },
+    {
+      "prueba": "un fallo en la consulta previa (fuera de la unidad) se propaga sin abrir la unidad",
+      "estado": "passed"
+    }
+  ]
+}
