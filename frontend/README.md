@@ -27,10 +27,10 @@ cd frontend
 npm install
 cp .env.example .env.local     # en PowerShell: Copy-Item .env.example .env.local
 # completar .env.local (ver la tabla siguiente)
-npm run dev -- -p 3001         # http://localhost:3001
+npm run dev                    # http://localhost:3001
 ```
 
-`next dev` usa el puerto 3000 por defecto, que ya ocupa el backend; por eso se indica `-p 3001`. Ese puerto debe coincidir con `FRONTEND_URL` del backend (CORS).
+El script `dev` fija el puerto **3001** (`next dev --port 3001`), porque el 3000 es del backend. Si el frontend ocupara el 3000, la API no podría arrancar (`EADDRINUSE`) y el navegador recibiría la página 404 de Next.js en lugar de la API; el catálogo lo informa como «El catálogo no está disponible en este momento» (en desarrollo, con una pista para revisar el puerto y `NEXT_PUBLIC_API_URL`). El puerto 3001 debe coincidir con `FRONTEND_URL` del backend (CORS).
 
 Variables de `.env.local` (plantilla en [`.env.example`](.env.example)). Todas las variables `NEXT_PUBLIC_*` se incluyen en el código que recibe el navegador, por lo que **solo deben contener valores públicos**:
 
@@ -114,12 +114,14 @@ frontend/
 
 | Comando | Descripción |
 |---|---|
-| `npm run dev -- -p 3001` | Servidor de desarrollo en `http://localhost:3001` |
+| `npm run dev` | Servidor de desarrollo en `http://localhost:3001` |
 | `npm run build` | Compilación de producción (incluye la comprobación de tipos) |
-| `npm run start` | Sirve la compilación (`next start`; añada `-- -p 3001` para usar ese puerto) |
+| `npm run start` | Sirve la compilación en `http://localhost:3001` |
+| `npm test` | Pruebas unitarias y de componentes (Vitest + Testing Library) |
+| `npm run test:e2e` | Pruebas de navegador con red simulada (Playwright, puerto 3210). Next.js 16 no admite dos `next dev` en la misma carpeta: detenga antes el servidor de desarrollo |
 | `npm run lint` | Análisis con ESLint |
 
-El frontend no incluye todavía pruebas automatizadas; se verifica con `npm run lint` y `npm run build`.
+Antes de integrar un cambio se ejecutan `npm test`, `npm run lint`, `npm run build` y `npm run test:e2e`. Las pruebas de navegador no llaman a Supabase ni al backend: interceptan la red y simulan la API según los contratos de `specs/002-carrito` y `specs/004-catalogo-publico`.
 
 ## Limitaciones actuales
 
