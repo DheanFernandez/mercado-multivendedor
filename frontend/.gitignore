@@ -42,3 +42,7 @@ next-env.d.ts
 
 # permitir versionar la plantilla de variables
 !.env.example
+
+# playwright
+/test-results/
+/playwright-report/

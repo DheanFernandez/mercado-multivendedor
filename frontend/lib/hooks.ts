@@ -76,3 +76,30 @@ export function useAcceso(rolesPermitidos: Perfil["rol"][]): Acceso {
   }, [clave, router]);
   return acceso;
 }
+
+export type Sesion = { estado: "cargando" } | { estado: "visitante" } | { estado: "cliente" } | { estado: "otro"; rol: Perfil["rol"] };
+
+/**
+ * Rol del usuario SIN redirigir (para páginas públicas como el detalle del producto). Es solo experiencia de usuario:
+ * el backend autoriza cada operación (spec 002-carrito, CA-F8).
+ */
+export function useSesion(): Sesion {
+  const [sesion, setSesion] = useState<Sesion>({ estado: "cargando" });
+  useEffect(() => {
+    let activo = true;
+    (async () => {
+      try {
+        const { data } = await supabase().auth.getSession();
+        if (!data.session) return activo && setSesion({ estado: "visitante" });
+        const perfil = await obtenerPerfil();
+        if (activo) setSesion(perfil.rol === "CLIENTE" ? { estado: "cliente" } : { estado: "otro", rol: perfil.rol });
+      } catch {
+        if (activo) setSesion({ estado: "visitante" });
+      }
+    })();
+    return () => {
+      activo = false;
+    };
+  }, []);
+  return sesion;
+}

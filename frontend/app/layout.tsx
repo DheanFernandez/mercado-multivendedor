@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist_Mono, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import { SiteHeader } from "@/components/SiteHeader";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+// Tipografía de toda la interfaz (spec 004, E4; CA-UI-01): moderna y legible, autoalojada por next/font.
+const jakarta = Plus_Jakarta_Sans({
+  variable: "--font-jakarta",
   subsets: ["latin"],
 });
 
@@ -20,11 +21,9 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html
-      lang="es"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
-    >
-      <body className="min-h-full flex flex-col">
+    <html lang="es" className={`${jakarta.variable} ${geistMono.variable} h-full antialiased`}>
+      {/* En móvil, la barra inferior (CA-UI-03) es fija: el espacio inferior evita que tape el contenido. */}
+      <body className="flex min-h-full flex-col pb-[calc(6rem+env(safe-area-inset-bottom))] md:pb-0">
         <SiteHeader />
         {children}
       </body>

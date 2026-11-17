@@ -117,7 +117,7 @@ npm run start:dev             # http://localhost:3000
 cd frontend
 npm install
 cp .env.example .env.local    # completar con los valores públicos de Supabase
-npm run dev -- -p 3001        # http://localhost:3001
+npm run dev                   # http://localhost:3001 (el script fija el puerto)
 ```
 
 En Windows PowerShell, `cp` equivale a `Copy-Item`. Las instrucciones completas, las variables de entorno y los comandos de prueba están en [backend/README.md](backend/README.md) y [frontend/README.md](frontend/README.md).

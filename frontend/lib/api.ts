@@ -1,20 +1,31 @@
 "use client";
 
 import { supabase } from "@/lib/supabase";
-import type { Categoria, Comerciante, Pagina, Perfil, Producto, ProductoCatalogo, Puesto, Rol } from "@/lib/tipos";
+import type { Carrito, Categoria, Comerciante, Pagina, Perfil, Producto, ProductoCatalogo, Puesto, Rol } from "@/lib/tipos";
 
 export type { Perfil } from "@/lib/tipos";
 
+/**
+ * Error de una llamada a la API. `codigo` viene del cuerpo de error del backend (`VALIDACION`, `NO_ENCONTRADO`…) o lo asigna
+ * el cliente cuando la respuesta no es de la API (spec 004, CA-CAT-08): `SIN_CONEXION`, `RESPUESTA_NO_API`, `ERROR_SERVIDOR`.
+ */
 export class ErrorApi extends Error {
   constructor(
     readonly estado: number,
     mensaje: string,
+    readonly codigo?: string,
   ) {
     super(mensaje);
   }
 }
 
-const base = () => (process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3000").replace(/\/+$/, "");
+export const MENSAJE_SIN_CONEXION = "No se pudo conectar con el servidor.";
+export const MENSAJE_NO_API = "El servidor no respondió como la API del mercado.";
+export const MENSAJE_ERROR_SERVIDOR = "El servidor tuvo un problema. Inténtelo de nuevo en unos minutos.";
+
+/** URL base de la API (pública: proviene de `NEXT_PUBLIC_API_URL`). */
+export const urlApi = () => (process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3000").replace(/\/+$/, "");
+const base = urlApi;
 
 async function peticion<T>(ruta: string, init: RequestInit = {}, conSesion = false): Promise<T> {
   const cabeceras = new Headers(init.headers);
@@ -28,10 +39,20 @@ async function peticion<T>(ruta: string, init: RequestInit = {}, conSesion = fal
   try {
     res = await fetch(`${base()}${ruta}`, { ...init, headers: cabeceras });
   } catch {
-    throw new ErrorApi(0, "No se pudo conectar con el servidor.");
+    throw new ErrorApi(0, MENSAJE_SIN_CONEXION, "SIN_CONEXION");
   }
-  const cuerpo = await res.json().catch(() => ({}));
-  if (!res.ok) throw new ErrorApi(res.status, typeof cuerpo?.mensaje === "string" ? cuerpo.mensaje : "Error inesperado.");
+  // La API siempre responde JSON. Otra cosa (p. ej. la página 404 de Next.js cuando NEXT_PUBLIC_API_URL apunta al propio
+  // frontend) no es la API: se informa como tal en vez de un «Error inesperado.» (spec 004, diagnóstico §2).
+  const esJson = (res.headers.get("content-type") ?? "").toLowerCase().includes("application/json");
+  const cuerpo: unknown = esJson ? await res.json().catch(() => undefined) : undefined;
+  if (cuerpo === undefined) throw new ErrorApi(res.status, MENSAJE_NO_API, "RESPUESTA_NO_API");
+  if (!res.ok) {
+    const { mensaje, codigo } = (cuerpo ?? {}) as { mensaje?: unknown; codigo?: unknown };
+    const cod = typeof codigo === "string" ? codigo : undefined;
+    if (typeof mensaje === "string") throw new ErrorApi(res.status, mensaje, cod);
+    if (res.status >= 500) throw new ErrorApi(res.status, MENSAJE_ERROR_SERVIDOR, cod ?? "ERROR_SERVIDOR");
+    throw new ErrorApi(res.status, "No se pudo completar la operación.", cod);
+  }
   return cuerpo as T;
 }
 
@@ -143,3 +164,14 @@ export const cambiarEstadoPuesto = (id: string, activo: boolean) =>
 
 /** Público: puestos operativos, para filtrar el catálogo (RF18). */
 export const puestosPublicos = () => peticion<{ id: string; codigo: string; nombre: string }[]>("/api/v1/puestos/publicos");
+
+// ───── Carrito multivendedor (solo CLIENTE; cada respuesta devuelve el carrito completo) ─────
+
+export const obtenerCarrito = () => peticion<Carrito>("/api/v1/carrito", {}, true);
+export const agregarAlCarrito = (productoId: string, cantidad: number) =>
+  peticion<Carrito>("/api/v1/carrito/items", json("POST", { productoId, cantidad }), true);
+export const actualizarCantidadCarrito = (productoId: string, cantidad: number) =>
+  peticion<Carrito>(`/api/v1/carrito/items/${encodeURIComponent(productoId)}`, json("PATCH", { cantidad }), true);
+export const quitarDelCarrito = (productoId: string) =>
+  peticion<Carrito>(`/api/v1/carrito/items/${encodeURIComponent(productoId)}`, { method: "DELETE" }, true);
+export const vaciarCarrito = () => peticion<Carrito>("/api/v1/carrito", { method: "DELETE" }, true);
