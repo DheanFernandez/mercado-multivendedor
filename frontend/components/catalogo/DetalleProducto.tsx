@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { ComprarProducto } from "@/components/carrito/ComprarProducto";
 import { ImagenProducto } from "@/components/catalogo/TarjetaProducto";
 import { Aviso, Cargando, Contenedor, claseBoton } from "@/components/comun";
 import { detalleCatalogo } from "@/lib/api";
@@ -60,7 +61,7 @@ export function DetalleProducto({ id }: { id: string }) {
               <p className="whitespace-pre-line text-zinc-800 dark:text-zinc-200">{p.descripcion}</p>
             </div>
           )}
-          <Aviso tipo="info">La compra se habilitará próximamente. Por ahora puede consultar el producto y el puesto donde lo encuentra.</Aviso>
+          <ComprarProducto productoId={p.id} />
         </div>
       </div>
     </Contenedor>
