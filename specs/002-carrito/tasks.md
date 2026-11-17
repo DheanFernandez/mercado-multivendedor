@@ -159,7 +159,7 @@ description: "Tareas del frontend del Carrito multivendedor (S-06)"
 | HU05 · RF24 | CA-F5 | T019, T020, T021, T022 | `LineaCarrito.tsx`, `CarritoVista.tsx` | `LineaCarrito.test.tsx`; `CarritoVista.test.tsx`; e2e | Vitest y navegador (prueba 1: quitar y vaciar) correctos |
 | HU04 · RF15, RF19 | CA-F6 | T023, T025 | `LineaCarrito.tsx`, `CarritoVista.tsx` | pruebas de T023 | Solo Vitest; **sin prueba de navegador** |
 | HU04 · RF15 | CA-F7 | T006, T024, T026 | `lib/carrito.ts`, tres componentes | pruebas de T024; e2e (409) | Vitest y navegador (pruebas 1 y 2) correctos |
-| RF04 · AC04 | CA-F8 | T008, T010, T014, T017 | `useSesion`, `Acceso`, `ComprarProducto.tsx` | `ComprarProducto.test.tsx`; `acceso.test.tsx`; e2e | Vitest y navegador (pruebas 3 a 5: visitante, comerciante, administrador) correctos |
+| RF04 · AC04 | CA-F8 | T008, T010, T014, T017 | `useSesion`, `Acceso`, `ComprarProducto.tsx` | `ComprarProducto.test.tsx`; `app/carrito/page.test.tsx`; e2e | Vitest y navegador (pruebas 3 a 5: visitante, comerciante, administrador) correctos |
 | HU04 | CA-F9 | T013, T016 | `CarritoVista.tsx` | `CarritoVista.test.tsx`; e2e (vacío) | Vitest y navegador (prueba 1) correctos |
 | AC01 · AC09 · AC10 | CA-F10 | T019, T028 | `LineaCarrito.tsx`, estilos | `LineaCarrito.test.tsx`; e2e (375 px) | Vitest y navegador (prueba 6) correctos; carga y acción en curso solo con Vitest |
 | HU06 | CA-F11 | T013, T031 | `CarritoVista.tsx` | `CarritoVista.test.tsx`; e2e (sin botón de pedido o pago); revisión T031 | Vitest, navegador (prueba 1) y revisión de T031 correctos |
