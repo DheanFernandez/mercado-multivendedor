@@ -9,6 +9,8 @@
 | Versión evaluada | Repositorio publicado: `origin/main` (`1aab552`, 06/11/2026). También se revisó el trabajo local de Pedidos, aún no publicado (rama `feat/pedidos-backend`, `a3f0cd0`); cada afirmación sobre ese trabajo lo indica como «rama local» |
 | Documentos de esta entrega | Este informe · [Evaluación de atributos de calidad](02-evaluacion-atributos-calidad.md) · [Matriz de trazabilidad](03-matriz-de-trazabilidad.md) · [Evidencias del 16/11/2026](evidencias/2026-11-16/README.md) |
 
+> **Nota del 18/11/2026.** Este informe corresponde a la entrega de **diseño y evaluación inicial** del 16/11/2026 y se conserva sin cambios de contenido (versión `1aab552`). La entrega final del sprint, «Implementación y validación de la arquitectura de software», con la primera versión funcional, OpenAPI, Jest, cobertura y la matriz oficial de cumplimiento sobre `200675c`, está en el [informe final](04-informe-final-sprint-02.md) y en la [matriz oficial](05-matriz-oficial-de-cumplimiento.md).
+
 ## 1. Resumen
 
 La plataforma adopta un **monolito modular** en NestJS, organizado en 13 módulos de negocio; dentro de cada módulo aplica **Clean Architecture** (puertos y adaptadores). El frontend es una aplicación web en Next.js que consume la API REST, y PostgreSQL en Supabase, con acceso mediante Prisma, es el almacén de datos. El cobro previsto es un **pago único por pedido** con Mercado Pago (Sandbox), diseñado pero aún sin implementar. Estas decisiones se documentan en el modelo C4 completo (niveles 1 a 4) y en cuatro ADR (001, 002, 003 y 005). El equipo declara vigentes esos ADR, pero formalmente siguen en estado «Propuesta» hasta que se resuelva DEC-04.

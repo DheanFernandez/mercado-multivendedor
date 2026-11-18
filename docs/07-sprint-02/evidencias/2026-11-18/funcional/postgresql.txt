@@ -1,0 +1,30 @@
+== PostgreSQL aislado: contenedor mercado-funcional-db, 127.0.0.1:55434, base mercado_dev (PostgreSQL 17.11 on x86_64-pc-linux-musl)
+_prisma_migrations carrito_items carritos categorias comerciantes inventarios movimientos_inventario producto_imagenes productos puestos reservas_inventario usuarios
+-- migraciones aplicadas:
+20261105000000_usuarios_comerciantes_puestos
+20261106000000_productos_categorias
+20261107000000_inventario
+20261108000000_carrito
+-- recuentos:
+categorias = 8
+usuarios = 5
+comerciantes = 4
+puestos = 4
+productos = 20
+inventarios = 20
+movimientos_inventario = 20
+producto_imagenes = 0
+carritos = 1
+carrito_items = 0
+-- productos por puesto:
+DEMO-A1|Frutería La Cosecha|5
+DEMO-B2|Verduras El Huerto|5
+DEMO-C3|Abarrotes El Granero|6
+DEMO-D4|Carnes y Pescados La Caleta|4
+-- stock (físico/reservado) de 5 productos:
+Aceite vegetal|50|0
+Arroz extra|200|0
+Bonito fresco|40|0
+Camote amarillo|100|0
+Carne de res para guiso|40|0
+-- ¿tablas de Pedidos? 0

@@ -1,0 +1,50 @@
+OK  200 GET /api/v1/categorias
+      8 categorías: Abarrotes, Carnes y aves, Frutas, Lácteos y huevos, Menestras y granos, Pescados y mariscos, Tubérculos, Verduras
+OK  200 GET /api/v1/puestos/publicos
+      4 puestos: DEMO-A1, DEMO-B2, DEMO-C3, DEMO-D4
+OK  200 GET /api/v1/catalogo/productos?limite=50
+      total=20; página 1/1; 20 productos; con imagen: 0
+OK  200 GET /api/v1/catalogo/productos?limite=5&pagina=2
+      pagina=2, 5 productos, totalPaginas=4
+OK  200 GET /api/v1/catalogo/productos?q=papa
+      1 resultado(s): Papa amarilla
+OK  200 GET /api/v1/catalogo/productos?categoriaId=<Frutas>
+      5 productos de «Frutas»: Palta fuerte, Mango Kent, Plátano de seda, Limón sutil, Mandarina
+OK  200 GET /api/v1/catalogo/productos?orden=precio_asc
+      precios ascendentes: true (de 1 a 24)
+OK  200 GET /api/v1/catalogo/productos?precioMin=5&precioMax=10
+      8 productos entre 5.00 y 10.00; todos en rango: true
+OK  200 GET /api/v1/catalogo/productos?puestoId=<DEMO-A1>
+      5 productos del puesto DEMO-A1
+OK  400 GET /api/v1/catalogo/productos?orden=aleatorio
+      VALIDACION: El orden debe ser uno de: recientes, precio_asc, precio_desc, nombre.
+OK  200 GET /api/v1/catalogo/productos/:id
+      Palta fuerte · S/ 8.50 / KILOGRAMO · puesto DEMO-A1 · categoría Frutas
+OK  404 GET /api/v1/catalogo/productos/<uuid inexistente>
+      NO_ENCONTRADO: Producto no encontrado.
+OK  401 GET /api/v1/inventario
+      NO_AUTENTICADO: Autenticación requerida.
+OK  401 GET /api/v1/carrito
+      NO_AUTENTICADO: Autenticación requerida.
+OK  503 GET /api/v1/carrito
+      SERVICIO_NO_DISPONIBLE: El servicio de autenticación no está configurado.
+OK  200 GET /api/docs
+      text/html; charset=utf-8; contiene «Swagger UI»: true
+OK  200 GET /api/docs-json
+      OpenAPI 3.0.3; 31 rutas, 42 operaciones (6 públicas, 36 con Bearer); 20 esquemas
+OK  200 GET /
+      text/html; 53142 bytes
+OK  200 GET /catalogo
+      text/html; 52024 bytes
+OK  200 GET /catalogo/d3e00005-0000-4000-8000-000000000001
+      text/html; 20822 bytes
+OK  200 GET /ofertas
+      text/html; 30654 bytes
+OK  200 GET /carrito
+      text/html; 18602 bytes
+OK  200 GET /login
+      text/html; 19871 bytes
+OK  200 GET /registro
+      text/html; 21378 bytes
+
+24 de 24 comprobaciones correctas

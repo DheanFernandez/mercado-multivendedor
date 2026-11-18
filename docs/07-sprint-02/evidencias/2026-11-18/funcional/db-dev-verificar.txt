@@ -1,0 +1,20 @@
+API de verificación en http://127.0.0.1:3100 (base postgresql://postgres:***@127.0.0.1:55434/mercado_dev; imágenes en http://localhost:3210)
+  ✔ CA-DEMO-06 catálogo sin filtros: HTTP 200, total=20, pagina=1, limite=24, todos con id de demostración=true
+     primeros: Palta fuerte S/ 8.50 / KILOGRAMO · DEMO-A1 | Mango Kent S/ 6.00 / KILOGRAMO · DEMO-A1 | Plátano de seda S/ 3.50 / KILOGRAMO · DEMO-A1
+  ✔ CA-DEMO-06 categorías: HTTP 200, 8: Abarrotes, Carnes y aves, Frutas, Lácteos y huevos, Menestras y granos, Pescados y mariscos, Tubérculos, Verduras
+  ✔ CA-DEMO-06 puestos públicos: HTTP 200, 4: DEMO-A1 Frutería La Cosecha, DEMO-B2 Verduras El Huerto, DEMO-C3 Abarrotes El Granero, DEMO-D4 Carnes y Pescados La Caleta
+  ✔ CA-DEMO-06 precio, unidad, puesto y categoría: 20 de 20 coinciden con el seed
+  ✔ CA-DEMO-06 búsqueda «papa»: HTTP 200, total=1: Papa amarilla
+  ✔ CA-DEMO-06 categoría Frutas: HTTP 200, total=5: Palta fuerte, Mango Kent, Plátano de seda, Limón sutil, Mandarina
+  ✔ CA-DEMO-06 orden: precio_asc → Culantro (S/ 1.00); nombre → Aceite vegetal
+  ✔ CA-DEMO-06 detalle: HTTP 200, Palta fuerte S/ 8.50 / KILOGRAMO · Puesto DEMO-A1 · imágenes=0
+  ✔ CA-IMG-06 URL de las imágenes: 0 con fotografía (ninguna), 20 con «imagenes: []»; ninguna URL contiene /storage/v1/object/public/
+  ✔ CA-IMG-07 archivos válidos = imágenes asociadas: 0 de 20
+  ✔ CA-DEMO-07 carrito sin sesión: HTTP 401
+  ✔ CA-IMG-05 la autenticación sigue rechazando tokens no válidos: HTTP 401
+  ✔ CA-DEMO-07 perfil del cliente de prueba: HTTP 200, cliente.prueba@demo.mercado.test, rol=CLIENTE
+  ✔ CA-DEMO-07 consultar carrito vacío: HTTP 200, totalProductos=0, total=0.00
+  ✔ CA-DEMO-07 agregar productos de 2 puestos: POST HTTP 201/201; DEMO-A1: Palta fuerte ×2 = S/ 17.00 (OK, disponible 80) → subtotal S/ 17.00 | DEMO-B2: Papa amarilla ×3 = S/ 11.40 (OK, disponible 150) → subtotal S/ 11.40 · total S/ 28.40, 5 unidades
+  ✔ CA-DEMO-07 vaciar: HTTP 200, totalProductos=0
+
+Resultado: 16 de 16 comprobaciones correctas.

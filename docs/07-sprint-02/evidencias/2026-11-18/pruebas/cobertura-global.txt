@@ -1,0 +1,122 @@
+
+> backend@0.0.1 test:cov:todo
+> node scripts/cobertura-global.mjs
+
+
+══ 1/3 · Pruebas unitarias
+blob report written to D:/LABO_Lizbeth/mercado-cobertura-wt/backend/coverage/blobs/unitarias.json
+
+══ 2/3 · Pruebas HTTP
+[Nest] 8304  - 18/11/2026, 12:00:21   ERROR [ExceptionsHandler] Error: Supabase caído
+    at D:/LABO_Lizbeth/mercado-cobertura-wt/backend/test/administracion.e2e-spec.ts:137:25
+    at file:///D:/LABO_Lizbeth/mercado-cobertura-wt/backend/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11
+    at file:///D:/LABO_Lizbeth/mercado-cobertura-wt/backend/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26
+    at file:///D:/LABO_Lizbeth/mercado-cobertura-wt/backend/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20
+    at new Promise (<anonymous>)
+    at runWithCancel (file:///D:/LABO_Lizbeth/mercado-cobertura-wt/backend/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)
+    at file:///D:/LABO_Lizbeth/mercado-cobertura-wt/backend/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20
+    at new Promise (<anonymous>)
+    at runWithTimeout (file:///D:/LABO_Lizbeth/mercado-cobertura-wt/backend/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)
+    at file:///D:/LABO_Lizbeth/mercado-cobertura-wt/backend/node_modules/@vitest/runner/dist/chunk-artifact.js:2956:64
+(node:20216) MaxListenersExceededWarning: Possible EventEmitter memory leak detected. 11 listening listeners added to [Server]. MaxListeners is 10. Use emitter.setMaxListeners() to increase limit
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:20216) MaxListenersExceededWarning: Possible EventEmitter memory leak detected. 11 error listeners added to [Server]. MaxListeners is 10. Use emitter.setMaxListeners() to increase limit
+(node:20216) MaxListenersExceededWarning: Possible EventEmitter memory leak detected. 11 close listeners added to [Server]. MaxListeners is 10. Use emitter.setMaxListeners() to increase limit
+blob report written to D:/LABO_Lizbeth/mercado-cobertura-wt/backend/coverage/blobs/e2e.json
+
+══ 3/3 · Informe combinado
+
+ RUN  v4.1.12 D:/LABO_Lizbeth/mercado-cobertura-wt/backend
+
+
+ Test Files  30 passed (30)
+      Tests  470 passed (470)
+   Start at  12:00:33
+   Duration  25.35s (transform 0ms, setup 0ms, import 44.58s, tests 8.58s, environment 8ms)
+   Per blob  15.55s 9.80s
+
+ % Coverage report from v8
+-------------------|---------|----------|---------|---------|-------------------
+File               | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s
+-------------------|---------|----------|---------|---------|-------------------
+All files          |   73.52 |    70.73 |   78.07 |   76.01 |
+ src               |   56.25 |    16.66 |      75 |   56.25 |
+  ...controller.ts |     100 |       50 |     100 |     100 | 5
+  main.ts          |       0 |        0 |       0 |       0 | 6-15
+ ...entry-adapters |     100 |     87.5 |     100 |     100 |
+  ...controller.ts |     100 |       50 |     100 |     100 | 26
+ ...infrastructure |   69.56 |    63.63 |   71.42 |   71.42 |
+  ...ador-token.ts |      65 |    63.63 |      60 |   66.66 | 47-59
+ ...tion/use-cases |   98.14 |    95.45 |     100 |     100 |
+  ....use-cases.ts |   98.14 |    95.45 |     100 |     100 | 71
+ ...infrastructure |    32.6 |     5.55 |   31.25 |   36.84 |
+  adaptadores.ts   |    90.9 |       50 |     100 |      90 | 26
+  ...repository.ts |   14.28 |        0 |    8.33 |   17.85 | 20-84
+ ...tion/use-cases |   96.55 |    97.61 |     100 |     100 |
+  ....use-cases.ts |   96.55 |    97.61 |     100 |     100 | 26
+ ...infrastructure |   23.07 |        0 |   16.66 |      30 |
+  ...repository.ts |   23.07 |        0 |   16.66 |      30 | 30,40-71
+ ...tion/use-cases |   95.95 |    91.46 |      96 |     100 |
+  ....use-cases.ts |   95.95 |    91.46 |      96 |     100 | ...09,137,160,169
+ ...entry-adapters |     100 |       50 |     100 |     100 |
+  ...controller.ts |     100 |       50 |     100 |     100 | 11
+ ...infrastructure |   12.31 |     4.16 |    9.09 |   15.84 |
+  ...repository.ts |    5.46 |        0 |    2.43 |     7.6 | 46-226
+  ...to.adapter.ts |     100 |       75 |     100 |     100 | 19
+ ...tion/use-cases |   95.34 |     93.4 |     100 |     100 |
+  ....use-cases.ts |   96.87 |    96.87 |     100 |     100 | 15
+  ....use-cases.ts |   98.21 |    97.05 |     100 |     100 | 20
+  ....use-cases.ts |   90.24 |       84 |     100 |     100 | 21,42,71,91
+ ...rchants/domain |   98.33 |    94.11 |     100 |     100 |
+  puesto.entity.ts |   96.96 |     90.9 |     100 |     100 | 22,24
+ ...rs/controllers |     100 |       50 |     100 |     100 |
+  ...controller.ts |     100 |       50 |     100 |     100 | 15
+ ...re/persistence |   20.58 |        0 |   15.38 |   22.58 |
+  ...positories.ts |   20.58 |        0 |   15.38 |   22.58 | 13,16,23-48,57-92
+ ...tion/use-cases |    96.2 |    91.39 |   96.87 |   99.24 |
+  ....use-cases.ts |   96.66 |     90.9 |     100 |     100 | 41
+  ....use-cases.ts |   96.09 |    91.46 |   95.65 |   99.05 | 188
+ ...roducts/domain |   96.33 |    94.02 |     100 |   98.83 |
+  ...ria.entity.ts |   96.66 |    96.15 |     100 |     100 | 29
+  ...cto.entity.ts |   95.71 |    92.68 |     100 |   98.11 | 58
+ ...infrastructure |   27.27 |        0 |   27.77 |   30.76 |
+  ...positories.ts |   17.94 |        0 |   13.33 |   20.58 | ...8,37-53,62-109
+ ...tion/use-cases |   96.29 |    98.03 |   89.47 |     100 |
+  ....use-cases.ts |   95.45 |    91.66 |     100 |     100 | 34
+  ...e.use-case.ts |   94.73 |      100 |   66.66 |     100 |
+  ...o.use-case.ts |   94.11 |      100 |   66.66 |     100 |
+ ...s/users/domain |    92.3 |    88.88 |   94.73 |   96.87 |
+  ...rio.entity.ts |   91.66 |    88.88 |   93.75 |   96.55 | 83
+ ...rs/controllers |     100 |    83.33 |     100 |     100 |
+  ...controller.ts |     100 |    83.33 |     100 |     100 | 33
+ ...cture/identity |      90 |    84.21 |    87.5 |     100 |
+  ...ad.adapter.ts |      90 |    84.21 |    87.5 |     100 | 32,44,49,65-71
+ ...re/persistence |   16.66 |        0 |   14.28 |   17.64 |
+  ...repository.ts |   16.66 |        0 |   14.28 |   17.64 | 10,27-61
+ src/scripts       |       0 |        0 |       0 |       0 |
+  promover-rol.ts  |       0 |        0 |     100 |       0 | 10-27
+  seed-medicion.ts |       0 |        0 |       0 |       0 | 14-76
+  servidor-eq03.ts |       0 |        0 |       0 |       0 | 22-102
+  ...ar-storage.ts |       0 |        0 |       0 |       0 | 12-69
+ src/shared/domain |    87.5 |    69.23 |     100 |   90.47 |
+  precio.ts        |   76.92 |    69.23 |     100 |   81.81 | 23-24
+ src/shared/http   |   92.85 |       50 |     100 |     100 |
+  actor.ts         |    87.5 |       50 |     100 |     100 | 17
+  ...ror.filter.ts |     100 |       50 |     100 |     100 | 18
+ ...d/http/openapi |     100 |    95.45 |     100 |     100 |
+  documento.ts     |     100 |    96.49 |     100 |     100 | 39,66
+  operaciones.ts   |     100 |    83.33 |     100 |     100 | 44
+ ...ructure/prisma |   88.88 |       75 |     100 |   88.88 |
+  ...ma.service.ts |   85.71 |       75 |     100 |   85.71 | 18
+ ...ucture/storage |   97.61 |    96.87 |     100 |     100 |
+  ...en.adapter.ts |    97.5 |    96.87 |     100 |     100 | 37
+-------------------|---------|----------|---------|---------|-------------------
+
+=============================== Coverage summary ===============================
+Statements   : 73.52% ( 1333/1813 )
+Branches     : 70.73% ( 718/1015 )
+Functions    : 78.07% ( 438/561 )
+Lines        : 76.01% ( 1138/1497 )
+================================================================================
+
+Informe combinado en backend/coverage/global/ (index.html, lcov.info, coverage-summary.json).

@@ -1,0 +1,25 @@
+Fecha: 2026-11-18 12:23 -0500
+Commit: 200675c967fd2dea00afbe0523e55860367bc971 (origin/main, merge del PR #12)
+Worktree aislado: D:\LABO_Lizbeth\mercado-funcional-wt (HEAD desacoplado, sin rama ni commits)
+SO: Microsoft Windows [Versi 10.0.26100.8737] 路 Node v24.19.0 路 npm 11.17.0 路 Docker Docker version 29.8.1
+
+== Servicios
+PostgreSQL 17.11: contenedor mercado-funcional-db (imagen postgres:17-alpine), 127.0.0.1:55434, base mercado_dev, SIN volumen con nombre
+Backend NestJS: npm run demo:api -> http://localhost:3000 (dist/main)
+Frontend Next.js: next dev --port 3001 -> http://localhost:3001
+
+== Variables de entorno (solo nombres y prop贸sito; valores sensibles omitidos)
+Backend (las fija ops/demo/demo-db.mjs al iniciar; no hay backend/.env):
+  DATABASE_URL, DIRECT_URL  = postgresql://postgres:***@127.0.0.1:55434/mercado_dev (credenciales locales del contenedor)
+  PORT=3000 路 FRONTEND_URL=http://localhost:3001 路 ALMACEN_URL_PUBLICA=http://localhost:3001
+  SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY, SUPABASE_JWT_SECRET = NO DEFINIDAS (o vac铆as): sin Supabase
+Frontend (en el entorno del proceso; no hay frontend/.env.local):
+  NEXT_PUBLIC_API_URL=http://localhost:3000
+  NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:54399 (direcci贸n local sin servidor) 路 NEXT_PUBLIC_SUPABASE_ANON_KEY=valor ficticio local
+
+== Contenedores de otras aplicaciones (no tocados)
+mercado-dev-db	Exited (0) 24 hours ago
+mercado-test-db	Exited (255) 24 hours ago
+marketplace-db	Exited (255) 2 weeks ago
+apofoods-restore-verification	Exited (255) 2 weeks ago
+apofoods-db-1	Up 3 hours (healthy)

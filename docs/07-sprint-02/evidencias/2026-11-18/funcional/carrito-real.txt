@@ -1,0 +1,36 @@
+OK  200 GET    Autenticación local — /api/v1/auth/me
+      rol=CLIENTE, estado=ACTIVO (usuario leído de PostgreSQL)
+OK  401 GET    Sin token — /api/v1/carrito
+      NO_AUTENTICADO: Autenticación requerida.
+OK  200 GET    Carrito vacío — /api/v1/carrito
+      0 puesto(s), 0 unidades, total S/ 0.00, requiereRevision=false
+OK  201 POST   Agregar producto (puesto A) — /api/v1/carrito/items
+      1 puesto(s), 3 unidades, total S/ 18.00, requiereRevision=false · DEMO-A1: Mango Kent x3=18.00 (sub 18.00)
+OK  201 POST   Agregar producto de otro puesto — /api/v1/carrito/items
+      2 puesto(s), 7 unidades, total S/ 33.20, requiereRevision=false · DEMO-A1: Mango Kent x3=18.00 (sub 18.00) | DEMO-B2: Papa amarilla x4=15.20 (sub 15.20)
+OK  201 POST   Sumar al mismo producto — /api/v1/carrito/items
+      2 puesto(s), 9 unidades, total S/ 45.20, requiereRevision=false · DEMO-A1: Mango Kent x5=30.00 (sub 30.00) | DEMO-B2: Papa amarilla x4=15.20 (sub 15.20)
+OK  0   SQL    El carrito NO reserva stock — inventarios (solo lectura)
+      disponible de Mango Kent antes=80, después=80
+OK  200 PATCH  Cambiar cantidad — /api/v1/carrito/items/d3e00005-0000-4000-8000-000000000002
+      2 puesto(s), 5 unidades, total S/ 21.20, requiereRevision=false · DEMO-A1: Mango Kent x1=6.00 (sub 6.00) | DEMO-B2: Papa amarilla x4=15.20 (sub 15.20)
+OK  400 PATCH  Cantidad sobre el máximo permitido (10 000) — /api/v1/carrito/items/d3e00005-0000-4000-8000-000000000002
+      VALIDACION: La cantidad no puede superar 10000.
+OK  409 PATCH  Cantidad sobre el stock disponible — /api/v1/carrito/items/d3e00005-0000-4000-8000-000000000002
+      CONFLICTO: No hay stock suficiente: quedan 80 unidad(es) disponibles.
+OK  400 POST   Cantidad inválida — /api/v1/carrito/items
+      VALIDACION: La cantidad debe ser mayor que cero.
+OK  404 POST   Producto inexistente — /api/v1/carrito/items
+      NO_ENCONTRADO: El producto no está disponible.
+OK  200 DELETE Quitar producto — /api/v1/carrito/items/d3e00005-0000-4000-8000-000000000009
+      1 puesto(s), 1 unidades, total S/ 6.00, requiereRevision=false · DEMO-A1: Mango Kent x1=6.00 (sub 6.00)
+OK  404 DELETE Quitar lo que no está — /api/v1/carrito/items/d3e00005-0000-4000-8000-000000000009
+      NO_ENCONTRADO: El producto no está en el carrito.
+OK  403 GET    Inventario: sin permiso de cliente — /api/v1/inventario
+      PROHIBIDO: No tiene permiso para consultar el inventario.
+OK  200 DELETE Vaciar carrito — /api/v1/carrito
+      0 puesto(s), 0 unidades, total S/ 0.00, requiereRevision=false
+OK  0   SQL    Estado final en PostgreSQL — carrito_items (solo lectura)
+      líneas de carrito restantes: 0
+
+17 de 17 comprobaciones correctas

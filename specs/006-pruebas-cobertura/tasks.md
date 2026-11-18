@@ -6,7 +6,7 @@ Las casillas se marcan cuando la tarea está implementada **y** su prueba ha pas
 
 | Parte | Tareas | Ejecutada y verificada localmente | Integrada en `main` |
 |---|---|---|---|
-| Jest, cobertura global y CI (spec 006) | T001–T014 | Sí, salvo T011 (CI: sintaxis validada, **no ejecutado en GitHub**), T013 y T014 (véase «Resultados») | **No.** Rama `test/sprint02-cobertura` sobre `3bdded7`, sin commits ni PR |
+| Jest, cobertura global y CI (spec 006) | T001–T014 | Sí; el CI se ejecutó en GitHub el 2026-11-18 (véase T011) | **Sí**: Pull Request #12 (`test/sprint02-cobertura`, merge `200675c`) |
 
 ## Phase 1: Preparación
 
@@ -29,13 +29,13 @@ Las casillas se marcan cuando la tarea está implementada **y** su prueba ha pas
 
 ## Phase 4: CI
 
-- [ ] T011 `ci.yml`: Jest, cobertura combinada con artefacto y Vitest del frontend — CA-COV-08 *(editado y YAML validado; se marcará cuando el PR lo ejecute)*
+- [x] T011 `ci.yml`: Jest, cobertura combinada con artefacto y Vitest del frontend — CA-COV-08 *(ejecutado en GitHub el 2026-11-18: PR #12, run 44355195116, y merge a `main`, run 44355569982, ambos con éxito; el artefacto `cobertura-backend` existe, pero su contenido no se inspeccionó)*
 
 ## Phase 5: Verificación
 
 - [x] T012 Regresión: `npm test`, `npm run test:e2e`, `npm run test:jest`, `npm run test:cov:todo`, lint, build, arquitectura, `openapi:verificar` y `npm test` del frontend — CA-COV-09
-- [ ] T013 Revisión: archivos, lockfile, secretos y estado de Git — CA-COV-09, 10
-- [ ] T014 Plan de commits
+- [x] T013 Revisión: archivos, lockfile, secretos y estado de Git — CA-COV-09, 10
+- [x] T014 Plan de commits (ejecutado: 5 commits locales, integrados en el PR #12)
 
 ## Resultados
 
@@ -62,7 +62,7 @@ Las casillas se marcan cuando la tarea está implementada **y** su prueba ha pas
 
 - La cobertura de Jest es **parcial** y no sustituye a la global; las dos cifras no son comparables.
 - La cobertura global **no incluye `test:db`** (PostgreSQL), que no se ejecutó localmente; por eso los repositorios Prisma quedan bajos.
-- El CI se editó pero **no se ha ejecutado**: el artefacto de cobertura, `test:jest` y el Vitest del frontend se verán al abrir el PR. Los umbrales podrían comportarse distinto en Linux si hubiera diferencias de plataforma.
+- *Actualización 2026-11-18:* el CI **se ejecutó** en GitHub (PR #12 y merge): `test:jest`, `test:cov:todo` con umbrales, la subida del artefacto y el Vitest del frontend terminaron con éxito en Linux. El contenido del artefacto no se descargó (exige autenticación) y no se contrastaron las cifras de Linux con las locales.
 - La cobertura mide líneas ejecutadas, no la calidad de las aserciones.
 - Jest requiere `--experimental-vm-modules` (muestra un aviso de Node) y duplica trabajo con Vitest en CI.
 - Posible conflicto de fusión con la rama de Pedidos en `backend/package.json` y `package-lock.json`.
