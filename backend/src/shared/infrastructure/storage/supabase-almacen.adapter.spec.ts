@@ -74,3 +74,63 @@ describe('SupabaseAlmacenAdapter', () => {
     expect(llamadas).toHaveLength(0);
   });
 });
+
+/** Origen público opcional para leer archivos (spec 004, E3: CA-IMG-01 a CA-IMG-04). */
+describe('SupabaseAlmacenAdapter · ALMACEN_URL_PUBLICA', () => {
+  const RUTA = 'demo/productos/palta-fuerte.webp';
+  const SUPABASE_PUBLICA = 'https://proyecto.supabase.co/storage/v1/object/public/productos/demo/productos/palta-fuerte.webp';
+  const conOrigen = (origen: string, extra: Record<string, string> = entorno) => new SupabaseAlmacenAdapter(config({ ...extra, ALMACEN_URL_PUBLICA: origen }), http().fn);
+
+  it.each([
+    ['sin la variable', entorno],
+    ['con la variable vacía', { ...entorno, ALMACEN_URL_PUBLICA: '' }],
+    ['con la variable en blanco', { ...entorno, ALMACEN_URL_PUBLICA: '   ' }],
+  ])('%s conserva exactamente la URL de Supabase Storage (CA-IMG-01)', (_caso, e) => {
+    expect(new SupabaseAlmacenAdapter(config(e), http().fn).urlPublica(RUTA)).toBe(SUPABASE_PUBLICA);
+  });
+
+  it.each(['http://localhost:3000', 'http://localhost:3000/', ' http://localhost:3000// '])(
+    'con el origen local %j resuelve <origen>/<ruta>, sin el prefijo de Supabase Storage (CA-IMG-02)',
+    (origen) => {
+      const url = conOrigen(origen).urlPublica(RUTA);
+      expect(url).toBe('http://localhost:3000/demo/productos/palta-fuerte.webp');
+      expect(url).not.toContain('/storage/v1/object/public/productos/');
+      expect(url).not.toContain('supabase.co');
+    },
+  );
+
+  it('admite una ruta base (por ejemplo, una CDN) y no necesita SUPABASE_URL para leer', () => {
+    expect(conOrigen('https://cdn.ejemplo.test/imagenes/').urlPublica('a/b.webp')).toBe('https://cdn.ejemplo.test/imagenes/a/b.webp');
+    expect(conOrigen('http://localhost:3000', {}).urlPublica(RUTA)).toBe('http://localhost:3000/demo/productos/palta-fuerte.webp');
+  });
+
+  it.each(['../secreto.png', 'a/../b.png', '/absoluta.png', 'a//b.png', '', 'a b.png', 'a/b.png?x=1', 'http://otro.test/x.webp', '//otro.test/x.webp'])(
+    'con el origen local sigue rechazando la ruta almacenada %j (CA-IMG-03)',
+    (ruta) => {
+      expect(() => conOrigen('http://localhost:3000').urlPublica(ruta)).toThrow(ErrorDeValidacion);
+    },
+  );
+
+  it.each(['javascript:alert(1)', 'ftp://archivos.test', 'file:///C:/fotos', 'http://usuario:clave@localhost:3000', 'http://localhost:3000/?x=1', 'http://localhost:3000/?', 'http://localhost:3000/#a', 'localhost:3000', 'no es una url'])(
+    'un valor no válido %j es un error de configuración (503), nunca una URL arbitraria (CA-IMG-03)',
+    (origen) => {
+      expect(() => conOrigen(origen).urlPublica(RUTA)).toThrow(ErrorServicioNoDisponible);
+    },
+  );
+
+  it('subir y eliminar siguen yendo a Supabase Storage con la clave de servicio (CA-IMG-04)', async () => {
+    const { fn, llamadas } = http();
+    const a = new SupabaseAlmacenAdapter(config({ ...entorno, ALMACEN_URL_PUBLICA: 'http://localhost:3000' }), fn);
+    await a.subir('abc/123.png', PNG, 'image/png');
+    await a.eliminar('abc/123.png');
+    expect(llamadas.map((l) => l.url)).toEqual(['https://proyecto.supabase.co/storage/v1/object/productos/abc/123.png', 'https://proyecto.supabase.co/storage/v1/object/productos']);
+    expect((llamadas[0].init.headers as Record<string, string>)['apikey']).toBe(SECRETA);
+  });
+
+  it('con el origen local y sin clave de servicio (la demostración), subir falla con 503 sin llamar a la red (CA-IMG-04)', async () => {
+    const { fn, llamadas } = http();
+    const demo = new SupabaseAlmacenAdapter(config({ SUPABASE_URL: entorno.SUPABASE_URL, ALMACEN_URL_PUBLICA: 'http://localhost:3000' }), fn);
+    await expect(demo.subir('abc/123.png', PNG, 'image/png')).rejects.toBeInstanceOf(ErrorServicioNoDisponible);
+    expect(llamadas).toHaveLength(0);
+  });
+});
