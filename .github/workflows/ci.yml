@@ -59,6 +59,21 @@ jobs:
       - run: npm test
       - run: npm run test:e2e
       - run: npm run test:db
+      # Spec 006. Jest es un ejecutor ADICIONAL: su cobertura es parcial (solo los módulos que prueba).
+      - run: npm run test:jest
+      # Cobertura GLOBAL (unitarias + HTTP con repositorios en memoria; DATABASE_URL ficticia fijada por el script).
+      # No incluye test:db. Falla si baja de los umbrales definidos en scripts/cobertura-global.mjs.
+      - run: npm run test:cov:todo
+      - name: Subir informes de cobertura
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cobertura-backend
+          path: |
+            backend/coverage/global
+            backend/coverage/jest
+          if-no-files-found: warn
+          retention-days: 14
 
   frontend:
     runs-on: ubuntu-latest
@@ -74,4 +89,5 @@ jobs:
           cache-dependency-path: frontend/package-lock.json
       - run: npm ci
       - run: npm run lint
+      - run: npm test
       - run: npm run build
