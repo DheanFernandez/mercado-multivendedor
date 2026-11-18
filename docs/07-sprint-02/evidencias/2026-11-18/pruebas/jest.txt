@@ -1,0 +1,46 @@
+
+> backend@0.0.1 test:jest
+> node --experimental-vm-modules node_modules/jest/bin/jest.js --config jest.config.mjs --coverage
+
+(node:9908) ExperimentalWarning: VM Modules is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:6352) ExperimentalWarning: VM Modules is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:27928) ExperimentalWarning: VM Modules is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+---------------------------------|---------|----------|---------|---------|-------------------------------
+File                             | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s
+---------------------------------|---------|----------|---------|---------|-------------------------------
+All files                        |   88.16 |    94.34 |   95.34 |   88.16 |
+ cart/application/ports          |       0 |        0 |       0 |       0 |
+  ports.ts                       |       0 |        0 |       0 |       0 | 1-46
+ cart/application/use-cases      |     100 |    97.56 |     100 |     100 |
+  carrito.use-cases.ts           |     100 |    97.56 |     100 |     100 | 71
+ cart/domain                     |     100 |      100 |     100 |     100 |
+  calculo.ts                     |     100 |      100 |     100 |     100 |
+  errors.ts                      |     100 |      100 |     100 |     100 |
+ catalog/application/ports       |       0 |        0 |       0 |       0 |
+  catalogo.repository.ts         |       0 |        0 |       0 |       0 | 1-34
+ catalog/application/use-cases   |     100 |    97.36 |     100 |     100 |
+  catalogo.use-cases.ts          |     100 |    97.36 |     100 |     100 | 62
+ inventory/application/ports     |     100 |      100 |     100 |     100 |
+  ports.ts                       |     100 |      100 |     100 |     100 |
+ inventory/application/use-cases |     100 |    89.28 |   93.75 |     100 |
+  inventario.use-cases.ts        |     100 |    89.28 |   93.75 |     100 | 25,50-51,64,74,81,109-110,137
+ inventory/domain                |     100 |      100 |     100 |     100 |
+  errors.ts                      |     100 |      100 |     100 |     100 |
+  stock.ts                       |     100 |      100 |     100 |     100 |
+---------------------------------|---------|----------|---------|---------|-------------------------------
+
+=============================== Coverage summary ===============================
+Statements   : 88.16% ( 596/676 )
+Branches     : 94.34% ( 217/230 )
+Functions    : 95.34% ( 82/86 )
+Lines        : 88.16% ( 596/676 )
+================================================================================
+
+Test Suites: 6 passed, 6 total
+Tests:       88 passed, 88 total
+Snapshots:   0 total
+Time:        4.029 s
+Ran all test suites.

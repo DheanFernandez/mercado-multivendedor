@@ -1,0 +1,5 @@
+
+> backend@0.0.1 openapi:verificar
+> nest build && node scripts/exportar-openapi.mjs --comprobar
+
+openapi/openapi.json coincide con el contrato generado.

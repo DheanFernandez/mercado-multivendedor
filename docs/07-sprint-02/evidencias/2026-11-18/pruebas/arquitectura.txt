@@ -1,0 +1,6 @@
+
+> backend@0.0.1 arquitectura
+> depcruise src --config .dependency-cruiser.cjs
+
+
+✔ no dependency violations found (111 modules, 375 dependencies cruised)

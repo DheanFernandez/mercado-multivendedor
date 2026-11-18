@@ -1,0 +1,22 @@
+OK    Inicio — título «Mercado de Abastos»; 33 enlaces al catálogo
+OK    Navegación inicio → catálogo — URL /catalogo; «20 productos» visible; 32 tarjetas con enlace al detalle
+OK    Filtro por categoría (Frutas) — URL /catalogo?categoriaId=d3e00001-0000-4000-8000-000000000001; «5 productos» visible; «Palta fuerte»: true
+OK    Detalle de producto desde el catálogo — URL /catalogo/d3e00005-0000-4000-8000-000000000001; precio «8.50» visible; título «Palta fuerte»
+OK    Ofertas (sin datos inventados) — texto de la página incluye «ofertas»: true
+OK    Carrito sin sesión (limitación: requiere Supabase Auth) — URL final /login; el cliente de sesión no puede autenticar (Supabase no configurado en esta demostración)
+OK    Inicio de sesión (limitación) — formulario visible; no se intenta iniciar sesión: no hay Supabase Auth en el entorno aislado
+OK    Swagger UI — 9 grupos (etiquetas); 42 operaciones visibles (expandidas: 0 hasta abrir cada grupo)
+OK    Swagger UI · operación expandida — grupo «Catálogo» alternado; primera operación abierta; 1 operación(es) abierta(s)
+
+Llamadas del navegador a la API real (:3000):
+  4× GET /api/v1/puestos/publicos → 200
+  4× GET /api/v1/categorias → 200
+  9× GET /api/v1/catalogo/productos → 200
+  2× GET /api/v1/catalogo/productos/d3e00005-0000-4000-8000-000000000001 → 200
+  1× GET /api/docs → 200
+  1× GET /api/docs/swagger-ui.css → 200
+  1× GET /api/docs/swagger-ui-init.js → 200
+  1× GET /api/docs/swagger-ui-standalone-preset.js → 200
+  1× GET /api/docs/swagger-ui-bundle.js → 200
+
+9 de 9 pasos correctos

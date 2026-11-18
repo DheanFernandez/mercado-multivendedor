@@ -1,0 +1,8 @@
+
+ RUN  v4.1.12 D:/LABO_Lizbeth/mercado-funcional-wt/backend
+
+
+ Test Files  1 passed (1)
+      Tests  3 passed (3)
+   Start at  13:47:19
+   Duration  17.06s (transform 3.13s, setup 0ms, import 14.63s, tests 1.17s, environment 0ms)

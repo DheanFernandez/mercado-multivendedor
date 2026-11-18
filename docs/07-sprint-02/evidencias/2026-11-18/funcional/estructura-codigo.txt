@@ -1,0 +1,21 @@
+== Estructura de backend/src (capas de Clean Architecture por módulo)
+auth: application entry-adapters infrastructure | archivos .ts (sin pruebas): 7 | pruebas: 2
+cart: application domain entry-adapters infrastructure | archivos .ts (sin pruebas): 9 | pruebas: 2
+catalog: application entry-adapters infrastructure | archivos .ts (sin pruebas): 6 | pruebas: 1
+inventory: application domain entry-adapters infrastructure | archivos .ts (sin pruebas): 10 | pruebas: 2
+merchants: application domain entry-adapters infrastructure | archivos .ts (sin pruebas): 12 | pruebas: 2
+orders: | archivos .ts (sin pruebas): 1 | pruebas: 0
+payments: | archivos .ts (sin pruebas): 1 | pruebas: 0
+products: application domain entry-adapters infrastructure | archivos .ts (sin pruebas): 13 | pruebas: 2
+users: application domain entry-adapters infrastructure | archivos .ts (sin pruebas): 17 | pruebas: 3
+
+shared: application domain http infrastructure
+
+== Regla de dependencias (dependency-cruiser): 4 reglas: name: 'limites-entre-modulos' name: 'sin-framework-en-el-nucleo' name: 'sdk-mercadopago-solo-en-su-adaptador' name: 'sin-ciclos'
+
+== Frontend (Next.js App Router): páginas
+ /actualizar-contrasena /auth/callback /carrito /catalogo /catalogo/[id] /cuenta /login /ofertas /panel /panel/categorias /panel/comerciantes /panel/productos /panel/productos/[id] /panel/productos/nuevo /panel/puestos /panel/usuarios /recuperar-contrasena /registro
+componentes: 23 · pruebas Vitest: 13 · pruebas Playwright: 5
+
+== Especificaciones SDD: 001-inventario 002-carrito 004-catalogo-publico 005-openapi-swagger 006-pruebas-cobertura
+== Pruebas backend: unitarias 17 archivos · HTTP 9 · BD 7 · Jest 6

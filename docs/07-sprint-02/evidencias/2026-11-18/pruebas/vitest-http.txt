@@ -1,0 +1,27 @@
+
+> backend@0.0.1 test:e2e
+> vitest run --config ./vitest.config.e2e.ts
+
+
+ RUN  v4.1.12 D:/LABO_Lizbeth/mercado-cobertura-wt/backend
+
+[Nest] 14120  - 18/11/2026, 11:59:47   ERROR [ExceptionsHandler] Error: Supabase caído
+    at D:/LABO_Lizbeth/mercado-cobertura-wt/backend/test/administracion.e2e-spec.ts:137:25
+    at file:///D:/LABO_Lizbeth/mercado-cobertura-wt/backend/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11
+    at file:///D:/LABO_Lizbeth/mercado-cobertura-wt/backend/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26
+    at file:///D:/LABO_Lizbeth/mercado-cobertura-wt/backend/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20
+    at new Promise (<anonymous>)
+    at runWithCancel (file:///D:/LABO_Lizbeth/mercado-cobertura-wt/backend/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)
+    at file:///D:/LABO_Lizbeth/mercado-cobertura-wt/backend/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20
+    at new Promise (<anonymous>)
+    at runWithTimeout (file:///D:/LABO_Lizbeth/mercado-cobertura-wt/backend/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)
+    at file:///D:/LABO_Lizbeth/mercado-cobertura-wt/backend/node_modules/@vitest/runner/dist/chunk-artifact.js:2956:64
+(node:2616) MaxListenersExceededWarning: Possible EventEmitter memory leak detected. 11 listening listeners added to [Server]. MaxListeners is 10. Use emitter.setMaxListeners() to increase limit
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:2616) MaxListenersExceededWarning: Possible EventEmitter memory leak detected. 11 error listeners added to [Server]. MaxListeners is 10. Use emitter.setMaxListeners() to increase limit
+(node:2616) MaxListenersExceededWarning: Possible EventEmitter memory leak detected. 11 close listeners added to [Server]. MaxListeners is 10. Use emitter.setMaxListeners() to increase limit
+
+ Test Files  9 passed (9)
+      Tests  132 passed (132)
+   Start at  11:59:43
+   Duration  13.72s (transform 2.93s, setup 0ms, import 29.14s, tests 6.57s, environment 2ms)
