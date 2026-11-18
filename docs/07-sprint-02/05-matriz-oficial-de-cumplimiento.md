@@ -1,0 +1,61 @@
+# Matriz oficial de cumplimiento · Sprint 02
+
+| Campo | Descripción |
+|---|---|
+| Entrega | Sprint 02 · **Implementación y validación de la arquitectura de software** · IS-488 · UNSCH 2026-II |
+| Versión evaluada | `origin/main` en **`200675c`** (18/11/2026) |
+| Informe | [Informe final](04-informe-final-sprint-02.md) |
+| Evidencias | [`evidencias/2026-11-18/`](evidencias/2026-11-18/README.md) |
+
+**Leyenda.** **Cumplido**: existe, se ejecutó y su evidencia está archivada. **Parcial**: existe, pero con un alcance verificado menor que el pedido; la limitación se indica. **Pendiente**: no existe o no se pudo verificar.
+
+## 1. Matriz por entregable
+
+| # | Entregable | Requisito | Implementación | Prueba | Resultado | Evidencia | Estado |
+|---|---|---|---|---|---|---|---|
+| 1 | Código organizado según la arquitectura | Monolito modular con 4 anillos por módulo | [`backend/src/modules/`](../../backend/src/modules/) (7 de 9 módulos con `domain`, `application`, `entry-adapters` e `infrastructure`; `orders` y `payments` son módulos vacíos) | `npm run arquitectura` (dependency-cruiser, 4 reglas) | 0 violaciones, 111 módulos, 375 dependencias | [arquitectura.txt](evidencias/2026-11-18/pruebas/arquitectura.txt) · CI `Run npm run arquitectura` ✔ | **Cumplido** para los 7 módulos implementados |
+| 1 | | Dominio y aplicación sin framework ni persistencia | Regla `sin-framework-en-el-nucleo` ([`.dependency-cruiser.cjs`](../../backend/.dependency-cruiser.cjs)) | Mismo comando | 0 violaciones | Ídem | **Cumplido** |
+| 1 | | Clean Architecture y SOLID demostrados en código | [Informe final §5](04-informe-final-sprint-02.md#5-clean-architecture-y-solid-en-el-código) | Revisión del código y pruebas con dobles en memoria | Ejemplos con referencias a archivo y línea | [estructura-codigo.txt](evidencias/2026-11-18/funcional/estructura-codigo.txt) | **Cumplido** (demostración por ejemplos; no es una auditoría exhaustiva de SOLID) |
+| 1 | | 13 módulos diseñados | En código hay 9 módulos: 7 implementados (equivalen a 6 de los 13 de la documentación, porque «Autenticación y usuarios» son `auth` y `users`) y 2 vacíos (`orders`, `payments`); Pedidos tiene avances solo en una rama local | — | 6 de 13 implementados, 1 en curso (rama local), 6 sin implementar | [Informe de diseño §3.3](01-informe-sprint-02.md#33-los-13-módulos-y-su-estado) | **Parcial** (Pedidos y Pagos fuera del incremento) |
+| 2 | Primera versión funcional | Catálogo público de extremo a extremo (frontend → API → PostgreSQL) | [`frontend/app/catalogo/`](../../frontend/app/catalogo/), [`backend/src/modules/catalog/`](../../backend/src/modules/catalog/) | Flujos reales de API y navegador, sin dobles | 24/24 flujos de API; 9/9 pasos en Chromium; `db:dev:verificar` 16/16 | [funcional/](evidencias/2026-11-18/funcional/) | **Cumplido** (con datos de demostración) |
+| 2 | | Carrito multivendedor | [`backend/src/modules/cart/`](../../backend/src/modules/cart/), [`frontend/app/carrito/`](../../frontend/app/carrito/) | Carrito por **API real y PostgreSQL**, con token firmado localmente | 17/17 comprobaciones; no reserva stock; 400/404/409/403 correctos | [carrito-real.txt](evidencias/2026-11-18/funcional/carrito-real.txt) | **Parcial**: no se probó la interfaz del carrito con sesión de Supabase en el navegador |
+| 2 | | Registro, inicio de sesión y panel de gestión | Supabase Auth; [`frontend/app/panel/`](../../frontend/app/panel/) | Solo pruebas HTTP con verificador simulado | Las páginas se muestran; no se autenticó | [flujos-api.txt](evidencias/2026-11-18/funcional/flujos-api.txt), [capturas](evidencias/2026-11-18/funcional/capturas/) | **Parcial** (sin Supabase en el entorno aislado) |
+| 2 | | Pedidos y Pagos | `orders`, `payments` (módulos vacíos en `main`; Pedidos en una rama local) | — | No implementados | [Informe de diseño §3.3](01-informe-sprint-02.md#33-los-13-módulos-y-su-estado) | **Pendiente** (fuera del incremento) |
+| 3 | API REST con OpenAPI/Swagger | 42 rutas documentadas | [`backend/src/shared/http/openapi/`](../../backend/src/shared/http/openapi/), [`openapi.json`](../../backend/openapi/openapi.json) | [`documento.spec.ts`](../../backend/src/shared/http/openapi/documento.spec.ts) 9/9, [`openapi.e2e-spec.ts`](../../backend/test/openapi.e2e-spec.ts) 6/6; `openapi:verificar` | OpenAPI 3.0.3 válido; 42 = 42 rutas reales; 6 públicas y 36 con Bearer; 20 esquemas | [openapi-verificar.txt](evidencias/2026-11-18/pruebas/openapi-verificar.txt), [capturas 08 y 09](evidencias/2026-11-18/funcional/capturas/) | **Cumplido** en rutas, seguridad, parámetros y códigos de éxito |
+| 3 | | Esquemas de cuerpos y respuestas fieles al código | Descritos a mano en [`esquemas.ts`](../../backend/src/shared/http/openapi/esquemas.ts) y [`operaciones.ts`](../../backend/src/shared/http/openapi/operaciones.ts) | Ninguna prueba los compara con los casos de uso | Sin validar | [Spec 005 §6](../../specs/005-openapi-swagger/spec.md) | **Parcial** (contrato no exhaustivo) |
+| 4 | Pruebas con Jest y reporte de cobertura | Jest | [`jest.config.mjs`](../../backend/jest.config.mjs), [`backend/test/jest/`](../../backend/test/jest/) | `npm run test:jest` | 6 suites, **88/88**; también en CI | [jest.txt](evidencias/2026-11-18/pruebas/jest.txt), [CI](evidencias/2026-11-18/ci/resumen-ci.txt) | **Parcial**: Jest es una suite **representativa** (carrito, inventario, catálogo) junto a Vitest, que es el ejecutor principal |
+| 4 | | Reporte de cobertura | [`vitest.cobertura.ts`](../../backend/vitest.cobertura.ts), [`cobertura-global.mjs`](../../backend/scripts/cobertura-global.mjs) | `npm run test:cov:todo` (470 pruebas = 338 unitarias + 132 HTTP) | **Global (Vitest)**: 73,52 % sentencias · 70,73 % ramas · 78,07 % funciones · 76,01 % líneas, sobre 95 archivos de `src/`. **Jest (parcial, 10 archivos)**: 88,16 · 94,34 · 95,34 · 88,16 % | [cobertura-global.txt](evidencias/2026-11-18/pruebas/cobertura-global.txt), [summary.json](evidencias/2026-11-18/pruebas/cobertura-global-summary.json), [jest.txt](evidencias/2026-11-18/pruebas/jest.txt) | **Cumplido**, con la limitación de que la global **no incluye `test:db`** y la de Jest es parcial |
+| 4 | | Pruebas unitarias y HTTP | `backend/src/**/*.spec.ts`, `backend/test/*.e2e-spec.ts` | `npm test`, `npm run test:e2e` | **338/338** y **132/132** (HTTP con `DATABASE_URL` ficticia); frontend Vitest **177/177** (CI) | [unitarias](evidencias/2026-11-18/pruebas/vitest-unitarias.txt), [HTTP](evidencias/2026-11-18/pruebas/vitest-http.txt) | **Cumplido** |
+| 4 | | Pruebas con PostgreSQL | `backend/test/*.db-spec.ts` (7 archivos) | `npm run test:db` | **Solo en CI**: pasó. No se ejecutó localmente para esta versión | [resumen-ci.txt](evidencias/2026-11-18/ci/resumen-ci.txt) | **Parcialmente verificado** (sin salida detallada: los registros del CI no se descargaron) |
+| 4 | | Automatización en CI/CD | [`.github/workflows/ci.yml`](../../.github/workflows/ci.yml) | GitHub Actions: PR #12 y merge a `main` | Éxito en `atribucion`, `backend` (incluye Jest, cobertura y artefacto) y `frontend` | [resumen-ci.txt](evidencias/2026-11-18/ci/resumen-ci.txt) | **Cumplido**; el artefacto `cobertura-backend` existe pero no se pudo descargar sin autenticación |
+| 5 | Validación de atributos de calidad | AC04 Seguridad (autorización) | Guard global + casos de uso | Matriz rol × ruta (Vitest/Supertest, en memoria) | **252/252** casos conformes, 42 rutas, repetida sobre `200675c` (18/11) | [calidad/ac04](evidencias/2026-11-18/calidad/ac04/matriz-autorizacion.md) | **Parcial**: falta la parte de pagos (EQ-01) |
+| 5 | | AC05 Mantenibilidad | dependency-cruiser | `npm run arquitectura` | 0 violaciones sobre `200675c` (18/11) | [arquitectura.txt](evidencias/2026-11-18/pruebas/arquitectura.txt) | **Parcial**: EQ-07 no es medible sin Pagos |
+| 5 | | AC07 Concurrencia (EQ-03) | `ReservarInventario` | Vitest y k6 sobre PostgreSQL desechable | 400/400, 0 reservas incompatibles (**05/11/2026**, no repetida) | [docs/05 · EQ-03](../05-implementacion/evidencias/EQ-03/2026-11-05/README.md) | **Satisfecho con reservas** (medición histórica) |
+| 5 | | AC01 Rendimiento (EQ-04) | Catálogo | k6, 100 usuarios, 2 min | p95 = 381,4 ms, umbral 2 000 ms (**05/11/2026**, entorno local, no repetida) | [docs/05 · EQ-04](../05-implementacion/evidencias/EQ-04/2026-11-05/README.md) | **Satisfecho con reservas** (medición histórica) |
+| 5 | | AC08 Integridad (EQ-02) | Unidad de trabajo de Pedidos | Pruebas en la rama local de Pedidos | No aplica a `main` | [Evaluación §7](02-evaluacion-atributos-calidad.md#7-resultados-por-atributo) | **Parcial** (la evidencia pertenece a código que no está en `main`) |
+| 5 | | AC02 Escalabilidad · AC03 Disponibilidad | — | Ninguna | Sin medición | [Evaluación §7](02-evaluacion-atributos-calidad.md#7-resultados-por-atributo) | **Pendiente** |
+| 5 | | Metodología de evaluación (ATAM adaptado, tácticas, trazabilidad) | [`02-evaluacion-atributos-calidad.md`](02-evaluacion-atributos-calidad.md), [`03-matriz-de-trazabilidad.md`](03-matriz-de-trazabilidad.md) | — | 25 tácticas, 7 atributos, trazabilidad RF → prueba | Documentos del 16/11/2026 | **Cumplido** (versión evaluada `1aab552`; véase §3) |
+| — | Especificaciones SDD | Criterios de aceptación y tareas técnicas | [`specs/`](../../specs/) | Cada spec enlaza sus pruebas | Ver §2 | [Informe final §6](04-informe-final-sprint-02.md#6-especificaciones-sdd) | **Parcial**: la spec 001 solo tiene `spec.md` |
+
+## 2. Estado real de las especificaciones SDD
+
+| Spec | Tema | Documentos | Tareas | Integrada en `main` | Estado |
+|---|---|---|---|---|---|
+| [001](../../specs/001-inventario/spec.md) | Inventario | Solo `spec.md` | **No hay `tasks.md` ni `plan.md`** | Sí (código del módulo) | **Incompleta**: criterios sin tareas formales |
+| [002](../../specs/002-carrito/spec.md) | Carrito (reglas y interfaz) | `spec`, `plan`, `tasks`, `research`, `data-model`, `quickstart`, contratos | 32 de 32 | Sí (PR #6 y #9) | Completa |
+| [004](../../specs/004-catalogo-publico/spec.md) | Catálogo, Demo, fotografías y rediseño | `spec`, `plan`, `tasks`, contrato de UI | 54 de 54 | Sí (PR #9 y #10) | Completa; **sin fotografías reales** |
+| [005](../../specs/005-openapi-swagger/spec.md) | OpenAPI/Swagger | `spec`, `plan`, `tasks` | 12 de 12 | Sí (PR #11) | Completa; contrato no exhaustivo |
+| [006](../../specs/006-pruebas-cobertura/spec.md) | Jest, cobertura y CI | `spec`, `plan`, `tasks` | 14 de 14 tras esta entrega (T011 se cerró con el CI del PR #12) | Sí (PR #12) | Completa |
+
+No existe la especificación 003 (reservada a Pedidos y Pago en la documentación); no se presenta como entregada.
+
+## 3. Aclaraciones obligatorias
+
+1. **Catálogo validado de extremo a extremo.** Inicio → catálogo → filtro → detalle se recorrió en un navegador real contra la API y PostgreSQL reales, con **datos de demostración** (20 productos sin fotografías).
+2. **Carrito validado por API real, no por una sesión de Supabase.** Se usó un token firmado con un secreto local aleatorio y un emisor local. Verifica la API y la base, pero **no** la integración con Supabase Auth ni la interfaz del carrito con sesión.
+3. **Pedidos y Pagos están fuera del incremento implementado** y no se presentan como funcionales.
+4. **Jest mide una selección de 10 archivos** (carrito, inventario y catálogo); su cobertura no es la del backend.
+5. **La cobertura global es de Vitest** (unitarias + HTTP en memoria) y **no incluye `test:db`**; por eso los repositorios Prisma quedan entre 6 % y 30 %.
+6. **Las métricas históricas de calidad** llevan su fecha: EQ-03 y EQ-04 son del **05/11/2026** (código anterior al carrito, a OpenAPI y a la Demo) y **no se repitieron**; AC04 y AC05 se repitieron el 18/11/2026 sobre `200675c`.
+7. **La Demo no es un despliegue de producción:** PostgreSQL local desechable, `next dev`, valores de Supabase ficticios y API sin Supabase. El despliegue es el Sprint 03.
+8. **CI:** los pasos nuevos se ejecutaron con éxito en GitHub (PR #12 y merge). El contenido del artefacto de cobertura **no se pudo inspeccionar**.
