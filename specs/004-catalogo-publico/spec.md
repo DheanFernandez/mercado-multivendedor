@@ -114,7 +114,7 @@ Cambios en la API o en los contratos; recuentos por categoría; categorías jer�
 
 ## 8. Entorno de demostración local · E2 (2026-11-08)
 
-> **Integración: pendiente.** Esta enmienda se ejecutó y verificó localmente, pero sus archivos siguen sin seguimiento de Git en el worktree de Pedidos y **no forman parte del Pull Request de Frontend**; se integrarán en un Pull Request propio. Véase [tasks.md](tasks.md), «Estado de ejecución y de integración».
+> **Integración:** propuesta en el Pull Request de la Demo (rama `feat/demo-local`). Se ejecutó y verificó localmente (2026-11-08) y de nuevo el 2026-11-17; sus archivos no forman parte del Pull Request de Frontend. Véase [tasks.md](tasks.md), «Estado de ejecución y de integración».
 
 - **Origen:** instrucción del responsable del 2026-11-08: mostrar el catálogo real de Next.js con datos de demostración guardados en una base **local** y servidos por las API reales del backend NestJS. Ningún producto vive en componentes React.
 - **Tipo:** herramienta de desarrollo. **No cambia** el código de `backend/src`, los contratos, las migraciones ni los requisitos.
@@ -169,6 +169,8 @@ SQL parametrizado con `pg`, en **una transacción**. Antes de escribir, comprueb
 
 `producto_imagenes.ruta` es una ruta dentro del bucket; la API construye `${SUPABASE_URL}/storage/v1/object/public/<bucket>/<ruta>`, y subir exige `SUPABASE_SERVICE_ROLE_KEY` (no configurada). No hay imágenes con licencia en el repositorio y no se usan enlaces externos ni imágenes inventadas. Por eso **el seed no crea imágenes** y las tarjetas muestran «Sin imagen». Para añadirlas más adelante: (1) conseguir fotografías con licencia (propias o CC0, con su atribución registrada); (2) subirlas desde el panel del comerciante (`POST /api/v1/productos/:id/imagenes`) contra un Storage **de desarrollo** (por ejemplo `supabase start`) configurado en el entorno del lanzador, nunca contra el Storage compartido.
 
+> *Nota (2026-11-18):* esta estrategia quedó sustituida por la enmienda E3 (§9): `db:dev:seed` asocia al final las fotografías locales que existan (CA-IMG-07, que sustituye a CA-DEMO-09). Sin archivos, el resultado es el descrito aquí: ninguna imagen y «Sin imagen» en las tarjetas.
+
 ### 8.7 Pruebas de verificación
 
 `base-desarrollo.spec.ts` y `datos-demo.spec.ts` (Vitest del backend). `db:dev:verificar` levanta la API compilada en el puerto 3100 contra `mercado_dev`, con un emisor de tokens local y un secreto generado en memoria, y comprueba CA-DEMO-06 y CA-DEMO-07 (las respuestas reales quedan en la salida). Playwright, sin red simulada, comprueba CA-DEMO-08 contra un `next start` compilado con esa API. Además se ejecutan las suites del backend (`npm test`, `npm run test:e2e`, `npm run arquitectura`) y el Vitest del frontend.
@@ -179,7 +181,7 @@ SQL parametrizado con `pg`, en **una transacción**. Antes de escribir, comprueb
 
 ## 9. Fotografías locales de demostración · E3 (2026-11-08)
 
-> **Integración: pendiente.** Esta enmienda, incluido el cambio de `ALMACEN_URL_PUBLICA` en el adaptador de Storage, se ejecutó y verificó localmente, pero **no forma parte del Pull Request de Frontend** y se integrará con la Demo. Véase [tasks.md](tasks.md), «Estado de ejecución y de integración».
+> **Integración:** propuesta en el Pull Request de la Demo (rama `feat/demo-local`), incluido el cambio de `ALMACEN_URL_PUBLICA` en el adaptador de Storage. Se ejecutó y verificó localmente (2026-11-08) y de nuevo el 2026-11-17. Véase [tasks.md](tasks.md), «Estado de ejecución y de integración».
 
 - **Origen:** instrucción del responsable del 2026-11-08 (opción A aprobada tras el diagnóstico): mostrar fotografías locales de los 20 productos de demostración, leídas desde los datos que devuelve la API real del catálogo.
 - **Diagnóstico:** el modelo admite la ruta (`producto_imagenes.ruta` es texto), pero la API siempre la convertía en `${SUPABASE_URL}/storage/v1/object/public/<bucket>/<ruta>`; no había forma de configurar otro origen público. Cambiar `SUPABASE_URL` habría roto la verificación de sesiones (opción C, descartada).
@@ -192,6 +194,8 @@ SQL parametrizado con `pg`, en **una transacción**. Antes de escribir, comprueb
 |---|---|---|
 | Sin `ALMACEN_URL_PUBLICA` (producción hoy) | `${SUPABASE_URL}/storage/v1/object/public/<bucket>/<ruta>`, o `null` sin `SUPABASE_URL`. **Exactamente igual que antes** | Sin cambios: Supabase Storage con `SUPABASE_SERVICE_ROLE_KEY` |
 | Con `ALMACEN_URL_PUBLICA=http://localhost:3000` (demostración) | `http://localhost:3000/<ruta>`; con la ruta `demo/productos/palta-fuerte.webp` → `http://localhost:3000/demo/productos/palta-fuerte.webp`, que Next.js sirve desde `frontend/public/` | **Sin cambios**: siguen yendo a `SUPABASE_URL` y exigen la clave de servicio; la API de demostración se lanza sin ella (503) |
+
+> *Nota (2026-11-18):* el origen `http://localhost:3000` de esta tabla y de CA-IMG-02 refleja el 2026-11-08, cuando `next dev` ocupaba ese puerto (§2). Desde T001 el frontend usa el **3001** y la API el **3000**: el lanzador fija `ALMACEN_URL_PUBLICA` al origen del frontend (`http://localhost:3001` por defecto, o el valor de `--frontend`/`--imagenes`), nunca al de la API. Las pruebas del adaptador conservan `http://localhost:3000` como un origen cualquiera; la decisión no cambia.
 
 - La ruta almacenada se valida igual con o sin la variable (`^[A-Za-z0-9][A-Za-z0-9._/-]{0,200}$`, sin `..` ni `//`): no se admiten URL absolutas, rutas que empiecen por `/` ni saltos de directorio.
 - La variable solo admite `http:` o `https:`, sin credenciales, consulta ni fragmento; puede llevar una ruta base. Un valor no válido es un error de configuración (503), nunca una URL arbitraria.

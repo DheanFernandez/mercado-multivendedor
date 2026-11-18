@@ -8,6 +8,10 @@ export const STORAGE_FETCH = Symbol('STORAGE_FETCH');
 /**
  * Adaptador de Supabase Storage (API REST). Requiere SUPABASE_URL y, para escribir, SUPABASE_SERVICE_ROLE_KEY
  * (solo backend). El bucket (SUPABASE_STORAGE_BUCKET, por defecto "productos") debe existir y ser PÚBLICO de lectura.
+ *
+ * ALMACEN_URL_PUBLICA (opcional; spec 004, E3) cambia SOLO el origen de las URL públicas de LECTURA: `<origen>/<ruta>`,
+ * p. ej. un frontend local que sirve `public/` en la demostración o una CDN. Subir y eliminar no cambian (Supabase con la
+ * clave de servicio). Sin la variable, el comportamiento es exactamente el de siempre.
  */
 @Injectable()
 export class SupabaseAlmacenAdapter implements AlmacenArchivos {
@@ -71,7 +75,28 @@ export class SupabaseAlmacenAdapter implements AlmacenArchivos {
     }
   }
 
+  /**
+   * Origen público opcional para leer archivos. Solo `http:`/`https:`, sin credenciales, consulta ni fragmento; puede
+   * llevar una ruta base. Un valor no válido es un error de configuración (503): nunca se construye una URL arbitraria.
+   */
+  private get origenPublico(): string | undefined {
+    const valor = this.config.get<string>('ALMACEN_URL_PUBLICA')?.trim();
+    if (!valor) return undefined;
+    const invalido = () => new ErrorServicioNoDisponible('La URL pública del almacenamiento no es válida.');
+    let u: URL;
+    try {
+      u = new URL(valor);
+    } catch {
+      throw invalido();
+    }
+    if ((u.protocol !== 'http:' && u.protocol !== 'https:') || u.username || u.password || valor.includes('?') || valor.includes('#')) throw invalido();
+    return `${u.origin}${u.pathname.replace(/\/+$/, '')}`;
+  }
+
   urlPublica(ruta: string): string | null {
+    const origen = this.origenPublico;
+    // La ruta almacenada se valida igual en ambos casos (sin `..`, `//`, URL absolutas ni rutas que empiecen por `/`).
+    if (origen) return `${origen}/${this.ruta(ruta)}`;
     return this.base ? `${this.base}/storage/v1/object/public/${this.bucket}/${this.ruta(ruta)}` : null;
   }
 }
