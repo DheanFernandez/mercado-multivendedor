@@ -8,27 +8,64 @@ Esta spec registra dos estados distintos. **Las marcas `[x]` y las tablas de res
 
 | Parte | Tareas | Ejecutada y verificada localmente | Integrada en `main` |
 |---|---|---|---|
-| Causa raíz, catálogo, carrito, E1 y E4 (interfaz del frontend) | T001–T026, T045–T054 | Sí (resultados de cada fase; verificación del 2026-11-17 en la spec 002) | **No todavía.** Es el alcance del Pull Request de Frontend (`feat/frontend-carrito`) |
-| **E2 y E3 (Demo)** | **T027–T044** | Sí (resultados de las fases 7 y 8, 2026-11-08) | **No.** Se integrará después, con su propio Pull Request, y **no forma parte del incremento del frontend** |
+| Causa raíz, catálogo, carrito, E1 y E4 (interfaz del frontend) | T001–T026, T045–T054 | Sí (resultados de cada fase; verificación del 2026-11-17 en la spec 002) | **Sí**: Pull Request #9 (`feat/frontend-carrito`) |
+| **E2 y E3 (Demo)** | **T027–T044** | Sí (2026-11-08) y repetida el 2026-11-17 sobre `origin/main` (véase más abajo) | **Propuesta en el Pull Request de la Demo** (rama `feat/demo-local`); queda integrada cuando ese Pull Request se fusione. **No forma parte del incremento del frontend** |
 
-### Seguimiento de la integración de la Demo (pendiente)
+### Integración de la Demo (rama `feat/demo-local`)
 
-Los archivos de la Demo **no están en este Pull Request**. Siguen **sin seguimiento de Git** en el worktree de Pedidos (`D:\LABO_Lizbeth\mercado-multivendedor`) y no se han modificado ni movido:
+La Demo se integra con un Pull Request propio, separado del de Frontend. Contenido (22 archivos; los originales siguen sin seguimiento en el worktree de Pedidos y no se movieron ni se modificaron):
 
 | Grupo | Archivos |
 |---|---|
-| Lanzador y entorno | `ops/demo/README.md`, `ops/demo/demo-db.mjs`, `ops/demo/docker-compose.yml` |
-| Guarda y datos | `backend/scripts/base-desarrollo.{mjs,d.mts,spec.ts}`, `backend/scripts/demo/*` (8 archivos) |
-| Scripts y variable | `db:dev:*` y `demo:api` en `backend/package.json` (modificado); `ALMACEN_URL_PUBLICA` en `backend/.env.example` y en `backend/src/shared/infrastructure/storage/supabase-almacen.adapter.ts` y su `.spec.ts` (modificados) |
-| Navegador | `frontend/e2e-demo/*` (2), `frontend/playwright.demo.config.ts`, `frontend/public/demo/productos/.gitkeep` |
+| Lanzador y entorno (3) | `ops/demo/README.md`, `ops/demo/demo-db.mjs`, `ops/demo/docker-compose.yml` |
+| Guarda y datos (11) | `backend/scripts/base-desarrollo.{mjs,d.mts,spec.ts}`, `backend/scripts/demo/` (8 archivos: `datos-demo`, `fotos-demo` —cada uno con `.mjs`, `.d.mts` y `.spec.ts`—, `operaciones-demo.mjs` y `verificar-demo.mjs`) |
+| Scripts y variable (4, modificados) | `db:dev:*` y `demo:api` en `backend/package.json`; `ALMACEN_URL_PUBLICA` en `backend/.env.example` y en `backend/src/shared/infrastructure/storage/supabase-almacen.adapter.ts` y su `.spec.ts` (solo se añaden líneas) |
+| Navegador (4) | `frontend/e2e-demo/` (2), `frontend/playwright.demo.config.ts`, `frontend/public/demo/productos/.gitkeep` |
 
-Para integrarla hará falta un Pull Request propio desde un worktree nuevo basado en `main`, que copie esos archivos sin retirarlos del worktree de Pedidos, repita las pruebas y retire después los duplicados con autorización del responsable.
+**Correcciones de coherencia (2026-11-17):**
 
-**Observaciones para ese Pull Request** (no se corrigieron aquí, porque son de la Demo):
+- `ops/demo/README.md`: los puertos son fijos —API `3000` y frontend `3001`— y se retira la variante de «puertos intercambiados», que dejó de ser posible cuando el script `dev` del frontend fijó el `3001` (T001). La fotografía de comprobación se busca en el origen del frontend (`http://localhost:3001/demo/productos/…`), no en el `3000`.
+- T030 nombra `seed-demo.mjs` y `limpiar-demo.mjs`, que no existen. Las operaciones reales son `sembrar` y `limpiar` de `backend/scripts/demo/operaciones-demo.mjs`, que se invocan con `npm run db:dev:seed` y `npm run db:dev:limpiar` (`ops/demo/demo-db.mjs`). El texto original de T030 se conserva.
+- `frontend/e2e-demo/inicio-real.spec.ts` no se citaba por nombre: verifica con la API real el inicio y las ofertas de la enmienda E4 (T053; CA-UI-04, 05, 08 y 10).
+- Los ejemplos de E3 con `ALMACEN_URL_PUBLICA=http://localhost:3000` son valores de prueba del adaptador (un origen cualquiera) y no cambian. En la Demo el origen lo fija el lanzador con `--frontend` (por defecto `http://localhost:3001`).
+- *2026-11-18:* notas fechadas en `spec.md` §9.1 (el `3000` etiquetado «demostración» es el puerto que ocupaba Next.js el 2026-11-08; hoy la Demo usa `3001` para las imágenes) y §8.6 (la estrategia «el seed no crea imágenes» quedó sustituida por E3). El texto original se conserva.
 
-- T030 nombra `seed-demo.mjs` y `limpiar-demo.mjs`; en el worktree de Pedidos esas operaciones están en `backend/scripts/demo/operaciones-demo.mjs`.
-- Los ejemplos de E3 usan `ALMACEN_URL_PUBLICA=http://localhost:3000`; el frontend ahora fija el puerto **3001** (T001), así que debe confirmarse el origen que fija `ops/demo/demo-db.mjs` (`--frontend`).
-- Los resultados de E2 y E3 se obtuvieron antes de los cambios de la spec 002 del 2026-11-17 (p. ej. «carrito 4 / 6», ya resuelto con H1) y no se repitieron.
+**Verificación del 2026-11-17** (rama `feat/demo-local` sobre `origin/main` = `658f717`; Windows 11, Node.js 24.19.0, PostgreSQL 17.11 en un contenedor local, sin Supabase y sin `.env`):
+
+| Verificación | Resultado |
+|---|---|
+| Backend: `arquitectura`, `lint`, `build` | Correctos (106 módulos, 365 dependencias, sin violaciones) |
+| Backend: `npm test` y `npm run test:e2e` | **329 / 329** (20 archivos) y **126 / 126** |
+| Guarda, datos, fotografías y adaptador de Storage | `scripts/`: 51 / 51; `supabase-almacen.adapter.spec.ts`: 41 / 41 |
+| Frontend: Vitest, ESLint y `tsc` | **177 / 177**, sin errores, sin errores |
+| Base nueva con las 4 migraciones de `main` (contenedor temporal, ya eliminado) | `db:dev:migrate`, `db:dev:status` («up to date»); `db:dev:seed` ×2 (1.ª: 8 + 5 + 4 + 4 + 20 + 20 + 20 insertados; 2.ª: 0 insertados y 41 sin cambios); `db:dev:verificar` **16 / 16**; `db:dev:limpiar` sin tablas de pedidos; nuevo seed y `verificar` **16 / 16** |
+| `mercado_dev` existente (contenedor `mercado-dev-db`, con un volcado previo de seguridad) | Seed ×2 sin cambios; `verificar` **16 / 16**; `limpiar` y nuevo seed con recuentos idénticos a los iniciales |
+| Fotografía (archivo WebP sintético temporal, ya retirado) | `db:dev:fotos` asocia 1; la API devuelve `http://localhost:3210/demo/productos/palta-fuerte.webp` y 19 productos con `imagenes: []`; `verificar` **16 / 16**; `db:dev:fotos` retira la asociación |
+| Navegador real (`playwright.demo.config.ts`, API de demostración en el puerto 3100) | **2 / 2** sin fotografías, con la fotografía y sobre la base nueva |
+
+**Verificación del 2026-11-18** (mismo `origin/main` = `658f717`, mismo entorno; contenedor temporal `mercado-demo-verif-db` en `127.0.0.1:55434`, sin volumen con nombre, eliminado al terminar; `mercado-dev-db` y `mercado-test-db` no se usaron):
+
+| Verificación | Resultado |
+|---|---|
+| Backend: `arquitectura`, `lint`, `build`, `npm test` | Correctos; **329 / 329** (20 archivos) |
+| `scripts/` y adaptador de Storage | **92 / 92** (5 archivos) |
+| Backend: `npm run test:e2e` | **125 / 126** sin `DATABASE_URL`: falla solo `test/app.e2e-spec.ts` (carga `AppModule` y `PrismaService` exige la variable; igual en `main` sin cambios). **126 / 126** con una `DATABASE_URL` local ficticia (`127.0.0.1:1`, sin servidor) |
+| Frontend: Vitest, ESLint, `tsc`; Playwright con red simulada | **177 / 177**, sin errores, sin errores; **30 / 30** |
+| Guarda (CA-DEMO-01) | Aborta sin conectarse con Supabase, el puerto 55433, otra base y un servidor no local |
+| Base nueva | `migrate` (4 migraciones) y `status` («up to date»); seed ×2 (1.ª: 8 + 5 + 4 + 4 + 20 + 20 + 20; 2.ª: 0 insertados, recuentos idénticos); `verificar` **16 / 16**; `limpiar` → 0 filas; seed y `verificar` **16 / 16** |
+| Aislamiento de `limpiar` (CA-DEMO-11) | Con un puesto ajeno de un comerciante de demostración: «ABORTADO sin cambios» (huella de `productos` idéntica). Sin bloqueos, una categoría ajena sobrevive a la limpieza |
+| Fotografía (WebP sintético «PRUEBA», retirado) | `fotos` asocia 1 (2.ª ejecución: sin cambios; `otrasTablasSinCambios: true`); un `.webp` que no es WebP queda pendiente («no tiene la cabecera RIFF/WEBP»); `verificar` **16 / 16**; al retirarla, `fotos` desasocia 1 |
+| Navegador real (`playwright.demo.config.ts`) | **2 / 2** con la fotografía (1 pintada, 19 «Sin imagen») y **2 / 2** sin ella (20 «Sin imagen») |
+
+*Limitación de entorno (2026-11-18):* en Windows, si Vitest se inicia con la unidad en minúscula (`d:\…`, p. ej. desde Git Bash con `cd /d/…`), carga dos instancias de su ejecutor y los archivos e2e fallan con «Cannot read properties of undefined (reading 'config')». Con `D:\…` (PowerShell o `cd "D:/…"`) el resultado es el indicado. No depende del código de la Demo.
+
+**Limitaciones y riesgos:**
+
+- **No hay fotografías reales**: `frontend/public/demo/productos/` solo contiene `.gitkeep`; el archivo WebP de la prueba era sintético y no se incluye. Las fotografías deben ser propias o con licencia (E3).
+- El `mercado_dev` preexistente tenía aplicada la migración `20261109000000_pedidos`, que solo existe en la rama de Pedidos; `main` tiene cuatro migraciones. La Demo funciona con ambos esquemas (`limpiar` comprueba si existen las tablas de pedidos), pero esa base quedó «por delante» del esquema de `main`.
+- La API de demostración se inicia con claves de Supabase vacías: Storage, registro e invitaciones responden 503, y `SUPABASE_URL` solo se usa para verificar sesiones. Para usar el carrito con una cuenta real hay que vincularla con `db:dev:vincular`.
+- No se ejecutaron `npm run test:db` (pruebas contra PostgreSQL del backend) ni las pruebas de navegador con red simulada del frontend en este worktree. *2026-11-18:* las de red simulada se ejecutaron (30 / 30); `test:db` sigue sin ejecutarse, porque usaría el contenedor `mercado-test-db` existente y la Demo no cambia repositorios ni migraciones.
+- No se ejecutaron `db:dev:up`, `db:dev:stop` ni `db:dev:down`: actúan sobre `mercado-dev-db` y su volumen `mercado_dev_pgdata`, que conservan datos previos. El archivo de Compose se revisó (proyecto, red, volumen y puerto propios, sin política de reinicio).
 
 ## Phase 1: Causa raíz
 
@@ -130,12 +167,13 @@ Las casillas se marcan a medida que cada tarea queda implementada **y** su prueb
 
 ## Phase 7: E2 — Entorno de demostración local (2026-11-08)
 
-> **Integración: pendiente (Pull Request propio de la Demo).** Ejecutada y verificada localmente; sus archivos no forman parte del Pull Request de Frontend. Véase «Estado de ejecución y de integración».
+> **Integración:** propuesta en el Pull Request de la Demo (rama `feat/demo-local`); ejecutada y verificada localmente (2026-11-08) y de nuevo el 2026-11-17. Véase «Estado de ejecución y de integración».
 
 - [x] T027 [P] `backend/scripts/base-desarrollo.mjs` y `base-desarrollo.spec.ts` — CA-DEMO-01
 - [x] T028 `ops/demo/docker-compose.yml` y `ops/demo/demo-db.mjs` (`up`, `ping`, `migrate`, `status`, `seed`, `verificar`, `limpiar`, `vincular`, `api`, `stop`, `down`) — CA-DEMO-01, 02, 11
 - [x] T029 [P] `backend/scripts/demo/datos-demo.mjs` y `datos-demo.spec.ts` — CA-DEMO-03, 05
 - [x] T030 `backend/scripts/demo/seed-demo.mjs` (idempotente) y `limpiar-demo.mjs` — CA-DEMO-03, 04, 09, 11
+  - *Nota (2026-11-17):* los archivos `seed-demo.mjs` y `limpiar-demo.mjs` no existen; las operaciones están en `backend/scripts/demo/operaciones-demo.mjs` (`sembrar`, `limpiar`).
 - [x] T031 `backend/scripts/demo/verificar-demo.mjs` (API real, carrito con token local) — CA-DEMO-06, 07
 - [x] T032 Scripts `db:dev:*` y `demo:api` en `backend/package.json`
 - [x] T033 Ejecución: contenedor, `ping`, migraciones, seed ×2, verificación, limpieza y nuevo seed — CA-DEMO-01 a 07, 11
@@ -160,7 +198,7 @@ Las casillas se marcan a medida que cada tarea queda implementada **y** su prueb
 
 ## Phase 8: E3 — Fotografías locales de demostración (2026-11-08)
 
-> **Integración: pendiente (Pull Request propio de la Demo).** Ejecutada y verificada localmente; sus archivos (incluido el cambio de `ALMACEN_URL_PUBLICA` en el adaptador de Storage del backend) no forman parte del Pull Request de Frontend.
+> **Integración:** propuesta en el Pull Request de la Demo (rama `feat/demo-local`), con el cambio de `ALMACEN_URL_PUBLICA` en el adaptador de Storage; ejecutada y verificada localmente (2026-11-08) y de nuevo el 2026-11-17. Véase «Estado de ejecución y de integración».
 
 - [x] T036 [P] Pruebas del adaptador: sin variable, origen local, rutas peligrosas, variable no válida y subidas sin cambios — CA-IMG-01 a 04
 - [x] T037 `supabase-almacen.adapter.ts` (`ALMACEN_URL_PUBLICA`) y `backend/.env.example` — CA-IMG-01 a 04
