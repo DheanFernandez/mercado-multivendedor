@@ -1,4 +1,57 @@
-# Sprint 02 · Diseño de la Arquitectura de Software y Evaluación de Atributos de Calidad
+# Sprint 02 · Implementación y Validación de la Arquitectura de Software
+
+| Campo | Descripción |
+|---|---|
+| Curso | IS-488 Arquitectura de Software · UNSCH · 2026-II |
+| Proyecto | Plataforma Integral Multivendedor para la Gestión Comercial y Operativa de un Mercado de Abastos |
+| Fecha de la entrega final | 18/11/2026 (la parte de diseño se entregó el 16/11/2026; véase el [Anexo A](#anexo-a--entrega-de-diseño-del-16112026-conservada)) |
+| Versión evaluada | `origin/main` en **`200675c`** (merge del PR #12). Contiene Frontend (#9), Demo (#10), Swagger/OpenAPI (#11), Jest, cobertura y CI (#12). El trabajo local de Pedidos, no publicado, queda fuera |
+| Entregable principal | [Informe final del Sprint 02](../../07-sprint-02/04-informe-final-sprint-02.md) |
+| Matriz de cumplimiento | [Matriz oficial](../../07-sprint-02/05-matriz-oficial-de-cumplimiento.md) |
+| Evidencias | [Evidencias del 18/11/2026](../../07-sprint-02/evidencias/2026-11-18/README.md) |
+
+> **Aviso.** Que haya una primera versión funcional, pruebas en verde y documentación completa **no significa** que todos los atributos de calidad estén validados ni que el flujo de compra esté implementado. Pedidos y Pagos no forman parte del incremento. Véase el §3.
+
+## 1. Los cinco entregables
+
+| # | Entregable | Estado | Resumen | Dónde |
+|---|---|---|---|---|
+| 1 | Código organizado según la arquitectura | **Cumplido** (módulos implementados) | Monolito modular con cuatro anillos por módulo; 0 violaciones de dependencia en 111 módulos | [Informe §4](../../07-sprint-02/04-informe-final-sprint-02.md#4-implementación-de-la-arquitectura) y [§5](../../07-sprint-02/04-informe-final-sprint-02.md#5-clean-architecture-y-solid-en-el-código) |
+| 2 | Primera versión funcional | **Parcial** | Catálogo validado de extremo a extremo; carrito validado por **API real** (no desde una sesión de Supabase); sin Pedidos ni Pagos | [Informe §3 y §10](../../07-sprint-02/04-informe-final-sprint-02.md#3-alcance-de-la-primera-versión-funcional) |
+| 3 | API REST con OpenAPI/Swagger | **Cumplido** en rutas, seguridad y parámetros | 42 rutas (6 públicas, 36 protegidas); Swagger UI en `/api/docs`; esquemas de cuerpo y respuesta manuales | [Informe §7](../../07-sprint-02/04-informe-final-sprint-02.md#7-api-rest-y-swaggeropenapi) |
+| 4 | Pruebas con Jest y cobertura | **Cumplido con limitaciones** | Jest 88/88 (selección); Vitest 338 unitarias + 132 HTTP; cobertura global 73,52 / 70,73 / 78,07 / 76,01 % (sin `test:db`) | [Informe §8](../../07-sprint-02/04-informe-final-sprint-02.md#8-pruebas-con-jest-y-cobertura) |
+| 5 | Validación de atributos de calidad | **Parcial** | 0 atributos satisfechos por completo; AC04 252/252 y AC05 0 violaciones repetidos sobre `200675c`; EQ-03 y EQ-04 del 05/11 | [Informe §9](../../07-sprint-02/04-informe-final-sprint-02.md#9-validación-de-atributos-de-calidad) |
+
+El CI de GitHub Actions pasó en el PR #12 y en el merge, con Jest, cobertura y Vitest del frontend ([resumen](../../07-sprint-02/evidencias/2026-11-18/ci/resumen-ci.txt)).
+
+## 2. Documentos del sprint
+
+| Documento | Contenido | Versión |
+|---|---|---|
+| [04 · Informe final](../../07-sprint-02/04-informe-final-sprint-02.md) | Resumen, arquitectura implementada, Clean Architecture y SOLID, SDD, API, pruebas y cobertura, calidad, evidencias, limitaciones y conclusiones | `200675c` (18/11/2026) |
+| [05 · Matriz oficial de cumplimiento](../../07-sprint-02/05-matriz-oficial-de-cumplimiento.md) | Entregable → requisito → implementación → prueba → resultado → evidencia | `200675c` |
+| [Evidencias del 18/11/2026](../../07-sprint-02/evidencias/2026-11-18/README.md) | Capturas, flujos reales, Jest, cobertura, AC04, CI | `200675c` |
+| [01 · Informe de diseño](../../07-sprint-02/01-informe-sprint-02.md) | Diseño arquitectónico, C4, ADR y evaluación inicial (**conservado**) | `1aab552` (16/11/2026) |
+| [02 · Evaluación de atributos de calidad](../../07-sprint-02/02-evaluacion-atributos-calidad.md) | Método ATAM adaptado, tácticas, escenarios y riesgos (**conservado**) | `1aab552` |
+| [03 · Matriz de trazabilidad](../../07-sprint-02/03-matriz-de-trazabilidad.md) | RF → HU → driver → ADR → componente → prueba (**conservada**) | `1aab552` |
+| [Evidencias del 16/11/2026](../../07-sprint-02/evidencias/2026-11-16/README.md) | AC04, AC05 y pruebas unitarias de esa fecha (**conservadas**) | `1aab552` y rama local |
+
+Especificaciones SDD relacionadas: [001](../../../specs/001-inventario/spec.md) (incompleta: sin plan ni tareas), [002](../../../specs/002-carrito/spec.md), [004](../../../specs/004-catalogo-publico/spec.md), [005](../../../specs/005-openapi-swagger/spec.md) y [006](../../../specs/006-pruebas-cobertura/spec.md).
+
+## 3. Limitaciones y decisiones pendientes
+
+- **Sin Supabase Auth en la demostración:** el inicio de sesión, el registro y el panel no se probaron en el navegador; el carrito se validó por API con un token firmado localmente.
+- **Pedidos y Pagos** no están implementados en `main`; EQ-01, EQ-02 y EQ-08 no son medibles.
+- **Jest** cubre una selección (10 archivos); la **cobertura global** es de Vitest y **no incluye `test:db`**.
+- **El contrato OpenAPI no es exhaustivo** (cuerpos y respuestas manuales). **No hay fotografías reales** de productos.
+- **EQ-03 y EQ-04** son del 05/11/2026 y no se repitieron. Todas las mediciones son locales.
+- **Decisiones para el equipo y la docente:** confirmar que Vitest como ejecutor principal con Jest adicional satisface el requisito; autorizar un Supabase de desarrollo para la demostración completa; política de Swagger en producción; ADR y DEC-01 a DEC-12 pendientes. Detalle en el [informe §11 y §12](../../07-sprint-02/04-informe-final-sprint-02.md#11-limitaciones).
+
+---
+
+## Anexo A · Entrega de diseño del 16/11/2026 (conservada)
+
+> Texto original de la portada del 16/11/2026, **sin cambios de contenido** (solo se bajó un nivel a sus títulos). Describe la versión `1aab552`; sus cifras y su estado corresponden a esa fecha. Los resultados vigentes están en las secciones anteriores.
 
 | Campo | Descripción |
 |---|---|
@@ -10,11 +63,11 @@
 
 > **Aviso.** Que la documentación esté completa **no significa** que todos los atributos de calidad estén validados. Ver §3.
 
-## 1. Objetivo
+### 1. Objetivo
 
 Presentar el diseño de la arquitectura de software y evaluar, con evidencia verificable, si responde a los atributos de calidad priorizados en el Sprint 01.
 
-## 2. Alcance y entregables
+### 2. Alcance y entregables
 
 El entregable del sprint está en [`docs/07-sprint-02/`](../../07-sprint-02/) y se mantiene sin cambios. Esta portada solo lo indexa.
 
@@ -32,7 +85,7 @@ El entregable del sprint está en [`docs/07-sprint-02/`](../../07-sprint-02/) y 
 - Modelo C4: [niveles 1 a 4](../../04-modelo-c4/).
 - Diseño interno: [módulos](../../03-diseño-de-software/diseño-interno/diseño-interno-de-modulos.md) y [patrones](../../03-diseño-de-software/diseño-interno/patrones-de-diseño.md).
 
-## 3. Estado de cumplimiento
+### 3. Estado de cumplimiento
 
 | Medida | Resultado |
 |---|---|
@@ -41,7 +94,7 @@ El entregable del sprint está en [`docs/07-sprint-02/`](../../07-sprint-02/) y 
 | Satisfechos con reservas | **2**: rendimiento (AC01) y concurrencia (AC07) |
 | Pendientes de verificación | **5**: seguridad, integridad y mantenibilidad (parciales); escalabilidad y disponibilidad (sin verificar) |
 
-## 4. Evidencias verificables
+### 4. Evidencias verificables
 
 | Fecha | Evidencia | Resultado | Ubicación |
 |---|---|---|---|
@@ -54,11 +107,11 @@ El entregable del sprint está en [`docs/07-sprint-02/`](../../07-sprint-02/) y 
 
 Cada evidencia declara su fecha, entorno, commit, herramienta, comando, resultado y limitaciones. El informe también verifica que los datos de cada una coinciden con lo que afirma ([evaluación §6](../../07-sprint-02/02-evaluacion-atributos-calidad.md#6-verificación-del-origen-de-las-evidencias)).
 
-## 5. Relación con requisitos y arquitectura
+### 5. Relación con requisitos y arquitectura
 
 La evaluación parte de los atributos, drivers y escenarios del Sprint 01. Los asocia a las decisiones (ADR) y tácticas que los atienden y los cierra con las pruebas reales. Lo hace en el [árbol de utilidad](../../07-sprint-02/02-evaluacion-atributos-calidad.md#3-árbol-de-utilidad) y en la [matriz de trazabilidad](../../07-sprint-02/03-matriz-de-trazabilidad.md).
 
-## 6. Limitaciones y pendientes
+### 6. Limitaciones y pendientes
 
 - **Pagos.** El módulo de Pagos no existe todavía. Por eso no se pueden medir los dos escenarios de mayor prioridad (EQ-01 y EQ-08) ni el intercambio de adaptador (EQ-07).
 - **Pedidos.** EQ-02 y la repetición de EQ-03 sobre «crear pedido» dependen de Pedidos, que está en desarrollo.
