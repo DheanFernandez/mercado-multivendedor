@@ -43,7 +43,8 @@ const verificador: VerificadorToken = {
 /** Números de los usuarios sembrados. */
 export const U = { ADMIN: 1, CLIENTE: 2, TRABAJADOR: 3, COM_A: 4, COM_B: 5, OBJETIVO: 6 } as const;
 
-export async function crearAppEnMemoria() {
+/** `configurar` (opcional) se ejecuta sobre la aplicación antes de iniciarla (p. ej. para montar Swagger). */
+export async function crearAppEnMemoria(configurar?: (app: INestApplication) => void) {
   const usuarios = new UsuariosEnMemoria();
   const comerciantes: Comerciante[] = [];
   const puestos: Puesto[] = [];
@@ -125,6 +126,7 @@ export async function crearAppEnMemoria() {
     .overrideProvider(ALMACEN_ARCHIVOS).useValue(new AlmacenEnMemoria())
     .compile();
   const app: INestApplication = modulo.createNestApplication();
+  configurar?.(app);
   await app.init();
   return { app, usuarios, comerciantes, puestos, categorias, productos, inventario, carritos, ids: { comercianteA: A.id, comercianteB: B.id, puestoA: uid(301), puestoB: uid(302), categoria: categoria.id, producto: producto.id, imagen: uid(601) } };
 }
