@@ -1,0 +1,5020 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Mercado Multivendedor · API REST",
+    "version": "1.0.0",
+    "description": "API REST del monolito modular NestJS de la **Plataforma Integral Multivendedor para la Gestión Comercial y Operativa de un Mercado de Abastos** (IS-488 · Sprint 02).\n\n**Autenticación.** Las rutas protegidas exigen `Authorization: Bearer <JWT de Supabase Auth>`. Las rutas públicas se marcan en el código con `@Public()` y aquí no declaran seguridad. El rol y el estado del usuario se leen de PostgreSQL, nunca del token.\n\n**Alcance.** Documenta las 42 rutas implementadas en `main`. **No hay rutas de Pedidos ni de Pagos**: esos módulos aún no exponen HTTP.\n\n**Limitaciones del contrato (no es exhaustivo).** Los cuerpos de entrada se describen a partir de lo que cada controlador lee y no sustituyen la validación de los casos de uso, que puede ser más estricta. Los esquemas de respuesta se describen a mano desde las entidades. Un fallo de la base de datos responde 500 con el cuerpo estándar de NestJS y no se documenta como 503. Los roles son informativos (matriz AC04 del 2026-11-16)."
+  },
+  "servers": [
+    {
+      "url": "/"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Sistema",
+      "description": "Ruta raíz heredada de la plantilla de NestJS."
+    },
+    {
+      "name": "Autenticación",
+      "description": "Autorregistro y perfil. El inicio de sesión lo resuelve el cliente con Supabase Auth."
+    },
+    {
+      "name": "Usuarios",
+      "description": "Administración de usuarios, estados y roles."
+    },
+    {
+      "name": "Comerciantes y puestos",
+      "description": "Comerciantes, puestos y su consulta pública."
+    },
+    {
+      "name": "Categorías",
+      "description": "Categorías de productos."
+    },
+    {
+      "name": "Productos",
+      "description": "Gestión de productos e imágenes por el comerciante."
+    },
+    {
+      "name": "Catálogo",
+      "description": "Catálogo público de productos publicados."
+    },
+    {
+      "name": "Inventario",
+      "description": "Existencias y movimientos de stock."
+    },
+    {
+      "name": "Carrito",
+      "description": "Carrito multivendedor del cliente."
+    }
+  ],
+  "paths": {
+    "/": {
+      "get": {
+        "operationId": "sistema_raiz",
+        "tags": [
+          "Sistema"
+        ],
+        "summary": "Saludo de la plantilla de NestJS",
+        "description": "Ruta raíz heredada de la plantilla del framework. No forma parte del dominio; se documenta porque existe.",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Texto plano.",
+            "content": {
+              "text/html": {
+                "schema": {
+                  "$ref": "#/components/schemas/Saludo"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/registro": {
+      "post": {
+        "operationId": "auth_registro",
+        "tags": [
+          "Autenticación"
+        ],
+        "summary": "Autorregistro de un cliente",
+        "description": "Crea la cuenta en Supabase Auth y el usuario con rol CLIENTE. Cualquier campo `rol` del cuerpo se ignora. El inicio de sesión, el cierre y la recuperación de contraseña los resuelve el cliente directamente con Supabase Auth, no esta API.",
+        "security": [],
+        "responses": {
+          "201": {
+            "description": "Usuario creado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Usuario"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos inválidos.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "El correo o la identidad ya están registrados.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "El servicio de autenticación no está configurado o no responde.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "description": "Datos del cliente.",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "email",
+                  "contrasena",
+                  "nombres",
+                  "apellidos"
+                ],
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "description": "Correo electrónico.",
+                    "format": "email"
+                  },
+                  "contrasena": {
+                    "type": "string",
+                    "description": "Contraseña (la longitud la valida el caso de uso).",
+                    "format": "password",
+                    "writeOnly": true
+                  },
+                  "nombres": {
+                    "type": "string"
+                  },
+                  "apellidos": {
+                    "type": "string"
+                  },
+                  "telefono": {
+                    "type": "string",
+                    "description": "Opcional."
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/me": {
+      "get": {
+        "operationId": "auth_me",
+        "tags": [
+          "Autenticación"
+        ],
+        "summary": "Perfil del usuario autenticado",
+        "description": "Perfil y rol leídos de PostgreSQL (el rol nunca se toma del token).\n\n**Roles con acceso** (matriz AC04, 2026-11-16): Cualquier usuario autenticado. La autorización real la aplican los casos de uso.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Perfil.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Usuario"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Falta el token, es inválido o ha caducado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "El rol del usuario, o la propiedad del recurso, no permiten la operación.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "El servicio de autenticación no está configurado o no responde.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/usuarios": {
+      "post": {
+        "operationId": "usuarios_crear",
+        "tags": [
+          "Usuarios"
+        ],
+        "summary": "Alta de un usuario con cualquier rol",
+        "description": "Envía una invitación de Supabase Auth para que la persona defina su contraseña. Sin `rol`, se crea un CLIENTE.\n\n**Roles con acceso** (matriz AC04, 2026-11-16): ADMINISTRADOR. La autorización real la aplican los casos de uso.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Usuario creado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Usuario"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos inválidos.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Falta el token, es inválido o ha caducado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "El rol del usuario, o la propiedad del recurso, no permiten la operación.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "El correo o la identidad ya están registrados.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "El servicio de autenticación no responde. También: el servicio de autenticación no está configurado o no responde.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "description": "Datos del usuario.",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "email",
+                  "nombres",
+                  "apellidos"
+                ],
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email"
+                  },
+                  "nombres": {
+                    "type": "string"
+                  },
+                  "apellidos": {
+                    "type": "string"
+                  },
+                  "telefono": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "rol": {
+                    "type": "string",
+                    "enum": [
+                      "CLIENTE",
+                      "COMERCIANTE",
+                      "TRABAJADOR_PUESTO",
+                      "ADMINISTRADOR"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "operationId": "usuarios_listar",
+        "tags": [
+          "Usuarios"
+        ],
+        "summary": "Listar usuarios",
+        "description": "**Roles con acceso** (matriz AC04, 2026-11-16): ADMINISTRADOR. La autorización real la aplican los casos de uso.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Usuarios.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Usuario"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Paginación inválida.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Falta el token, es inválido o ha caducado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "El rol del usuario, o la propiedad del recurso, no permiten la operación.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "El servicio de autenticación no está configurado o no responde.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "limite",
+            "in": "query",
+            "required": false,
+            "description": "Máximo de elementos (1–100; por defecto 50).",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "desplazamiento",
+            "in": "query",
+            "required": false,
+            "description": "Elementos a omitir (entero ≥ 0; por defecto 0).",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    },
+    "/api/v1/usuarios/{id}": {
+      "get": {
+        "operationId": "usuarios_obtener",
+        "tags": [
+          "Usuarios"
+        ],
+        "summary": "Consultar un usuario",
+        "description": "**Roles con acceso** (matriz AC04, 2026-11-16): ADMINISTRADOR. La autorización real la aplican los casos de uso.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Usuario.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Usuario"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos de entrada inválidos. Un identificador de la ruta que no es un UUID produce el cuerpo estándar de NestJS (`ErrorNest`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/Error"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErrorNest"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Falta el token, es inválido o ha caducado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "El rol del usuario, o la propiedad del recurso, no permiten la operación.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "El usuario no existe.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "El servicio de autenticación no está configurado o no responde.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Identificador del usuario.",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ]
+      }
+    },
+    "/api/v1/usuarios/{id}/estado": {
+      "patch": {
+        "operationId": "usuarios_estado",
+        "tags": [
+          "Usuarios"
+        ],
+        "summary": "Activar o desactivar el acceso de un usuario",
+        "description": "**Roles con acceso** (matriz AC04, 2026-11-16): ADMINISTRADOR. La autorización real la aplican los casos de uso.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Usuario actualizado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Usuario"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos inválidos. Un identificador de la ruta que no es un UUID produce el cuerpo estándar de NestJS (`ErrorNest`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/Error"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErrorNest"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Falta el token, es inválido o ha caducado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "El rol del usuario, o la propiedad del recurso, no permiten la operación.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "El usuario no existe.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "El servicio de autenticación no está configurado o no responde.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Identificador del usuario.",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "Nuevo estado.",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "activo"
+                ],
+                "properties": {
+                  "activo": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/usuarios/{id}/rol": {
+      "patch": {
+        "operationId": "usuarios_rol",
+        "tags": [
+          "Usuarios"
+        ],
+        "summary": "Cambiar el rol de un usuario",
+        "description": "Cambia el rol almacenado en PostgreSQL.\n\n**Roles con acceso** (matriz AC04, 2026-11-16): ADMINISTRADOR. La autorización real la aplican los casos de uso.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Usuario actualizado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Usuario"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos inválidos. Un identificador de la ruta que no es un UUID produce el cuerpo estándar de NestJS (`ErrorNest`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/Error"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErrorNest"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Falta el token, es inválido o ha caducado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "El rol del usuario, o la propiedad del recurso, no permiten la operación.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "El usuario no existe.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "El servicio de autenticación no está configurado o no responde.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Identificador del usuario.",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "Nuevo rol.",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "rol"
+                ],
+                "properties": {
+                  "rol": {
+                    "type": "string",
+                    "enum": [
+                      "CLIENTE",
+                      "COMERCIANTE",
+                      "TRABAJADOR_PUESTO",
+                      "ADMINISTRADOR"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/comerciantes": {
+      "post": {
+        "operationId": "comerciantes_crear",
+        "tags": [
+          "Comerciantes y puestos"
+        ],
+        "summary": "Registrar un comerciante",
+        "description": "**Roles con acceso** (matriz AC04, 2026-11-16): ADMINISTRADOR. La autorización real la aplican los casos de uso.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Comerciante registrado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Comerciante"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos inválidos.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Falta el token, es inválido o ha caducado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "El rol del usuario, o la propiedad del recurso, no permiten la operación.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "El usuario no existe.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "El usuario ya es comerciante.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "El servicio de autenticación no está configurado o no responde.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "description": "Usuario que será comerciante y su nombre comercial.",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "usuarioId",
+                  "nombreComercial"
+                ],
+                "properties": {
+                  "usuarioId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "nombreComercial": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "operationId": "comerciantes_listar",
+        "tags": [
+          "Comerciantes y puestos"
+        ],
+        "summary": "Listar comerciantes",
+        "description": "**Roles con acceso** (matriz AC04, 2026-11-16): ADMINISTRADOR. La autorización real la aplican los casos de uso.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Comerciantes.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Comerciante"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Paginación inválida.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Falta el token, es inválido o ha caducado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "El rol del usuario, o la propiedad del recurso, no permiten la operación.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "El servicio de autenticación no está configurado o no responde.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "limite",
+            "in": "query",
+            "required": false,
+            "description": "Máximo de elementos (1–100; por defecto 50).",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "desplazamiento",
+            "in": "query",
+            "required": false,
+            "description": "Elementos a omitir (entero ≥ 0; por defecto 0).",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    },
+    "/api/v1/comerciantes/{id}": {
+      "get": {
+        "operationId": "comerciantes_obtener",
+        "tags": [
+          "Comerciantes y puestos"
+        ],
+        "summary": "Consultar un comerciante",
+        "description": "**Roles con acceso** (matriz AC04, 2026-11-16): ADMINISTRADOR; COMERCIANTE titular. La autorización real la aplican los casos de uso.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Comerciante.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Comerciante"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos de entrada inválidos. Un identificador de la ruta que no es un UUID produce el cuerpo estándar de NestJS (`ErrorNest`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/Error"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErrorNest"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Falta el token, es inválido o ha caducado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "El rol del usuario, o la propiedad del recurso, no permiten la operación.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "El comerciante no existe.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "El servicio de autenticación no está configurado o no responde.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Identificador del comerciante.",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ]
+      },
+      "patch": {
+        "operationId": "comerciantes_actualizar",
+        "tags": [
+          "Comerciantes y puestos"
+        ],
+        "summary": "Editar el nombre comercial",
+        "description": "**Roles con acceso** (matriz AC04, 2026-11-16): ADMINISTRADOR. La autorización real la aplican los casos de uso.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Comerciante actualizado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Comerciante"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos inválidos. Un identificador de la ruta que no es un UUID produce el cuerpo estándar de NestJS (`ErrorNest`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/Error"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErrorNest"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Falta el token, es inválido o ha caducado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "El rol del usuario, o la propiedad del recurso, no permiten la operación.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "El comerciante no existe.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "El servicio de autenticación no está configurado o no responde.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Identificador del comerciante.",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "Campos a modificar.",
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "nombreComercial": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/comerciantes/{id}/estado": {
+      "patch": {
+        "operationId": "comerciantes_estado",
+        "tags": [
+          "Comerciantes y puestos"
+        ],
+        "summary": "Activar o suspender un comerciante",
+        "description": "**Roles con acceso** (matriz AC04, 2026-11-16): ADMINISTRADOR. La autorización real la aplican los casos de uso.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Comerciante actualizado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Comerciante"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos inválidos. Un identificador de la ruta que no es un UUID produce el cuerpo estándar de NestJS (`ErrorNest`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/Error"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErrorNest"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Falta el token, es inválido o ha caducado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "El rol del usuario, o la propiedad del recurso, no permiten la operación.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "El comerciante no existe.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "El servicio de autenticación no está configurado o no responde.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Identificador del comerciante.",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "Nuevo estado (`true` = ACTIVO, `false` = SUSPENDIDO).",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "activo"
+                ],
+                "properties": {
+                  "activo": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/puestos": {
+      "post": {
+        "operationId": "puestos_crear",
+        "tags": [
+          "Comerciantes y puestos"
+        ],
+        "summary": "Registrar un puesto",
+        "description": "**Roles con acceso** (matriz AC04, 2026-11-16): ADMINISTRADOR. La autorización real la aplican los casos de uso.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Puesto registrado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Puesto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos inválidos.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Falta el token, es inválido o ha caducado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "El rol del usuario, o la propiedad del recurso, no permiten la operación.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "El comerciante no existe.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "El código ya existe o el comerciante está inactivo.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "El servicio de autenticación no está configurado o no responde.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "description": "Datos del puesto.",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "comercianteId",
+                  "codigo",
+                  "nombre"
+                ],
+                "properties": {
+                  "comercianteId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "codigo": {
+                    "type": "string",
+                    "pattern": "^[A-Z0-9][A-Z0-9-]{0,19}$"
+                  },
+                  "nombre": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "operationId": "puestos_listar",
+        "tags": [
+          "Comerciantes y puestos"
+        ],
+        "summary": "Listar puestos",
+        "description": "Un comerciante ve solo los de su propio comercio.\n\n**Roles con acceso** (matriz AC04, 2026-11-16): ADMINISTRADOR; COMERCIANTE. La autorización real la aplican los casos de uso.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Puestos.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Puesto"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Filtro o paginación inválidos.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Falta el token, es inválido o ha caducado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "El rol del usuario, o la propiedad del recurso, no permiten la operación.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "El servicio de autenticación no está configurado o no responde.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "comercianteId",
+            "in": "query",
+            "required": false,
+            "description": "Filtra por comerciante (UUID).",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limite",
+            "in": "query",
+            "required": false,
+            "description": "Máximo de elementos (1–100; por defecto 50).",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "desplazamiento",
+            "in": "query",
+            "required": false,
+            "description": "Elementos a omitir (entero ≥ 0; por defecto 0).",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    },
+    "/api/v1/puestos/publicos": {
+      "get": {
+        "operationId": "puestos_publicos",
+        "tags": [
+          "Comerciantes y puestos"
+        ],
+        "summary": "Listar puestos operativos (público)",
+        "description": "Para filtrar el catálogo por puesto (RF18). Solo expone identificador, código y nombre.",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Puestos operativos.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PuestoPublico"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Paginación inválida.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "limite",
+            "in": "query",
+            "required": false,
+            "description": "Máximo de elementos (1–100; por defecto 100).",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "desplazamiento",
+            "in": "query",
+            "required": false,
+            "description": "Elementos a omitir (entero ≥ 0; por defecto 0).",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    },
+    "/api/v1/puestos/{id}": {
+      "get": {
+        "operationId": "puestos_obtener",
+        "tags": [
+          "Comerciantes y puestos"
+        ],
+        "summary": "Consultar un puesto",
+        "description": "**Roles con acceso** (matriz AC04, 2026-11-16): ADMINISTRADOR; COMERCIANTE titular. La autorización real la aplican los casos de uso.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Puesto.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Puesto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos de entrada inválidos. Un identificador de la ruta que no es un UUID produce el cuerpo estándar de NestJS (`ErrorNest`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/Error"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErrorNest"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Falta el token, es inválido o ha caducado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "El rol del usuario, o la propiedad del recurso, no permiten la operación.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "El puesto no existe.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "El servicio de autenticación no está configurado o no responde.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Identificador del puesto.",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ]
+      },
+      "patch": {
+        "operationId": "puestos_actualizar",
+        "tags": [
+          "Comerciantes y puestos"
+        ],
+        "summary": "Editar un puesto",
+        "description": "**Roles con acceso** (matriz AC04, 2026-11-16): ADMINISTRADOR. La autorización real la aplican los casos de uso.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Puesto actualizado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Puesto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos inválidos. Un identificador de la ruta que no es un UUID produce el cuerpo estándar de NestJS (`ErrorNest`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/Error"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErrorNest"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Falta el token, es inválido o ha caducado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "El rol del usuario, o la propiedad del recurso, no permiten la operación.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "El puesto no existe.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "El código ya existe.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "El servicio de autenticación no está configurado o no responde.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Identificador del puesto.",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "Campos a modificar.",
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "codigo": {
+                    "type": "string",
+                    "pattern": "^[A-Z0-9][A-Z0-9-]{0,19}$"
+                  },
+                  "nombre": {
+                    "type": "string"
+                  },
+                  "comercianteId": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/puestos/{id}/estado": {
+      "patch": {
+        "operationId": "puestos_estado",
+        "tags": [
+          "Comerciantes y puestos"
+        ],
+        "summary": "Activar o desactivar un puesto",
+        "description": "**Roles con acceso** (matriz AC04, 2026-11-16): ADMINISTRADOR. La autorización real la aplican los casos de uso.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Puesto actualizado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Puesto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos inválidos. Un identificador de la ruta que no es un UUID produce el cuerpo estándar de NestJS (`ErrorNest`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/Error"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErrorNest"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Falta el token, es inválido o ha caducado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "El rol del usuario, o la propiedad del recurso, no permiten la operación.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "El puesto no existe.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "El servicio de autenticación no está configurado o no responde.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Identificador del puesto.",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "Nuevo estado (`true` = ACTIVO, `false` = INACTIVO).",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "activo"
+                ],
+                "properties": {
+                  "activo": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/categorias": {
+      "get": {
+        "operationId": "categorias_activas",
+        "tags": [
+          "Categorías"
+        ],
+        "summary": "Listar categorías activas (público)",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Categorías activas.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Categoria"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "categorias_crear",
+        "tags": [
+          "Categorías"
+        ],
+        "summary": "Crear una categoría",
+        "description": "**Roles con acceso** (matriz AC04, 2026-11-16): ADMINISTRADOR. La autorización real la aplican los casos de uso.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Categoría creada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Categoria"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos inválidos.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Falta el token, es inválido o ha caducado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "El rol del usuario, o la propiedad del recurso, no permiten la operación.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Ya existe una categoría con ese nombre.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "El servicio de autenticación no está configurado o no responde.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "description": "Datos de la categoría; el `slug` se deriva del nombre.",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "nombre"
+                ],
+                "properties": {
+                  "nombre": {
+                    "type": "string"
+                  },
+                  "descripcion": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/categorias/gestion": {
+      "get": {
+        "operationId": "categorias_gestion",
+        "tags": [
+          "Categorías"
+        ],
+        "summary": "Listar todas las categorías, incluidas las inactivas",
+        "description": "**Roles con acceso** (matriz AC04, 2026-11-16): ADMINISTRADOR. La autorización real la aplican los casos de uso.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Todas las categorías.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Categoria"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Falta el token, es inválido o ha caducado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "El rol del usuario, o la propiedad del recurso, no permiten la operación.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "El servicio de autenticación no está configurado o no responde.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/categorias/{id}": {
+      "patch": {
+        "operationId": "categorias_actualizar",
+        "tags": [
+          "Categorías"
+        ],
+        "summary": "Editar una categoría",
+        "description": "**Roles con acceso** (matriz AC04, 2026-11-16): ADMINISTRADOR. La autorización real la aplican los casos de uso.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Categoría actualizada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Categoria"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos inválidos. Un identificador de la ruta que no es un UUID produce el cuerpo estándar de NestJS (`ErrorNest`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/Error"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErrorNest"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Falta el token, es inválido o ha caducado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "El rol del usuario, o la propiedad del recurso, no permiten la operación.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "La categoría no existe.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Ya existe una categoría con ese nombre.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "El servicio de autenticación no está configurado o no responde.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Identificador de la categoría.",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "Campos a modificar (`descripcion: null` la borra).",
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "nombre": {
+                    "type": "string"
+                  },
+                  "descripcion": {
+                    "type": "string",
+                    "nullable": true
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/categorias/{id}/estado": {
+      "patch": {
+        "operationId": "categorias_estado",
+        "tags": [
+          "Categorías"
+        ],
+        "summary": "Activar o desactivar una categoría",
+        "description": "**Roles con acceso** (matriz AC04, 2026-11-16): ADMINISTRADOR. La autorización real la aplican los casos de uso.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Categoría actualizada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Categoria"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos inválidos. Un identificador de la ruta que no es un UUID produce el cuerpo estándar de NestJS (`ErrorNest`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/Error"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErrorNest"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Falta el token, es inválido o ha caducado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "El rol del usuario, o la propiedad del recurso, no permiten la operación.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "La categoría no existe.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "El servicio de autenticación no está configurado o no responde.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Identificador de la categoría.",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "Nueva disponibilidad.",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "activa"
+                ],
+                "properties": {
+                  "activa": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/productos": {
+      "post": {
+        "operationId": "productos_crear",
+        "tags": [
+          "Productos"
+        ],
+        "summary": "Crear un producto",
+        "description": "El producto nace en BORRADOR. El comerciante solo puede crearlo en un puesto propio.\n\n**Roles con acceso** (matriz AC04, 2026-11-16): COMERCIANTE. La autorización real la aplican los casos de uso.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Producto creado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Producto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos inválidos.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Falta el token, es inválido o ha caducado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "El rol del usuario, o la propiedad del recurso, no permiten la operación.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "El puesto o la categoría no existen.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "La categoría está inactiva o el puesto no está operativo.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "El servicio de autenticación no está configurado o no responde.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "description": "Datos del producto.",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "puestoId",
+                  "categoriaId",
+                  "nombre",
+                  "precio",
+                  "unidadVenta"
+                ],
+                "properties": {
+                  "puestoId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "categoriaId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "nombre": {
+                    "type": "string",
+                    "maxLength": 150
+                  },
+                  "descripcion": {
+                    "type": "string"
+                  },
+                  "precio": {
+                    "description": "Importe positivo con hasta dos decimales; el caso de uso acepta texto o número.",
+                    "oneOf": [
+                      {
+                        "type": "string",
+                        "example": "12.50"
+                      },
+                      {
+                        "type": "number"
+                      }
+                    ]
+                  },
+                  "unidadVenta": {
+                    "type": "string",
+                    "enum": [
+                      "UNIDAD",
+                      "KILOGRAMO",
+                      "GRAMO",
+                      "LITRO",
+                      "DOCENA",
+                      "MANOJO",
+                      "PAQUETE"
+                    ]
+                  },
+                  "presentacion": {
+                    "type": "string",
+                    "maxLength": 100
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "operationId": "productos_listar",
+        "tags": [
+          "Productos"
+        ],
+        "summary": "Listar productos de gestión",
+        "description": "Un comerciante ve solo los de sus puestos. El catálogo público está en `/api/v1/catalogo/productos`.\n\n**Roles con acceso** (matriz AC04, 2026-11-16): ADMINISTRADOR; COMERCIANTE. La autorización real la aplican los casos de uso.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Página de productos.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginaProductos"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Filtros o paginación inválidos.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Falta el token, es inválido o ha caducado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "El rol del usuario, o la propiedad del recurso, no permiten la operación.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "El servicio de autenticación no está configurado o no responde.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "puestoId",
+            "in": "query",
+            "required": false,
+            "description": "Filtra por puesto (UUID).",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "categoriaId",
+            "in": "query",
+            "required": false,
+            "description": "Filtra por categoría (UUID).",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "estado",
+            "in": "query",
+            "required": false,
+            "description": "Filtra por estado de publicación.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "BORRADOR",
+                "PUBLICADO",
+                "DESACTIVADO"
+              ]
+            }
+          },
+          {
+            "name": "pagina",
+            "in": "query",
+            "required": false,
+            "description": "Número de página (entero ≥ 1; por defecto 1).",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limite",
+            "in": "query",
+            "required": false,
+            "description": "Elementos por página (1–100).",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    },
+    "/api/v1/productos/{id}": {
+      "get": {
+        "operationId": "productos_obtener",
+        "tags": [
+          "Productos"
+        ],
+        "summary": "Consultar un producto",
+        "description": "**Roles con acceso** (matriz AC04, 2026-11-16): ADMINISTRADOR; COMERCIANTE titular. La autorización real la aplican los casos de uso.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Producto.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Producto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos de entrada inválidos. Un identificador de la ruta que no es un UUID produce el cuerpo estándar de NestJS (`ErrorNest`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/Error"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErrorNest"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Falta el token, es inválido o ha caducado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "El rol del usuario, o la propiedad del recurso, no permiten la operación.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "El producto no existe.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "El servicio de autenticación no está configurado o no responde.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Identificador del producto.",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ]
+      },
+      "patch": {
+        "operationId": "productos_actualizar",
+        "tags": [
+          "Productos"
+        ],
+        "summary": "Editar un producto",
+        "description": "Solo se aplican los campos listados; el puesto y el estado no se cambian por aquí.\n\n**Roles con acceso** (matriz AC04, 2026-11-16): COMERCIANTE titular. La autorización real la aplican los casos de uso.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Producto actualizado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Producto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos inválidos. Un identificador de la ruta que no es un UUID produce el cuerpo estándar de NestJS (`ErrorNest`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/Error"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErrorNest"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Falta el token, es inválido o ha caducado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "El rol del usuario, o la propiedad del recurso, no permiten la operación.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "El producto no existe.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "La categoría está inactiva.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "El servicio de autenticación no está configurado o no responde.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Identificador del producto.",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "Campos a modificar.",
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "categoriaId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "nombre": {
+                    "type": "string",
+                    "maxLength": 150
+                  },
+                  "descripcion": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "precio": {
+                    "oneOf": [
+                      {
+                        "type": "string",
+                        "example": "12.50"
+                      },
+                      {
+                        "type": "number"
+                      }
+                    ]
+                  },
+                  "unidadVenta": {
+                    "type": "string",
+                    "enum": [
+                      "UNIDAD",
+                      "KILOGRAMO",
+                      "GRAMO",
+                      "LITRO",
+                      "DOCENA",
+                      "MANOJO",
+                      "PAQUETE"
+                    ]
+                  },
+                  "presentacion": {
+                    "type": "string",
+                    "nullable": true,
+                    "maxLength": 100
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/productos/{id}/estado": {
+      "patch": {
+        "operationId": "productos_estado",
+        "tags": [
+          "Productos"
+        ],
+        "summary": "Publicar o desactivar un producto",
+        "description": "**Roles con acceso** (matriz AC04, 2026-11-16): COMERCIANTE titular. La autorización real la aplican los casos de uso.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Producto actualizado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Producto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Acción inválida. Un identificador de la ruta que no es un UUID produce el cuerpo estándar de NestJS (`ErrorNest`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/Error"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErrorNest"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Falta el token, es inválido o ha caducado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "El rol del usuario, o la propiedad del recurso, no permiten la operación.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "El producto no existe.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Transición de estado no permitida.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "El servicio de autenticación no está configurado o no responde.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Identificador del producto.",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "Acción a ejecutar.",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "accion"
+                ],
+                "properties": {
+                  "accion": {
+                    "type": "string",
+                    "enum": [
+                      "PUBLICAR",
+                      "DESACTIVAR"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/productos/{id}/imagenes": {
+      "post": {
+        "operationId": "productos_imagen_subir",
+        "tags": [
+          "Productos"
+        ],
+        "summary": "Subir una imagen del producto",
+        "description": "Una imagen por solicitud (máximo 5 por producto). Formatos JPEG, PNG o WebP, de hasta 2 MiB; el contenido se comprueba por su firma. Se guarda en el almacenamiento de imágenes.\n\n**Roles con acceso** (matriz AC04, 2026-11-16): COMERCIANTE titular. La autorización real la aplican los casos de uso.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Producto con la imagen añadida.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Producto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Archivo ausente, vacío, demasiado grande o de un tipo no admitido. Un identificador de la ruta que no es un UUID produce el cuerpo estándar de NestJS (`ErrorNest`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/Error"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErrorNest"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Falta el token, es inválido o ha caducado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "El rol del usuario, o la propiedad del recurso, no permiten la operación.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "El producto no existe.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "El producto ya tiene el máximo de imágenes.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "El almacenamiento de imágenes no está configurado o no responde. También: el servicio de autenticación no está configurado o no responde.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Identificador del producto.",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "Archivo y texto alternativo.",
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "archivo"
+                ],
+                "properties": {
+                  "archivo": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "Imagen JPEG, PNG o WebP (máx. 2 MiB)."
+                  },
+                  "textoAlternativo": {
+                    "type": "string",
+                    "description": "Opcional."
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/productos/{id}/imagenes/{imagenId}": {
+      "delete": {
+        "operationId": "productos_imagen_quitar",
+        "tags": [
+          "Productos"
+        ],
+        "summary": "Eliminar una imagen del producto",
+        "description": "**Roles con acceso** (matriz AC04, 2026-11-16): COMERCIANTE titular. La autorización real la aplican los casos de uso.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Producto sin la imagen.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Producto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos de entrada inválidos. Un identificador de la ruta que no es un UUID produce el cuerpo estándar de NestJS (`ErrorNest`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/Error"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErrorNest"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Falta el token, es inválido o ha caducado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "El rol del usuario, o la propiedad del recurso, no permiten la operación.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "El producto o la imagen no existen.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "El almacenamiento de imágenes no responde. También: el servicio de autenticación no está configurado o no responde.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Identificador del producto.",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "imagenId",
+            "in": "path",
+            "required": true,
+            "description": "Identificador de la imagen.",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ]
+      }
+    },
+    "/api/v1/catalogo/productos": {
+      "get": {
+        "operationId": "catalogo_buscar",
+        "tags": [
+          "Catálogo"
+        ],
+        "summary": "Buscar productos publicados (público)",
+        "description": "Solo productos PUBLICADOS de puestos, comerciantes y categorías activos.",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Página de productos publicados.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginaCatalogo"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Filtros, orden o paginación inválidos.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "description": "Texto de búsqueda (hasta 100 caracteres).",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "categoriaId",
+            "in": "query",
+            "required": false,
+            "description": "Filtra por categoría (UUID).",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "puestoId",
+            "in": "query",
+            "required": false,
+            "description": "Filtra por puesto (UUID).",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "precioMin",
+            "in": "query",
+            "required": false,
+            "description": "Precio mínimo (importe con hasta dos decimales).",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "precioMax",
+            "in": "query",
+            "required": false,
+            "description": "Precio máximo (importe con hasta dos decimales).",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "orden",
+            "in": "query",
+            "required": false,
+            "description": "Criterio de orden.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "recientes",
+                "precio_asc",
+                "precio_desc",
+                "nombre"
+              ]
+            }
+          },
+          {
+            "name": "pagina",
+            "in": "query",
+            "required": false,
+            "description": "Número de página (entero ≥ 1; por defecto 1).",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limite",
+            "in": "query",
+            "required": false,
+            "description": "Elementos por página (1–50).",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    },
+    "/api/v1/catalogo/productos/{id}": {
+      "get": {
+        "operationId": "catalogo_detalle",
+        "tags": [
+          "Catálogo"
+        ],
+        "summary": "Detalle de un producto publicado (público)",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Producto.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductoCatalogo"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "El producto no existe o no está publicado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Identificador del producto.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    },
+    "/api/v1/inventario": {
+      "get": {
+        "operationId": "inventario_listar",
+        "tags": [
+          "Inventario"
+        ],
+        "summary": "Listar existencias",
+        "description": "Un comerciante ve solo las de sus puestos. La reserva de stock es una API interna, no una ruta HTTP.\n\n**Roles con acceso** (matriz AC04, 2026-11-16): ADMINISTRADOR (lectura); COMERCIANTE. La autorización real la aplican los casos de uso.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Página de existencias.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginaExistencias"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Filtro o paginación inválidos.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Falta el token, es inválido o ha caducado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "El rol del usuario, o la propiedad del recurso, no permiten la operación.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "El servicio de autenticación no está configurado o no responde.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "puestoId",
+            "in": "query",
+            "required": false,
+            "description": "Filtra por puesto (UUID).",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "pagina",
+            "in": "query",
+            "required": false,
+            "description": "Número de página (entero ≥ 1; por defecto 1).",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limite",
+            "in": "query",
+            "required": false,
+            "description": "Elementos por página (1–100).",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    },
+    "/api/v1/inventario/productos/{productoId}": {
+      "get": {
+        "operationId": "inventario_producto",
+        "tags": [
+          "Inventario"
+        ],
+        "summary": "Existencias de un producto",
+        "description": "Un producto sin existencias registradas devuelve ceros.\n\n**Roles con acceso** (matriz AC04, 2026-11-16): ADMINISTRADOR (lectura); COMERCIANTE titular. La autorización real la aplican los casos de uso.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Existencias.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Existencias"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Falta el token, es inválido o ha caducado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "El rol del usuario, o la propiedad del recurso, no permiten la operación.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "El producto no existe.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "El servicio de autenticación no está configurado o no responde.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "productoId",
+            "in": "path",
+            "required": true,
+            "description": "Identificador del producto.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    },
+    "/api/v1/inventario/productos/{productoId}/movimientos": {
+      "get": {
+        "operationId": "inventario_movimientos",
+        "tags": [
+          "Inventario"
+        ],
+        "summary": "Historial de movimientos de un producto",
+        "description": "**Roles con acceso** (matriz AC04, 2026-11-16): ADMINISTRADOR (lectura); COMERCIANTE titular. La autorización real la aplican los casos de uso.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Página de movimientos.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginaMovimientos"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Paginación inválida.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Falta el token, es inválido o ha caducado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "El rol del usuario, o la propiedad del recurso, no permiten la operación.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "El producto no existe.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "El servicio de autenticación no está configurado o no responde.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "productoId",
+            "in": "path",
+            "required": true,
+            "description": "Identificador del producto.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "pagina",
+            "in": "query",
+            "required": false,
+            "description": "Número de página (entero ≥ 1; por defecto 1).",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limite",
+            "in": "query",
+            "required": false,
+            "description": "Elementos por página (1–100).",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      },
+      "post": {
+        "operationId": "inventario_registrar",
+        "tags": [
+          "Inventario"
+        ],
+        "summary": "Registrar un ingreso, devolución o ajuste",
+        "description": "Aplica un delta atómico al stock físico y genera un movimiento. Un AJUSTE puede ser negativo y exige motivo.\n\n**Roles con acceso** (matriz AC04, 2026-11-16): COMERCIANTE titular. La autorización real la aplican los casos de uso.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Existencias resultantes.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Existencias"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Tipo, cantidad o motivo inválidos.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Falta el token, es inválido o ha caducado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "El rol del usuario, o la propiedad del recurso, no permiten la operación.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "El producto no existe.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "El ajuste dejaría el stock físico por debajo del reservado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "El servicio de autenticación no está configurado o no responde.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "productoId",
+            "in": "path",
+            "required": true,
+            "description": "Identificador del producto.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "Movimiento manual.",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "tipo",
+                  "cantidad"
+                ],
+                "properties": {
+                  "tipo": {
+                    "type": "string",
+                    "enum": [
+                      "INGRESO",
+                      "DEVOLUCION",
+                      "AJUSTE"
+                    ]
+                  },
+                  "cantidad": {
+                    "type": "integer",
+                    "description": "Entero distinto de cero (|cantidad| ≤ 1 000 000); solo el AJUSTE admite negativos."
+                  },
+                  "motivo": {
+                    "type": "string",
+                    "maxLength": 200,
+                    "description": "Obligatorio en un AJUSTE."
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/carrito": {
+      "get": {
+        "operationId": "carrito_obtener",
+        "tags": [
+          "Carrito"
+        ],
+        "summary": "Consultar el carrito",
+        "description": "Todas las operaciones del carrito devuelven el carrito completo, agrupado por puesto.\n\n**Roles con acceso** (matriz AC04, 2026-11-16): CLIENTE. La autorización real la aplican los casos de uso.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Carrito.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Carrito"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Falta el token, es inválido o ha caducado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "El rol del usuario, o la propiedad del recurso, no permiten la operación.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "El servicio de autenticación no está configurado o no responde.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "operationId": "carrito_vaciar",
+        "tags": [
+          "Carrito"
+        ],
+        "summary": "Vaciar el carrito",
+        "description": "**Roles con acceso** (matriz AC04, 2026-11-16): CLIENTE. La autorización real la aplican los casos de uso.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Carrito vacío.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Carrito"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Falta el token, es inválido o ha caducado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "El rol del usuario, o la propiedad del recurso, no permiten la operación.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "El servicio de autenticación no está configurado o no responde.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/carrito/items": {
+      "post": {
+        "operationId": "carrito_agregar",
+        "tags": [
+          "Carrito"
+        ],
+        "summary": "Agregar un producto",
+        "description": "Si el producto ya está en el carrito, suma la cantidad. No reserva stock.\n\n**Roles con acceso** (matriz AC04, 2026-11-16): CLIENTE. La autorización real la aplican los casos de uso.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Carrito actualizado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Carrito"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos inválidos.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Falta el token, es inválido o ha caducado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "El rol del usuario, o la propiedad del recurso, no permiten la operación.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "El producto no está disponible.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Stock insuficiente o límite de 50 productos distintos.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "El servicio de autenticación no está configurado o no responde.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "description": "Producto y cantidad.",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "productoId",
+                  "cantidad"
+                ],
+                "properties": {
+                  "productoId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "cantidad": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 10000
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/carrito/items/{productoId}": {
+      "patch": {
+        "operationId": "carrito_cantidad",
+        "tags": [
+          "Carrito"
+        ],
+        "summary": "Fijar la cantidad de un producto",
+        "description": "**Roles con acceso** (matriz AC04, 2026-11-16): CLIENTE. La autorización real la aplican los casos de uso.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Carrito actualizado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Carrito"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos inválidos.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Falta el token, es inválido o ha caducado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "El rol del usuario, o la propiedad del recurso, no permiten la operación.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "El producto no está en el carrito.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Stock insuficiente.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "El servicio de autenticación no está configurado o no responde.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "productoId",
+            "in": "path",
+            "required": true,
+            "description": "Identificador del producto.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "Nueva cantidad.",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "cantidad"
+                ],
+                "properties": {
+                  "cantidad": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 10000
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "operationId": "carrito_quitar",
+        "tags": [
+          "Carrito"
+        ],
+        "summary": "Quitar un producto",
+        "description": "**Roles con acceso** (matriz AC04, 2026-11-16): CLIENTE. La autorización real la aplican los casos de uso.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Carrito actualizado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Carrito"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Falta el token, es inválido o ha caducado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "El rol del usuario, o la propiedad del recurso, no permiten la operación.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "El producto no está en el carrito.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "El servicio de autenticación no está configurado o no responde.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "productoId",
+            "in": "path",
+            "required": true,
+            "description": "Identificador del producto.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "JWT de sesión emitido por Supabase Auth."
+      }
+    },
+    "schemas": {
+      "Error": {
+        "type": "object",
+        "description": "Error de negocio o de seguridad traducido por el filtro global (`DomainErrorFilter`).",
+        "required": [
+          "statusCode",
+          "codigo",
+          "mensaje"
+        ],
+        "properties": {
+          "statusCode": {
+            "type": "integer",
+            "enum": [
+              400,
+              401,
+              403,
+              404,
+              409,
+              503
+            ]
+          },
+          "codigo": {
+            "type": "string",
+            "enum": [
+              "VALIDACION",
+              "NO_AUTENTICADO",
+              "PROHIBIDO",
+              "NO_ENCONTRADO",
+              "CONFLICTO",
+              "SERVICIO_NO_DISPONIBLE"
+            ]
+          },
+          "mensaje": {
+            "type": "string"
+          }
+        }
+      },
+      "ErrorNest": {
+        "type": "object",
+        "description": "Error estándar de NestJS: lo produce `ParseUUIDPipe` cuando un identificador de la ruta no es un UUID.",
+        "required": [
+          "statusCode",
+          "message"
+        ],
+        "properties": {
+          "statusCode": {
+            "type": "integer",
+            "example": 400
+          },
+          "message": {
+            "type": "string",
+            "example": "Validation failed (uuid is expected)"
+          },
+          "error": {
+            "type": "string",
+            "example": "Bad Request"
+          }
+        }
+      },
+      "Usuario": {
+        "type": "object",
+        "description": "Usuario, sin el identificador interno de Supabase Auth (no se expone).",
+        "required": [
+          "id",
+          "email",
+          "nombres",
+          "apellidos",
+          "telefono",
+          "rol",
+          "estado",
+          "creadoEn"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "nombres": {
+            "type": "string"
+          },
+          "apellidos": {
+            "type": "string"
+          },
+          "telefono": {
+            "type": "string",
+            "nullable": true
+          },
+          "rol": {
+            "type": "string",
+            "enum": [
+              "CLIENTE",
+              "COMERCIANTE",
+              "TRABAJADOR_PUESTO",
+              "ADMINISTRADOR"
+            ]
+          },
+          "estado": {
+            "type": "string",
+            "enum": [
+              "ACTIVO",
+              "INACTIVO"
+            ]
+          },
+          "creadoEn": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "Comerciante": {
+        "type": "object",
+        "required": [
+          "id",
+          "usuarioId",
+          "nombreComercial",
+          "estado",
+          "creadoEn"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "usuarioId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "nombreComercial": {
+            "type": "string"
+          },
+          "estado": {
+            "type": "string",
+            "enum": [
+              "ACTIVO",
+              "SUSPENDIDO"
+            ]
+          },
+          "creadoEn": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "Puesto": {
+        "type": "object",
+        "required": [
+          "id",
+          "comercianteId",
+          "codigo",
+          "nombre",
+          "estado",
+          "creadoEn"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "comercianteId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "codigo": {
+            "type": "string",
+            "pattern": "^[A-Z0-9][A-Z0-9-]{0,19}$",
+            "example": "A-12"
+          },
+          "nombre": {
+            "type": "string"
+          },
+          "estado": {
+            "type": "string",
+            "enum": [
+              "ACTIVO",
+              "INACTIVO"
+            ]
+          },
+          "creadoEn": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "PuestoPublico": {
+        "type": "object",
+        "description": "Vista pública de un puesto operativo (para filtrar el catálogo).",
+        "required": [
+          "id",
+          "codigo",
+          "nombre"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "codigo": {
+            "type": "string"
+          },
+          "nombre": {
+            "type": "string"
+          }
+        }
+      },
+      "Categoria": {
+        "type": "object",
+        "required": [
+          "id",
+          "nombre",
+          "slug",
+          "descripcion",
+          "activa",
+          "creadoEn"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "nombre": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string",
+            "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+          },
+          "descripcion": {
+            "type": "string",
+            "nullable": true
+          },
+          "activa": {
+            "type": "boolean"
+          },
+          "creadoEn": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "ImagenProducto": {
+        "type": "object",
+        "required": [
+          "id",
+          "url",
+          "textoAlternativo",
+          "orden"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "description": "URL pública, o null si el almacenamiento no está configurado.",
+            "nullable": true
+          },
+          "textoAlternativo": {
+            "type": "string",
+            "nullable": true
+          },
+          "orden": {
+            "type": "integer",
+            "minimum": 0
+          }
+        }
+      },
+      "Producto": {
+        "type": "object",
+        "description": "Producto en la vista de gestión del comerciante.",
+        "required": [
+          "id",
+          "puestoId",
+          "categoriaId",
+          "nombre",
+          "descripcion",
+          "precio",
+          "unidadVenta",
+          "presentacion",
+          "estado",
+          "imagenes",
+          "creadoEn"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "puestoId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "categoriaId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "nombre": {
+            "type": "string",
+            "maxLength": 150
+          },
+          "descripcion": {
+            "type": "string",
+            "nullable": true
+          },
+          "precio": {
+            "type": "string",
+            "pattern": "^\\d+\\.\\d{2}$",
+            "description": "Importe en soles con dos decimales, como texto exacto.",
+            "example": "12.50"
+          },
+          "unidadVenta": {
+            "type": "string",
+            "enum": [
+              "UNIDAD",
+              "KILOGRAMO",
+              "GRAMO",
+              "LITRO",
+              "DOCENA",
+              "MANOJO",
+              "PAQUETE"
+            ]
+          },
+          "presentacion": {
+            "type": "string",
+            "maxLength": 100,
+            "nullable": true
+          },
+          "estado": {
+            "type": "string",
+            "enum": [
+              "BORRADOR",
+              "PUBLICADO",
+              "DESACTIVADO"
+            ]
+          },
+          "imagenes": {
+            "type": "array",
+            "maxItems": 5,
+            "items": {
+              "$ref": "#/components/schemas/ImagenProducto"
+            }
+          },
+          "creadoEn": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "ProductoCatalogo": {
+        "type": "object",
+        "description": "Producto publicado en el catálogo público.",
+        "required": [
+          "id",
+          "nombre",
+          "descripcion",
+          "precio",
+          "unidadVenta",
+          "presentacion",
+          "categoria",
+          "puesto",
+          "imagenes"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "nombre": {
+            "type": "string"
+          },
+          "descripcion": {
+            "type": "string",
+            "nullable": true
+          },
+          "precio": {
+            "type": "string",
+            "pattern": "^\\d+\\.\\d{2}$",
+            "description": "Importe en soles con dos decimales, como texto exacto.",
+            "example": "12.50"
+          },
+          "unidadVenta": {
+            "type": "string",
+            "enum": [
+              "UNIDAD",
+              "KILOGRAMO",
+              "GRAMO",
+              "LITRO",
+              "DOCENA",
+              "MANOJO",
+              "PAQUETE"
+            ]
+          },
+          "presentacion": {
+            "type": "string",
+            "nullable": true
+          },
+          "categoria": {
+            "type": "object",
+            "required": [
+              "id",
+              "nombre",
+              "slug"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "nombre": {
+                "type": "string"
+              },
+              "slug": {
+                "type": "string"
+              }
+            }
+          },
+          "puesto": {
+            "$ref": "#/components/schemas/PuestoPublico"
+          },
+          "imagenes": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "url",
+                "textoAlternativo",
+                "orden"
+              ],
+              "properties": {
+                "url": {
+                  "type": "string",
+                  "format": "uri",
+                  "nullable": true
+                },
+                "textoAlternativo": {
+                  "type": "string",
+                  "nullable": true
+                },
+                "orden": {
+                  "type": "integer"
+                }
+              }
+            }
+          }
+        }
+      },
+      "PaginaProductos": {
+        "type": "object",
+        "required": [
+          "datos",
+          "pagina",
+          "limite",
+          "total",
+          "totalPaginas"
+        ],
+        "properties": {
+          "datos": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Producto"
+            }
+          },
+          "pagina": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "limite": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "total": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "totalPaginas": {
+            "type": "integer",
+            "minimum": 0
+          }
+        }
+      },
+      "PaginaCatalogo": {
+        "type": "object",
+        "required": [
+          "datos",
+          "pagina",
+          "limite",
+          "total",
+          "totalPaginas"
+        ],
+        "properties": {
+          "datos": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProductoCatalogo"
+            }
+          },
+          "pagina": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "limite": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "total": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "totalPaginas": {
+            "type": "integer",
+            "minimum": 0
+          }
+        }
+      },
+      "Existencias": {
+        "type": "object",
+        "required": [
+          "productoId",
+          "puestoId",
+          "stockFisico",
+          "stockReservado",
+          "stockDisponible"
+        ],
+        "properties": {
+          "productoId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "puestoId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "stockFisico": {
+            "type": "integer"
+          },
+          "stockReservado": {
+            "type": "integer"
+          },
+          "stockDisponible": {
+            "type": "integer",
+            "description": "Físico menos reservado."
+          }
+        }
+      },
+      "MovimientoInventario": {
+        "type": "object",
+        "required": [
+          "id",
+          "tipo",
+          "variacionFisica",
+          "variacionReservada",
+          "stockFisicoDespues",
+          "stockReservadoDespues",
+          "motivo",
+          "actorId",
+          "referencia",
+          "creadoEn"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "tipo": {
+            "type": "string",
+            "enum": [
+              "INGRESO",
+              "DEVOLUCION",
+              "AJUSTE",
+              "VENTA",
+              "RESERVA",
+              "LIBERACION"
+            ]
+          },
+          "variacionFisica": {
+            "type": "integer"
+          },
+          "variacionReservada": {
+            "type": "integer"
+          },
+          "stockFisicoDespues": {
+            "type": "integer"
+          },
+          "stockReservadoDespues": {
+            "type": "integer"
+          },
+          "motivo": {
+            "type": "string",
+            "nullable": true
+          },
+          "actorId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "referencia": {
+            "type": "string",
+            "nullable": true
+          },
+          "creadoEn": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "PaginaExistencias": {
+        "type": "object",
+        "required": [
+          "datos",
+          "pagina",
+          "limite",
+          "total",
+          "totalPaginas"
+        ],
+        "properties": {
+          "datos": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Existencias"
+            }
+          },
+          "pagina": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "limite": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "total": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "totalPaginas": {
+            "type": "integer",
+            "minimum": 0
+          }
+        }
+      },
+      "PaginaMovimientos": {
+        "type": "object",
+        "required": [
+          "datos",
+          "pagina",
+          "limite",
+          "total",
+          "totalPaginas"
+        ],
+        "properties": {
+          "datos": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MovimientoInventario"
+            }
+          },
+          "pagina": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "limite": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "total": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "totalPaginas": {
+            "type": "integer",
+            "minimum": 0
+          }
+        }
+      },
+      "LineaCarrito": {
+        "type": "object",
+        "required": [
+          "productoId",
+          "nombre",
+          "unidadVenta",
+          "presentacion",
+          "cantidad",
+          "precioUnitario",
+          "subtotal",
+          "estado",
+          "disponible"
+        ],
+        "properties": {
+          "productoId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "nombre": {
+            "type": "string",
+            "nullable": true
+          },
+          "unidadVenta": {
+            "type": "string",
+            "nullable": true
+          },
+          "presentacion": {
+            "type": "string",
+            "nullable": true
+          },
+          "cantidad": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "precioUnitario": {
+            "type": "string",
+            "pattern": "^\\d+\\.\\d{2}$",
+            "description": "Importe en soles con dos decimales, como texto exacto.",
+            "example": "12.50",
+            "nullable": true
+          },
+          "subtotal": {
+            "type": "string",
+            "pattern": "^\\d+\\.\\d{2}$",
+            "description": "Importe en soles con dos decimales, como texto exacto.",
+            "example": "12.50",
+            "nullable": true
+          },
+          "estado": {
+            "type": "string",
+            "enum": [
+              "OK",
+              "NO_DISPONIBLE",
+              "STOCK_INSUFICIENTE"
+            ],
+            "description": "Solo las líneas `OK` suman al subtotal y al total."
+          },
+          "disponible": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Unidades disponibles hoy."
+          }
+        }
+      },
+      "GrupoPuesto": {
+        "type": "object",
+        "required": [
+          "puesto",
+          "items",
+          "subtotal"
+        ],
+        "properties": {
+          "puesto": {
+            "type": "object",
+            "required": [
+              "id",
+              "codigo",
+              "nombre"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "codigo": {
+                "type": "string",
+                "nullable": true
+              },
+              "nombre": {
+                "type": "string",
+                "nullable": true
+              }
+            }
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LineaCarrito"
+            }
+          },
+          "subtotal": {
+            "type": "string",
+            "pattern": "^\\d+\\.\\d{2}$",
+            "description": "Importe en soles con dos decimales, como texto exacto.",
+            "example": "12.50"
+          }
+        }
+      },
+      "Carrito": {
+        "type": "object",
+        "description": "Carrito completo del cliente. Precio y disponibilidad se leen vigentes en cada consulta; el importe es estimado.",
+        "required": [
+          "puestos",
+          "total",
+          "totalProductos",
+          "requiereRevision"
+        ],
+        "properties": {
+          "puestos": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/GrupoPuesto"
+            }
+          },
+          "total": {
+            "type": "string",
+            "pattern": "^\\d+\\.\\d{2}$",
+            "description": "Importe en soles con dos decimales, como texto exacto.",
+            "example": "12.50"
+          },
+          "totalProductos": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "requiereRevision": {
+            "type": "boolean"
+          }
+        }
+      },
+      "Saludo": {
+        "type": "string",
+        "example": "Hello World!",
+        "description": "Texto de la plantilla de NestJS; no forma parte del dominio."
+      }
+    }
+  }
+}
