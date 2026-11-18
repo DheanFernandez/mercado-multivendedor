@@ -1,0 +1,40 @@
+# PostgreSQL LOCAL para el ENTORNO DE DEMOSTRACIÓN del catálogo (spec 004, E2). Separado de la base de pruebas
+# (`mercado-test`, puerto 55433) y de Supabase: proyecto, contenedor, red, volumen y puerto propios.
+# Credenciales de desarrollo EXCLUSIVAMENTE locales (no son de Supabase ni de ningún servicio remoto).
+# Sin política de reinicio: solo arranca cuando se pide.
+#
+#   Iniciar:   npm run db:dev:up       (en backend/)  ·  docker compose -f ops/demo/docker-compose.yml up -d --wait
+#   Detener:   npm run db:dev:stop     (conserva los datos)
+#   Eliminar:  npm run db:dev:down     (borra SOLO este contenedor, su red y su volumen mercado_dev_pgdata)
+name: mercado-dev
+
+services:
+  db:
+    image: postgres:17-alpine
+    container_name: mercado-dev-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: dev
+      POSTGRES_DB: mercado_dev
+    ports:
+      - "127.0.0.1:55434:5432"
+    volumes:
+      - mercado_dev_pgdata:/var/lib/postgresql/data
+    networks:
+      - mercado_dev_net
+    labels:
+      mercado.uso: "demostracion"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d mercado_dev"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+      start_period: 3s
+
+volumes:
+  mercado_dev_pgdata:
+    name: mercado_dev_pgdata
+
+networks:
+  mercado_dev_net:
+    name: mercado_dev_net
