@@ -1,4 +1,5 @@
 import { defineConfig } from 'vitest/config';
+import { cobertura } from './vitest.cobertura.js';
 
 export default defineConfig({
   // Resolves the path aliases declared in tsconfig.json, including the ones
@@ -7,6 +8,7 @@ export default defineConfig({
   test: {
     globals: true,
     root: './',
+    coverage: cobertura,
     include: ['**/*.spec.ts'],
   },
 });
