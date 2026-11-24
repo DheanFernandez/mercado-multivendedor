@@ -50,7 +50,7 @@ description: "Tareas del módulo Inventario (S-05 · H2), redactadas a posterior
 - [X] T007 [US1] Prevención de stock negativo en el caso de uso: un ajuste no baja de cero ni de lo reservado — `domain/stock.ts` (`variarFisico`), `inventario.use-cases.ts` — RF14 · R1, R3. Prueba (Doble): [`inventario.use-cases.spec.ts`](../../backend/src/modules/inventory/application/use-cases/inventario.use-cases.spec.ts) («prevención de stock negativo…»), [`stock.spec.ts`](../../backend/src/modules/inventory/domain/stock.spec.ts) («un ajuste no puede dejar el físico por debajo de lo reservado»)
 - [X] T008 [US1] `variarStock` en PostgreSQL: crea la fila si falta, aplica el delta con `UPDATE` condicionado a `físico + Δ ≥ reservado` y escribe el movimiento en la misma transacción — `infrastructure/prisma-inventario.repository.ts` — RF12, RF13 · R3. Prueba: [`inventario.db-spec.ts`](../../backend/test/inventario.db-spec.ts) («movimientos y actualizaciones de stock (RF12, RF13)»: 60 ingresos simultáneos suman 60; 30 ajustes de −1 sobre stock 10 aplican exactamente 10) — *ejecutada el 2026-11-23: correcta; CI 2026-11-18 también correcto ([evidencia](../../docs/07-sprint-02/evidencias/2026-11-23/inventario/README.md))*
 
-**Checkpoint**: US1 verificada con dobles y por HTTP; su atomicidad en base de datos queda pendiente de ejecución local (T008).
+**Checkpoint**: US1 verificada con dobles y por HTTP; su atomicidad en PostgreSQL (T008) pasó en `test:db` el 2026-11-23.
 
 ---
 
@@ -83,7 +83,7 @@ description: "Tareas del módulo Inventario (S-05 · H2), redactadas a posterior
 - [X] T018 [US3] Invariantes con operaciones aleatorias concurrentes (25 oleadas × 40 operaciones por semilla) — R1. Prueba: [`inventario-invariantes.db-spec.ts`](../../backend/test/inventario-invariantes.db-spec.ts) — *ejecutada el 2026-11-23: correcta; CI 2026-11-18 también correcto ([evidencia](../../docs/07-sprint-02/evidencias/2026-11-23/inventario/README.md))*
 - [X] T019 [US3] EQ-03 (parte Vitest): serie 1 (stock 1, N = 2, 5 y 20, 100 iteraciones por N) y serie 2 (stock 10, 200 clientes, 100 iteraciones); comprobación SQL final `stock_reservado > stock_fisico` = 0 — AC07 · EQ-03. Prueba: [`eq03-concurrencia.db-spec.ts`](../../backend/test/eq03-concurrencia.db-spec.ts) — *ejecutada el 2026-11-23: 5 / 5 correctas; es una **repetición parcial** de la medición del 05/11 ([evidencia](../../docs/07-sprint-02/evidencias/2026-11-23/inventario/README.md)). **No repetida:** la medición con k6 ([`eq03-reserva.js`](../../ops/k6/eq03-reserva.js), [`servidor-eq03.ts`](../../backend/src/scripts/servidor-eq03.ts)); sigue vigente la del 2026-11-05 (400/400). Limitación de spec §5: mide `ReservarInventario`, no «confirmar pedido»*
 
-**Checkpoint**: la lógica de US3 está verificada con dobles; la garantía de concurrencia (T015–T019) depende de ejecutar `test:db`.
+**Checkpoint**: la lógica de US3 está verificada con dobles y la atomicidad y la concurrencia (T015–T018 y la parte Vitest de T019) pasaron en `test:db` el 2026-11-23; la medición con k6 de EQ-03 no se repitió.
 
 ---
 
