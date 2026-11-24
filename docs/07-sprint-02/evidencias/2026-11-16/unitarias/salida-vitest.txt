@@ -1,0 +1,41 @@
+
+ RUN  v4.1.12 D:/LABO_Lizbeth/mercado-multivendedor/backend
+
+ ✓ src/modules/cart/domain/calculo.spec.ts (9 tests) 10ms
+ ✓ src/modules/inventory/index.spec.ts (2 tests) 5ms
+ ✓ src/modules/inventory/domain/stock.spec.ts (17 tests) 14ms
+ ✓ src/modules/orders/domain/codigo-pedido.spec.ts (29 tests) 158ms
+ ✓ src/modules/orders/domain/estado-general.spec.ts (11 tests) 11ms
+ ✓ src/modules/orders/domain/estado-subpedido.spec.ts (14 tests) 11ms
+ ✓ src/modules/auth/infrastructure/jose-verificador-token.spec.ts (13 tests) 44ms
+ ✓ src/modules/orders/domain/huella-carrito.spec.ts (12 tests) 10ms
+ ✓ src/modules/orders/domain/pedido-reconstitucion.spec.ts (13 tests) 17ms
+ ✓ src/modules/orders/domain/pedido.entity.spec.ts (68 tests) 30ms
+ ✓ src/modules/orders/infrastructure/importes.spec.ts (14 tests) 14ms
+ ✓ src/modules/products/domain/dominio.spec.ts (39 tests) 17ms
+ ✓ src/shared/infrastructure/prisma/errores-transitorios.spec.ts (22 tests) 9ms
+ ✓ src/modules/auth/application/use-cases/autenticar-solicitud.use-case.spec.ts (5 tests) 10ms
+ ✓ src/modules/cart/application/use-cases/carrito.use-cases.spec.ts (18 tests) 27ms
+ ✓ src/shared/infrastructure/prisma/prisma.service.spec.ts (9 tests) 70ms
+ ✓ src/modules/cart/application/use-cases/pedido.use-cases.spec.ts (14 tests) 16ms
+ ✓ src/shared/infrastructure/storage/supabase-almacen.adapter.spec.ts (41 tests) 61ms
+ ✓ src/modules/catalog/application/use-cases/catalogo-detalles.use-cases.spec.ts (11 tests) 14ms
+ ✓ src/modules/catalog/application/use-cases/catalogo.use-cases.spec.ts (16 tests) 19ms
+ ✓ src/modules/merchants/application/use-cases/gestion-merchants.use-cases.spec.ts (13 tests) 17ms
+ ✓ src/modules/merchants/application/use-cases/merchants.use-cases.spec.ts (11 tests) 16ms
+ ✓ src/modules/inventory/application/use-cases/inventario.use-cases.spec.ts (23 tests) 31ms
+ ✓ src/modules/orders/application/use-cases/crear-pedido.use-cases.spec.ts (52 tests) 61ms
+ ✓ src/modules/orders/application/use-cases/test-doubles.spec.ts (9 tests) 19ms
+ ✓ src/modules/products/application/use-cases/productos.use-cases.spec.ts (25 tests) 49ms
+ ✓ src/modules/users/application/use-cases/gestion-usuarios.use-cases.spec.ts (15 tests) 14ms
+ ✓ src/modules/users/application/use-cases/usuarios.use-cases.spec.ts (23 tests) 23ms
+ ✓ src/modules/users/infrastructure/identity/supabase-identidad.adapter.spec.ts (9 tests) 38ms
+ ✓ src/app.controller.spec.ts (1 test) 247ms
+
+ Test Files  30 passed (30)
+      Tests  558 passed (558)
+   Start at  16:02:38
+   Duration  7.46s (transform 1.34s, setup 0ms, import 7.83s, tests 1.08s, environment 5ms)
+
+JSON report written to C:/Users/Eders/AppData/Local/Temp/claude/2aa27a7b4c90ac4f/4468d0a4-9f1d-4f6f-9a3f-d7bfea16665e/scratchpad/ev/unitarias.json
+exit=0

@@ -1,26 +1,68 @@
 @import "tailwindcss";
 
+/*
+ * Tema claro fijo (decisión del responsable, 2026-11-08; spec 004): la interfaz no sigue el modo oscuro del sistema.
+ * Las clases `dark:` existentes solo se activarían con una clase `.dark` explícita, que hoy no se usa.
+ */
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
   --background: #ffffff;
-  --foreground: #171717;
+  --foreground: #1e1e1e;
+  color-scheme: light;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
+  /* Plus Jakarta Sans, autoalojada por next/font en app/layout.tsx (spec 004, E4; CA-UI-01). */
+  --font-sans: var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+/*
+ * Sistema visual del mercado (spec 004, E4; CA-UI-01). Paleta del responsable:
+ *   marca-600 #5F6F3E (primario) · marca-700 #4E5D33 (primario oscuro) · crema-100 #F7F5EF (fondo) · crema-300 #E7E2D8
+ *   (borde suave) · tinta #1E1E1E · tinta-suave #6B6B6B (sobre blanco o crema) · promo #F3E7D6 / promo-rosa #F8E6D9.
+ * Contraste comprobado (≥ 4,5:1): tinta/crema-100 15,3 · tinta-suave/blanco 5,3 y /crema-100 4,9 · blanco/marca-600 5,5 ·
+ * marca-600/blanco 5,5 · terracota/promo 5,6. Sobre `promo`, el texto secundario usa `tinta-media` (tinta-suave no llega).
+ */
+@theme {
+  --color-marca-50: #f2f4ea;
+  --color-marca-100: #e4e9d3;
+  --color-marca-200: #cbd5ae;
+  --color-marca-300: #aebc85;
+  --color-marca-400: #8e9f60;
+  --color-marca-500: #74854a;
+  --color-marca-600: #5f6f3e;
+  --color-marca-700: #4e5d33;
+  --color-marca-800: #3e4a29;
+  --color-marca-900: #2e371f;
+  --color-crema-50: #fbfaf6;
+  --color-crema-100: #f7f5ef;
+  --color-crema-200: #f0ece2;
+  --color-crema-300: #e7e2d8;
+  --color-crema-400: #d6cfc1;
+  --color-tinta: #1e1e1e;
+  --color-tinta-media: #4f4b45;
+  --color-tinta-suave: #6b6b6b;
+  --color-promo: #f3e7d6;
+  --color-promo-rosa: #f8e6d9;
+  --color-terracota: #8a4a1f;
+  --shadow-tarjeta: 0 1px 2px rgb(30 30 30 / 0.04), 0 10px 28px -14px rgb(30 30 30 / 0.16);
+  --shadow-flotante: 0 10px 40px -12px rgb(30 30 30 / 0.28);
+}
+
+/* Desplazamiento horizontal sin barra visible (categorías en móvil). */
+@utility sin-barra {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
   }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
 }

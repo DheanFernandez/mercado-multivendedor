@@ -1,0 +1,8 @@
+Fecha: 2026-11-16 16:05 -0500
+Equipo: Intel(R) Core(TM) i5-4590 CPU @ 3.30GHz · 15,9 GB RAM · Windows 11 Pro 10.0.26100
+Node: v24.19.0 · npm: 11.17.0
+Vitest: 4.1.12 · dependency-cruiser: 18.7.2
+Repositorio: rama local feat/pedidos-backend, commit a3f0cd0 (2026-11-12), NO publicado en GitHub. Versión publicada: origin/main = 1aab552 (2026-11-06).
+Árbol de trabajo: con cambios sin confirmar de otros frentes (frontend, demo, carrito). En el backend: cambios sin confirmar en backend/package.json (solo scripts) y en src/shared/infrastructure/storage/ (adaptador de Storage); archivos sin seguimiento en backend/scripts/ (base de desarrollo y demo), fuera de src/ y no incluidos en las verificaciones.
+Base de datos: NINGUNA. Las tres verificaciones se ejecutan sin PostgreSQL ni Supabase (la matriz AC04 usa la aplicación con repositorios en memoria y PrismaService sustituido).
+No se ejecutaron pruebas *.db-spec.ts, migraciones, seeds ni k6.

@@ -33,6 +33,18 @@
     "db:test:status": "node ../ops/medicion/test-db.mjs status",
     "db:test:migrate": "node ../ops/medicion/test-db.mjs migrate",
     "db:test:ping": "node ../ops/medicion/test-db.mjs ping",
+    "db:dev:up": "node ../ops/demo/demo-db.mjs up",
+    "db:dev:ping": "node ../ops/demo/demo-db.mjs ping",
+    "db:dev:migrate": "node ../ops/demo/demo-db.mjs migrate",
+    "db:dev:status": "node ../ops/demo/demo-db.mjs status",
+    "db:dev:seed": "node ../ops/demo/demo-db.mjs seed",
+    "db:dev:fotos": "node ../ops/demo/demo-db.mjs fotos",
+    "db:dev:verificar": "node ../ops/demo/demo-db.mjs verificar",
+    "db:dev:limpiar": "node ../ops/demo/demo-db.mjs limpiar",
+    "db:dev:vincular": "node ../ops/demo/demo-db.mjs vincular",
+    "db:dev:stop": "node ../ops/demo/demo-db.mjs stop",
+    "db:dev:down": "node ../ops/demo/demo-db.mjs down",
+    "demo:api": "node ../ops/demo/demo-db.mjs api",
     "arquitectura": "depcruise src --config .dependency-cruiser.cjs"
   },
   "dependencies": {

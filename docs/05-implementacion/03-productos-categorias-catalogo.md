@@ -34,5 +34,16 @@ Un producto aparece solo si: estado `PUBLICADO` **y** categoría activa **y** pu
 ## Imágenes (Supabase Storage)
 Puerto `AlmacenArchivos` (`shared/`), adaptador `SupabaseAlmacenAdapter`. Máx. 5 por producto, JPEG/PNG/WebP, 2 MB; se valida la firma real del archivo, no solo el tipo declarado. Requiere `SUPABASE_SERVICE_ROLE_KEY` (solo backend) y un bucket **público** (`SUPABASE_STORAGE_BUCKET`, por defecto `productos`). Sin configuración, subir imágenes responde 503 y el resto del módulo funciona.
 
+## Interfaz del catálogo público (spec 004, 2026-11-08)
+Especificación: [`specs/004-catalogo-publico/`](../../specs/004-catalogo-publico/spec.md). Solo frontend; la API no cambió.
+
+- **Carga automática:** `/catalogo` consulta la primera página (`pagina=1`, `limite=24`, `orden=recientes`) sin exigir búsqueda ni filtros.
+- **Filtros opcionales:** búsqueda (se aplica al enviar), categorías en píldoras, rango de precio (atajos o libre) y puesto en un panel lateral (escritorio) o diálogo (móvil), orden; los filtros activos se muestran como etiquetas que se pueden quitar. El estado vive en la URL (`history.replaceState`), por lo que «Atrás» desde el detalle conserva la vista.
+- **Tarjetas:** foto, nombre, precio y unidad tal como llegan de la API, categoría, puesto y presentación o extracto. Sin disponibilidad (RF19 depende de Inventario).
+- **Estados:** esqueleto de carga, catálogo vacío («Todavía no hay productos publicados»), sin resultados y errores diferenciados con «Reintentar» (sin conexión, respuesta que no es de la API, error del servidor, filtro no válido).
+- **Cliente HTTP:** `ErrorApi` incluye `codigo` (`SIN_CONEXION`, `RESPUESTA_NO_API`, `ERROR_SERVIDOR` o el del backend); una respuesta que no es JSON ya no se muestra como «Error inesperado.».
+- **Causa del incidente del 2026-11-07:** el frontend se inició con `next dev` en el puerto 3000 (el de la API); la API no pudo escuchar y las peticiones llegaban a Next.js (404 HTML). El script `dev` fija ahora el puerto 3001.
+- **Verificación:** Vitest (catálogo, cliente HTTP, carrito), Playwright con red simulada contra una compilación de producción y una comprobación real de solo lectura contra la base compartida (estado vacío). Detalle en el informe de la spec 004.
+
 ## Estructura
 `modules/products/` (categorías y productos: `domain/`, `application/`, `infrastructure/`, `entry-adapters/`) y `modules/catalog/` (lectura pública, modelo de consulta propio). La autorización por rol y por propiedad del puesto vive en los casos de uso; el puesto se consulta mediante el puerto `PuestoConsultaPort`, cuyo adaptador usa la API pública del módulo Comerciantes.
