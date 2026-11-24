@@ -1,0 +1,82 @@
+﻿
+ RUN  v4.1.12 D:/2026_II/mercado-multivendedor/backend
+
+ ✓ test/eq03-concurrencia.db-spec.ts > EQ-03 · serie 1: stock físico 1, N clientes distintos, 100 iteraciones por N > N = 2: en las 100 iteraciones, exactamente 1 éxito y 1 faltas de stock controladas 1892ms
+ ✓ test/eq03-concurrencia.db-spec.ts > EQ-03 · serie 1: stock físico 1, N clientes distintos, 100 iteraciones por N > N = 5: en las 100 iteraciones, exactamente 1 éxito y 4 faltas de stock controladas 2538ms
+ ✓ test/eq03-concurrencia.db-spec.ts > EQ-03 · serie 1: stock físico 1, N clientes distintos, 100 iteraciones por N > N = 20: en las 100 iteraciones, exactamente 1 éxito y 19 faltas de stock controladas 5130ms
+ ✓ test/eq03-concurrencia.db-spec.ts > EQ-03 · serie 2: stock S = 10 y 200 clientes simultáneos > en 100 iteraciones, exactamente 10 reservas aceptadas y 190 faltas de stock controladas 37549ms
+ ✓ test/eq03-concurrencia.db-spec.ts > EQ-03 · comprobación SQL final > SELECT count(*) FROM inventarios WHERE stock_reservado > stock_fisico  →  0 (toda la base de pruebas) 3ms
+ ✓ test/inventario.db-spec.ts > restricciones del modelo (AC08) > la base rechaza reservado > físico, valores negativos, cantidades no positivas y claves vacías 173ms
+ ✓ test/inventario.db-spec.ts > restricciones del modelo (AC08) > el inventario no puede declarar un puesto distinto al del producto (clave foránea compuesta) ni duplicarse 53ms
+ ✓ test/inventario.db-spec.ts > movimientos y actualizaciones de stock (RF12, RF13) > ingreso, devolución y ajuste crean el inventario si falta, actualizan el saldo y dejan el libro de movimientos 95ms
+ ✓ test/inventario.db-spec.ts > movimientos y actualizaciones de stock (RF12, RF13) > prevención de stock negativo: un ajuste que dejaría el físico < reservado se rechaza y nada cambia 44ms
+ ✓ test/inventario.db-spec.ts > movimientos y actualizaciones de stock (RF12, RF13) > actualizaciones simultáneas: 60 ingresos de +1 en paralelo suman exactamente 60 (ninguna se pisa), también al crear las existencias 4498ms
+ ✓ test/inventario.db-spec.ts > movimientos y actualizaciones de stock (RF12, RF13) > prevención de stock negativo bajo concurrencia: 30 ajustes de −1 sobre stock 10 → exactamente 10 se aplican 92ms
+ ✓ test/inventario.db-spec.ts > reservas: stock suficiente e insuficiente > reserva si alcanza y deja físico/reservado/disponible correctos, con su movimiento 31ms
+ ✓ test/inventario.db-spec.ts > reservas: stock suficiente e insuficiente > rechaza con falta de stock si no alcanza (respuesta controlada) y no deja rastro 26ms
+ ✓ test/inventario.db-spec.ts > reservas: stock suficiente e insuficiente > un producto sin fila de existencias no se puede reservar 16ms
+ ✓ test/inventario.db-spec.ts > concurrencia: dos o más compradores sobre las mismas unidades (AC07) > dos compradores y un solo stock: uno gana, el otro recibe falta de stock 667ms
+ ✓ test/inventario.db-spec.ts > concurrencia: dos o más compradores sobre las mismas unidades (AC07) > 50 compradores y stock 7: exactamente 7 reservas, el resto falta de stock 148ms
+ ✓ test/inventario.db-spec.ts > concurrencia: dos o más compradores sobre las mismas unidades (AC07) > cantidades distintas: lo reservado nunca supera el físico y coincide con las reservas aceptadas 59ms
+ ✓ test/inventario.db-spec.ts > concurrencia: dos o más compradores sobre las mismas unidades (AC07) > reservas y ajustes simultáneos sobre el mismo producto conservan la invariante y el libro cuadra 171ms
+ ✓ test/inventario.db-spec.ts > concurrencia: dos o más compradores sobre las mismas unidades (AC07) > productos distintos del mismo puesto no se afectan entre sí 124ms
+ ✓ test/inventario.db-spec.ts > integridad de las transacciones (AC08) > reserva multiproducto todo-o-nada: si un producto no alcanza, ninguno queda reservado (en ambos órdenes) 53ms
+ ✓ test/inventario.db-spec.ts > integridad de las transacciones (AC08) > una reserva multiproducto válida reserva todos los productos o ninguno, también en concurrencia 65ms
+ ✓ test/inventario.db-spec.ts > integridad de las transacciones (AC08) > una violación de CHECK a mitad de la transacción revierte todo lo anterior de esa transacción 22ms
+ ✓ test/inventario.db-spec.ts > reintentos e idempotencia (ADR-003 §7) > el mismo pedido enviado 12 veces a la vez reserva una sola vez y todos reciben el mismo resultado 54ms
+ ✓ test/inventario.db-spec.ts > reintentos e idempotencia (ADR-003 §7) > reintentar después de confirmada devuelve el resultado anterior; con otros datos es conflicto 29ms
+ ✓ test/inventario.db-spec.ts > reintentos e idempotencia (ADR-003 §7) > la misma clave simultánea con stock justo: se concede una vez y el reintento no consume otra unidad 44ms
+ ✓ test/inventario.db-spec.ts > liberación, venta y expiración (ADR-003 §6.4–6.5) > liberar 10 veces a la vez devuelve las unidades una sola vez 78ms
+ ✓ test/inventario.db-spec.ts > liberación, venta y expiración (ADR-003 §6.4–6.5) > confirmar la venta 10 veces a la vez descuenta una sola vez (físico y reservado) 70ms
+ ✓ test/inventario.db-spec.ts > liberación, venta y expiración (ADR-003 §6.4–6.5) > liberar y confirmar a la vez sobre el mismo pedido: gana uno solo y el stock queda coherente 650ms
+ ✓ test/inventario.db-spec.ts > liberación, venta y expiración (ADR-003 §6.4–6.5) > la expiración libera solo lo vencido, es idempotente y respeta lo ya confirmado 79ms
+ ✓ test/inventario.db-spec.ts > liberación, venta y expiración (ADR-003 §6.4–6.5) > expiración y confirmación simultáneas (Webhook) sobre el mismo pedido: nunca se libera lo ya vendido 807ms
+ ✓ test/inventario-invariantes.db-spec.ts > invariantes con operaciones aleatorias concurrentes > semilla 20261105: 25 oleadas × 40 operaciones simultáneas 1748ms
+ ✓ test/inventario-invariantes.db-spec.ts > invariantes con operaciones aleatorias concurrentes > semilla 7: 25 oleadas × 40 operaciones simultáneas 1490ms
+ ✓ test/inventario-invariantes.db-spec.ts > invariantes con operaciones aleatorias concurrentes > semilla 99991: 25 oleadas × 40 operaciones simultáneas 1684ms
+ ✓ test/carrito.db-spec.ts > restricciones del modelo (AC08) > la base rechaza cantidades fuera de 1–10000, ítems duplicados y un puesto distinto al del producto 185ms
+ ✓ test/carrito.db-spec.ts > agregar, actualizar y quitar sobre PostgreSQL > productos de tres puestos: subtotales por puesto y total exactos 193ms
+ ✓ test/carrito.db-spec.ts > agregar, actualizar y quitar sobre PostgreSQL > sumar al mismo producto acumula y respeta el stock 68ms
+ ✓ test/carrito.db-spec.ts > agregar, actualizar y quitar sobre PostgreSQL > quitar y vaciar eliminan filas y no afectan al carrito de otro cliente 63ms
+ ✓ test/carrito.db-spec.ts > concurrencia (RF15 · AC07) > 40 solicitudes simultáneas del mismo cliente por 1 unidad con stock 12: exactamente 12 entran y nunca se supera el stock 369ms
+ ✓ test/carrito.db-spec.ts > concurrencia (RF15 · AC07) > solicitudes simultáneas de un carrito nuevo crean un único carrito y no pierden ninguna suma 241ms
+ ✓ test/carrito.db-spec.ts > concurrencia (RF15 · AC07) > muchos clientes compiten por el último producto: cada carrito puede tenerlo (la reserva real ocurre al pedir), sin errores inesperados 100ms
+ ✓ test/carrito.db-spec.ts > concurrencia (RF15 · AC07) > un tope de 50 productos distintos se respeta aun con solicitudes simultáneas 970ms
+ ✓ test/productos-persistencia.db-spec.ts > Restricciones del modelo de productos (PostgreSQL) > el precio se almacena exacto (NUMERIC) y se lee como texto con 2 decimales 147ms
+ ✓ test/productos-persistencia.db-spec.ts > Restricciones del modelo de productos (PostgreSQL) > rechaza precio 0 (CHECK precio > 0) 18ms
+ ✓ test/productos-persistencia.db-spec.ts > Restricciones del modelo de productos (PostgreSQL) > rechaza precio -1.00 (CHECK precio > 0) 11ms
+ ✓ test/productos-persistencia.db-spec.ts > Restricciones del modelo de productos (PostgreSQL) > rechaza un precio que excede NUMERIC(10,2) 11ms
+ ✓ test/productos-persistencia.db-spec.ts > Restricciones del modelo de productos (PostgreSQL) > rechaza nombre de producto vacío (CHECK) 11ms
+ ✓ test/productos-persistencia.db-spec.ts > Restricciones del modelo de productos (PostgreSQL) > exige puesto y categoría existentes (FK) 23ms
+ ✓ test/productos-persistencia.db-spec.ts > Restricciones del modelo de productos (PostgreSQL) > el slug de categoría es único y tiene formato válido (CHECK) 21ms
+ ✓ test/productos-persistencia.db-spec.ts > Restricciones del modelo de productos (PostgreSQL) > no se puede eliminar un puesto ni una categoría con productos (RESTRICT) 32ms
+ ✓ test/productos-persistencia.db-spec.ts > Restricciones del modelo de productos (PostgreSQL) > imágenes: orden único por producto, ruta única, orden no negativo 46ms
+ ✓ test/productos-persistencia.db-spec.ts > Restricciones del modelo de productos (PostgreSQL) > al eliminar un producto se eliminan sus imágenes (CASCADE) 20ms
+ ✓ test/productos-persistencia.db-spec.ts > Restricciones del modelo de productos (PostgreSQL) > las tablas nuevas tienen RLS activado 4ms
+ ✓ test/productos-persistencia.db-spec.ts > Repositorios Prisma (datos confirmados y limpiados al final) > categorías: guardar, buscar, actualizar y detectar duplicados 51ms
+ ✓ test/productos-persistencia.db-spec.ts > Repositorios Prisma (datos confirmados y limpiados al final) > productos: ida y vuelta con precio exacto, imágenes ordenadas y sincronización 45ms
+ ✓ test/productos-persistencia.db-spec.ts > Repositorios Prisma (datos confirmados y limpiados al final) > productos: listar por puestos, categoría, estado y paginar 50ms
+ ✓ test/productos-persistencia.db-spec.ts > Repositorios Prisma (datos confirmados y limpiados al final) > catálogo: solo productos publicados de puestos, comerciantes y categorías activos 170ms
+ ✓ test/h0-persistencia.db-spec.ts > H0 · persistencia de administración (base aislada) > usuarios: el rol y el estado se actualizan; correo y authId no cambian; correo duplicado se rechaza 152ms
+ ✓ test/h0-persistencia.db-spec.ts > H0 · persistencia de administración (base aislada) > comerciantes: nombre y estado se actualizan; un segundo perfil para el mismo usuario se rechaza 41ms
+ ✓ test/h0-persistencia.db-spec.ts > H0 · persistencia de administración (base aislada) > puestos: edición, reasignación y estado se persisten; código duplicado se rechaza; listarOperativos filtra por estado 87ms
+ ✓ test/h0-persistencia.db-spec.ts > H0 · persistencia de administración (base aislada) > catálogo: suspender al comerciante oculta sus productos y reactivarlo los vuelve a mostrar (en la base real) 98ms
+ ✓ test/modelo-restricciones.db-spec.ts > Restricciones del modelo (PostgreSQL) > el rol por defecto es CLIENTE y el estado ACTIVO 117ms
+ ✓ test/modelo-restricciones.db-spec.ts > Restricciones del modelo (PostgreSQL) > el correo es único 14ms
+ ✓ test/modelo-restricciones.db-spec.ts > Restricciones del modelo (PostgreSQL) > rechaza correos con mayúsculas (CHECK) 6ms
+ ✓ test/modelo-restricciones.db-spec.ts > Restricciones del modelo (PostgreSQL) > rechaza nombres vacíos (CHECK) 5ms
+ ✓ test/modelo-restricciones.db-spec.ts > Restricciones del modelo (PostgreSQL) > authId es único 7ms
+ ✓ test/modelo-restricciones.db-spec.ts > Restricciones del modelo (PostgreSQL) > un usuario solo puede tener un perfil de comerciante 14ms
+ ✓ test/modelo-restricciones.db-spec.ts > Restricciones del modelo (PostgreSQL) > el comerciante exige un usuario existente (FK) y un nombre no vacío (CHECK) 4ms
+ ✓ test/modelo-restricciones.db-spec.ts > Restricciones del modelo (PostgreSQL) > el comerciante rechaza nombre comercial vacío (CHECK) 7ms
+ ✓ test/modelo-restricciones.db-spec.ts > Restricciones del modelo (PostgreSQL) > el código de puesto es único en toda la plataforma 16ms
+ ✓ test/modelo-restricciones.db-spec.ts > Restricciones del modelo (PostgreSQL) > un comerciante puede tener varios puestos 22ms
+ ✓ test/modelo-restricciones.db-spec.ts > Restricciones del modelo (PostgreSQL) > no se puede eliminar un comerciante con puestos ni un usuario con perfil de comerciante (RESTRICT) 14ms
+ ✓ test/modelo-restricciones.db-spec.ts > Restricciones del modelo (PostgreSQL) > el puesto rechaza código o nombre vacío (CHECK) y comerciante inexistente (FK) 4ms
+ ✓ test/modelo-restricciones.db-spec.ts > Restricciones del modelo (PostgreSQL) > las tablas tienen RLS activado 4ms
+
+ Test Files  7 passed (7)
+      Tests  73 passed (73)
+   Start at  19:34:16
+   Duration  70.46s (transform 338ms, setup 0ms, import 4.54s, tests 64.45s, environment 1ms)
+
