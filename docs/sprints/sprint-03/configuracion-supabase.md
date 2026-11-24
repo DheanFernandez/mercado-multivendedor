@@ -28,7 +28,7 @@ El CI actual ([`ci.yml`](../../../.github/workflows/ci.yml)) usa una base Postgr
 
 - La contraseña de la base va **codificada** en las URL si tiene caracteres especiales (`/` → `%2F`, `@` → `%40`).
 - `<REGION>` es el prefijo del pooler que muestra el panel (p. ej. `aws-0-sa-east-1`); cópielo tal cual.
-- `prisma.config.ts` usa `DIRECT_URL` y, si falta, `DATABASE_URL`. Con el pooler transaccional (6543) las migraciones fallan: defina siempre `DIRECT_URL` antes de migrar.
+- `prisma.config.ts` usa `DIRECT_URL` y, si falta, `DATABASE_URL`. Riesgo **controlado**: si falta `DIRECT_URL` y `DATABASE_URL` apunta al Transaction pooler (puerto 6543 o `pgbouncer=true`), los comandos que se conectan (`migrate`, `db`, `studio`) abortan con un error en español que pide definir `DIRECT_URL` con el Session pooler (5432). `generate`, `validate` y `format` no exigen la variable. La lógica está en `backend/prisma/url-migraciones.ts`, con pruebas unitarias en `url-migraciones.spec.ts`. En local y en CI (base PostgreSQL sin pooler) el comportamiento no cambia.
 - Las pruebas automáticas **no** usan Supabase: usan `TEST_DATABASE_URL` (Docker local) y se abortan si apunta a una base remota.
 
 ## 2. Verificación de JWT
