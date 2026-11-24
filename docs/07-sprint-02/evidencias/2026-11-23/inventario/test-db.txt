@@ -1,0 +1,75 @@
+﻿
+> backend@0.0.1 test:db
+> node ../ops/medicion/test-db.mjs test
+
+node.exe :  Volume mercado_test_pgdata Creating 
+En línea: 1 Carácter: 1
++ & "C:\Program Files\nodejs/node.exe" "C:\Program Files\nodejs/node_mo ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ( Volume mercado_test_pgdata Creating :String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+ Network mercado_test_net Creating 
+ Network mercado_test_net Creating 
+ Volume mercado_test_pgdata Creating 
+ Volume mercado_test_pgdata Created 
+ Volume mercado_test_pgdata Created 
+ Network mercado_test_net Created 
+ Network mercado_test_net Created 
+ Container mercado-test-db Creating 
+ Container mercado-test-db Created 
+ Container mercado-test-db Starting 
+ Container mercado-test-db Started 
+ Container mercado-test-db Waiting 
+ Container mercado-test-db Healthy 
+Aplicando migraciones SOLO a la base local de pruebas…
+Loaded Prisma config from prisma.config.ts.
+
+Prisma schema loaded from prisma\schema.prisma.
+┌─────────────────────────────────────────────────────────┐
+│  Update available 7.10.1 -> 8.0.0-rc.35                 │
+│                                                         │
+│  This is a major update - please follow the guide at    │
+│  https://pris.ly/d/major-version-upgrade                │
+│                                                         │
+│  Run the following to update                            │
+│    npm i --save-dev prisma@latest                       │
+│    npm i @prisma/client@latest                          │
+└─────────────────────────────────────────────────────────┘
+
+✔ Generated Prisma Client (7.10.1) to .\src\generated\prisma in 212ms
+
+Loaded Prisma config from prisma.config.ts.
+
+Prisma schema loaded from prisma\schema.prisma.
+Datasource "db": PostgreSQL database "mercado_test", schema "public" at "127.0.0.1:55433"
+
+4 migrations found in prisma/migrations
+
+Applying migration `20261105000000_usuarios_comerciantes_puestos`
+Applying migration `20261106000000_productos_categorias`
+Applying migration `20261107000000_inventario`
+Applying migration `20261108000000_carrito`
+
+The following migration(s) have been applied:
+
+migrations/
+  └─ 20261105000000_usuarios_comerciantes_puestos/
+    └─ migration.sql
+  └─ 20261106000000_productos_categorias/
+    └─ migration.sql
+  └─ 20261107000000_inventario/
+    └─ migration.sql
+  └─ 20261108000000_carrito/
+    └─ migration.sql
+
+All migrations have been successfully applied.
+
+ RUN  v4.1.12 D:/2026_II/mercado-multivendedor/backend
+
+
+ Test Files  7 passed (7)
+      Tests  73 passed (73)
+   Start at  19:32:41
+   Duration  85.20s (transform 732ms, setup 0ms, import 7.10s, tests 75.62s, environment 1ms)
+

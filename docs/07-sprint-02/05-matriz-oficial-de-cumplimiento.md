@@ -6,6 +6,7 @@
 | Versión evaluada | `origin/main` en **`200675c`** (18/11/2026) |
 | Informe | [Informe final](04-informe-final-sprint-02.md) |
 | Evidencias | [`evidencias/2026-11-18/`](evidencias/2026-11-18/README.md) |
+| Actualización (2026-11-23) | Spec 001 completada (plan y tareas, 27 de 28; T028 bloqueada por Pedidos): [`tasks.md`](../../specs/001-inventario/tasks.md) y [evidencia](evidencias/2026-11-23/inventario/README.md). Las demás cifras y la versión evaluada (`200675c`) no cambian. |
 
 **Leyenda.** **Cumplido**: existe, se ejecutó y su evidencia está archivada. **Parcial**: existe, pero con un alcance verificado menor que el pedido; la limitación se indica. **Pendiente**: no existe o no se pudo verificar.
 
@@ -35,13 +36,13 @@
 | 5 | | AC08 Integridad (EQ-02) | Unidad de trabajo de Pedidos | Pruebas en la rama local de Pedidos | No aplica a `main` | [Evaluación §7](02-evaluacion-atributos-calidad.md#7-resultados-por-atributo) | **Parcial** (la evidencia pertenece a código que no está en `main`) |
 | 5 | | AC02 Escalabilidad · AC03 Disponibilidad | — | Ninguna | Sin medición | [Evaluación §7](02-evaluacion-atributos-calidad.md#7-resultados-por-atributo) | **Pendiente** |
 | 5 | | Metodología de evaluación (ATAM adaptado, tácticas, trazabilidad) | [`02-evaluacion-atributos-calidad.md`](02-evaluacion-atributos-calidad.md), [`03-matriz-de-trazabilidad.md`](03-matriz-de-trazabilidad.md) | — | 25 tácticas, 7 atributos, trazabilidad RF → prueba | Documentos del 16/11/2026 | **Cumplido** (versión evaluada `1aab552`; véase §3) |
-| — | Especificaciones SDD | Criterios de aceptación y tareas técnicas | [`specs/`](../../specs/) | Cada spec enlaza sus pruebas | Ver §2 | [Informe final §6](04-informe-final-sprint-02.md#6-especificaciones-sdd) | **Parcial**: la spec 001 solo tiene `spec.md` |
+| — | Especificaciones SDD | Criterios de aceptación y tareas técnicas | [`specs/`](../../specs/) | Cada spec enlaza sus pruebas | Ver §2 | [Informe final §6](04-informe-final-sprint-02.md#6-especificaciones-sdd) | **Parcial** al 18/11/2026: la spec 001 solo tenía `spec.md`; **actualizado el 2026-11-23**: completa con `plan.md` y `tasks.md` (27 de 28; T028 bloqueada por Pedidos), véase §2 |
 
 ## 2. Estado real de las especificaciones SDD
 
 | Spec | Tema | Documentos | Tareas | Integrada en `main` | Estado |
 |---|---|---|---|---|---|
-| [001](../../specs/001-inventario/spec.md) | Inventario | Solo `spec.md` | **No hay `tasks.md` ni `plan.md`** | Sí (código del módulo) | **Incompleta**: criterios sin tareas formales |
+| [001](../../specs/001-inventario/spec.md) | Inventario | `spec`, `plan`, `tasks` (los dos últimos desde el 2026-11-23; al 18/11/2026 solo existía `spec.md`) | 27 de 28 (T028, EQ-03 de punta a punta, bloqueada por Pedidos); [`tasks.md`](../../specs/001-inventario/tasks.md) | Sí (código del módulo) | Completa desde el 2026-11-23, con T028 abierta; `test:db` 73/73 el 2026-11-23 ([evidencia](evidencias/2026-11-23/inventario/README.md)); EQ-03 repetido solo en su parte Vitest |
 | [002](../../specs/002-carrito/spec.md) | Carrito (reglas y interfaz) | `spec`, `plan`, `tasks`, `research`, `data-model`, `quickstart`, contratos | 32 de 32 | Sí (PR #6 y #9) | Completa |
 | [004](../../specs/004-catalogo-publico/spec.md) | Catálogo, Demo, fotografías y rediseño | `spec`, `plan`, `tasks`, contrato de UI | 54 de 54 | Sí (PR #9 y #10) | Completa; **sin fotografías reales** |
 | [005](../../specs/005-openapi-swagger/spec.md) | OpenAPI/Swagger | `spec`, `plan`, `tasks` | 12 de 12 | Sí (PR #11) | Completa; contrato no exhaustivo |

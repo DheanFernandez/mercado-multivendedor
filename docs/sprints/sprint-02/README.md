@@ -9,6 +9,7 @@
 | Entregable principal | [Informe final del Sprint 02](../../07-sprint-02/04-informe-final-sprint-02.md) |
 | Matriz de cumplimiento | [Matriz oficial](../../07-sprint-02/05-matriz-oficial-de-cumplimiento.md) |
 | Evidencias | [Evidencias del 18/11/2026](../../07-sprint-02/evidencias/2026-11-18/README.md) |
+| Actualización (2026-11-23) | Actualización 2026-11-23: la spec 001 se completó con [`plan.md`](../../../specs/001-inventario/plan.md) y [`tasks.md`](../../../specs/001-inventario/tasks.md) (27 de 28 tareas; T028 bloqueada por Pedidos); evidencia de `test:db` en [`evidencias/2026-11-23/inventario/`](../../07-sprint-02/evidencias/2026-11-23/inventario/README.md). La versión evaluada del informe sigue siendo `200675c`. |
 
 > **Aviso.** Que haya una primera versión funcional, pruebas en verde y documentación completa **no significa** que todos los atributos de calidad estén validados ni que el flujo de compra esté implementado. Pedidos y Pagos no forman parte del incremento. Véase el §3.
 
@@ -36,7 +37,7 @@ El CI de GitHub Actions pasó en el PR #12 y en el merge, con Jest, cobertura y 
 | [03 · Matriz de trazabilidad](../../07-sprint-02/03-matriz-de-trazabilidad.md) | RF → HU → driver → ADR → componente → prueba (**conservada**) | `1aab552` |
 | [Evidencias del 16/11/2026](../../07-sprint-02/evidencias/2026-11-16/README.md) | AC04, AC05 y pruebas unitarias de esa fecha (**conservadas**) | `1aab552` y rama local |
 
-Especificaciones SDD relacionadas: [001](../../../specs/001-inventario/spec.md) (incompleta: sin plan ni tareas), [002](../../../specs/002-carrito/spec.md), [004](../../../specs/004-catalogo-publico/spec.md), [005](../../../specs/005-openapi-swagger/spec.md) y [006](../../../specs/006-pruebas-cobertura/spec.md).
+Especificaciones SDD relacionadas: [001](../../../specs/001-inventario/spec.md) (con `spec.md` al 18/11/2026; completada el 2026-11-23 con plan y tareas, 27 de 28, T028 bloqueada por Pedidos: [tasks.md](../../../specs/001-inventario/tasks.md), [evidencia](../../07-sprint-02/evidencias/2026-11-23/inventario/README.md)), [002](../../../specs/002-carrito/spec.md), [004](../../../specs/004-catalogo-publico/spec.md), [005](../../../specs/005-openapi-swagger/spec.md) y [006](../../../specs/006-pruebas-cobertura/spec.md).
 
 ## 3. Limitaciones y decisiones pendientes
 
