@@ -123,14 +123,14 @@ Alcance: se probó `ReservarInventario`, no «crear pedido» (Pedidos no existe)
 
 ## 4. Comportamiento observado
 
-Solo se resume lo que dicen las evidencias del 05/11/2026; **no se repitieron** sobre `200675c` y todas son locales.
+Se resume lo que dicen las evidencias del 05/11/2026 (**no se repitieron** sobre `200675c`) y la rampa del 25/11/2026 (último párrafo). Todas son locales.
 
 | Medición | Resultado | Lo que dice sobre la base de datos |
 |---|---|---|
 | [EQ-03](evidencias/EQ-03/2026-11-05/README.md) · concurrencia | 400 de 400 iteraciones sin reservas incompatibles. Con k6 (200 VUs, stock 10): exactamente 10 reservas aceptadas, 13 933 faltas controladas (409), 0 respuestas inesperadas; SQL final `stock_reservado > stock_fisico` = 0 | La corrección se sostiene bajo contención. La latencia (p95 ≈ 1,2 s con 200 VUs sin espera) **no es criterio de EQ-03 y la evidencia no la interpreta** |
 | [EQ-04](evidencias/EQ-04/2026-11-05/README.md) · catálogo, 100 VUs constantes | p95 = **381,4 ms** (con espera ≈ 1 s), mediana 40,9 ms, p99 746,9 ms, 0 % de errores, 10 886 solicitudes (≈ 89,6/s). Esfuerzo máximo (sin espera): p95 = **1 043 ms**, p99 1 278 ms, ≈ 120,7/s, 0 errores | Base de 5 000 productos, PostgreSQL 16 en memoria (tmpfs), pool por defecto de 10 conexiones, sin caché |
 
-**¿Fue la base de datos el cuello de botella?** **No se puede afirmar.** Ninguna evidencia lo mide: no se registró `pg_stat_statements`, ni uso de CPU, ni tiempo en la base frente al del backend, y backend, PostgreSQL y k6 compartieron máquina. Lo único comprobable es que se cumplió el umbral p95 < 2 000 ms con 100 VUs constantes. **No se ejecutó carga progresiva hasta 2000 VUs**; por encima de 100 usuarios concurrentes no hay medición.
+**¿Fue la base de datos el cuello de botella en EQ-03 y EQ-04 (05/11)?** **No se puede afirmar.** Esas evidencias no lo miden: no se registró `pg_stat_statements`, ni uso de CPU, ni tiempo en la base frente al del backend, y backend, PostgreSQL y k6 compartieron máquina. Lo único comprobable es que se cumplió el umbral p95 < 2 000 ms con 100 VUs constantes. **Carga progresiva (25/11/2026).** Una rampa de 0 a 2000 VUs ([evidencia](../07-sprint-02/evidencias/2026-11-25/k6-rampa-2000/README.md); base local PostgreSQL 17, 5 000 productos, misma máquina que k6 y el backend) dio 0 % de errores y un caudal estancado en ≈ 170–177 req/s desde ≈ 300 VUs; p95 = 778 ms con ≤ 100 VUs, 1 934 ms entre 100 y 500 y 10,7–11,4 s por encima de 1000 VUs. Con ese caudal la base consumió ≈ 6 a 7 hilos de CPU (≈ 34 ms de CPU de PostgreSQL por solicitud, frente a ≈ 4,5 ms del backend), con un pool de 10 conexiones. **Probable cuello de botella: la base de datos; no concluyente**, porque no se registró `pg_stat_statements` y el backend rondó el 85 % de un hilo. Qué consulta es la costosa **no se determinó** (la búsqueda por texto sin índice es una hipótesis). Una sola ejecución, no extrapolable a Supabase.
 
 ## 5. Estrategia de caché
 
