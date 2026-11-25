@@ -21,7 +21,7 @@
 | 2 | Primera versión funcional | **Parcial** | Catálogo validado de extremo a extremo; carrito validado por **API real** (no desde una sesión de Supabase); sin Pedidos ni Pagos | [Informe §3 y §10](../../07-sprint-02/04-informe-final-sprint-02.md#3-alcance-de-la-primera-versión-funcional) |
 | 3 | API REST con OpenAPI/Swagger | **Cumplido** en rutas, seguridad y parámetros | 42 rutas (6 públicas, 36 protegidas); Swagger UI en `/api/docs`; esquemas de cuerpo y respuesta manuales | [Informe §7](../../07-sprint-02/04-informe-final-sprint-02.md#7-api-rest-y-swaggeropenapi) |
 | 4 | Pruebas con Jest y cobertura | **Cumplido con limitaciones** | Jest 88/88 (selección); Vitest 338 unitarias + 132 HTTP; cobertura global 73,52 / 70,73 / 78,07 / 76,01 % (sin `test:db`) | [Informe §8](../../07-sprint-02/04-informe-final-sprint-02.md#8-pruebas-con-jest-y-cobertura) |
-| 5 | Validación de atributos de calidad | **Parcial** | 0 atributos satisfechos por completo; AC04 252/252 y AC05 0 violaciones repetidos sobre `200675c`; EQ-03 y EQ-04 del 05/11 | [Informe §9](../../07-sprint-02/04-informe-final-sprint-02.md#9-validación-de-atributos-de-calidad) |
+| 5 | Validación de atributos de calidad | **Parcial** | 0 atributos satisfechos por completo; AC04 252/252 y AC05 0 violaciones repetidos sobre `200675c`; EQ-03 y EQ-04 del 05/11 | [Informe §9](../../07-sprint-02/04-informe-final-sprint-02.md#9-validación-de-atributos-de-calidad) · [Base de datos y caché](../../05-implementacion/05-base-de-datos-y-cache.md) |
 
 El CI de GitHub Actions pasó en el PR #12 y en el merge, con Jest, cobertura y Vitest del frontend ([resumen](../../07-sprint-02/evidencias/2026-11-18/ci/resumen-ci.txt)).
 
@@ -46,6 +46,9 @@ Especificaciones SDD relacionadas: [001](../../../specs/001-inventario/spec.md) 
 - **Jest** cubre una selección (10 archivos); la **cobertura global** es de Vitest y **no incluye `test:db`**.
 - **El contrato OpenAPI no es exhaustivo** (cuerpos y respuestas manuales). **No hay fotografías reales** de productos.
 - **EQ-03 y EQ-04** son del 05/11/2026 y no se repitieron. Todas las mediciones son locales.
+- **Sin carga progresiva hasta 2000 VUs:** no se ejecutó `ramping-vus`. El máximo medido fue de **100 VUs constantes** ([`ops/k6/catalogo.js`](../../../ops/k6/catalogo.js)): p95 = 381,4 ms con espera y p95 = 1 043 ms en esfuerzo máximo ([EQ-04](../../05-implementacion/evidencias/EQ-04/2026-11-05/README.md)).
+- **Módulos sin spec propia:** `auth`, `users`, `merchants` y `products` se implementaron **antes de adoptar SDD** y no tienen spec propia; su regularización está en la [matriz de regularización](../../06-gobernanza-sdd/05-matriz-de-regularizacion.md).
+- **Sin caché:** la estrategia de caché no se implementó; solo existe como propuesta en [05 · Base de datos y caché](../../05-implementacion/05-base-de-datos-y-cache.md).
 - **Decisiones para el equipo y la docente:** confirmar que Vitest como ejecutor principal con Jest adicional satisface el requisito; autorizar un Supabase de desarrollo para la demostración completa; política de Swagger en producción; ADR y DEC-01 a DEC-12 pendientes. Detalle en el [informe §11 y §12](../../07-sprint-02/04-informe-final-sprint-02.md#11-limitaciones).
 
 ---

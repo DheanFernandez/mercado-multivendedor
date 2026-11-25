@@ -53,11 +53,13 @@ El backend es **un único monolito NestJS** ([ADR-001](../01-analisis-de-sistema
 | Entrada | `entry-adapters/` | Controladores HTTP: traducen HTTP ↔ casos de uso | [`carrito.controller.ts`](../../backend/src/modules/cart/entry-adapters/carrito.controller.ts) |
 | Infraestructura | `infrastructure/` | Repositorios Prisma y adaptadores externos | [`prisma-carrito.repository.ts`](../../backend/src/modules/cart/infrastructure/prisma-carrito.repository.ts) |
 
+Aclaraciones: **«7 módulos» y «6 de 13» miden cosas distintas.** Los 7 son módulos de *código* (carpetas de `backend/src/modules/`); los 13 son módulos de la *documentación*, y `auth` y `users` equivalen a uno solo («Autenticación y usuarios»), de ahí 6 de 13. Además, `catalog` es un módulo **de solo lectura y no tiene carpeta `domain/`** (solo `application/`, `entry-adapters/` e `infrastructure/`): no tiene reglas de dominio propias, por lo que sus tres anillos son los únicos que existen.
+
 Estado real de los módulos en `main`:
 
 | Módulo de código | Estado |
 |---|---|
-| `auth`, `users`, `merchants`, `products`, `inventory`, `catalog`, `cart` | **Implementados** con sus cuatro anillos (equivalen a 6 de los 13 módulos de la documentación) |
+| `auth`, `users`, `merchants`, `products`, `inventory`, `catalog`, `cart` | **Implementados**; seis con sus cuatro anillos y `catalog` (solo lectura) con tres, sin `domain/` (equivalen a 6 de los 13 módulos de la documentación) |
 | `orders`, `payments` | Vacíos en `main` (solo el archivo del módulo) |
 | Otros 5 módulos de la documentación (notificaciones, auditoría, incidencias, reportes, configuración) | No existen |
 
@@ -105,7 +107,7 @@ El desarrollo sigue Spec-Driven Development ([constitución](../../.specify/memo
 
 | Spec | Tema | Tareas | Estado |
 |---|---|---|---|
-| [001 · Inventario](../../specs/001-inventario/spec.md) | Existencias, movimientos y reservas | **Sin `tasks.md` ni `plan.md`** | **Incompleta**: solo existe la especificación; el módulo está implementado y probado |
+| [001 · Inventario](../../specs/001-inventario/spec.md) | Existencias, movimientos y reservas | ~~**Sin `tasks.md` ni `plan.md`**~~ (18/11/2026) → **27 de 28** desde el 2026-11-23 | ~~**Incompleta**: solo existe la especificación; el módulo está implementado y probado~~ **Superado (actualización 2026-11-23):** la spec 001 ya tiene [`plan.md`](../../specs/001-inventario/plan.md) y [`tasks.md`](../../specs/001-inventario/tasks.md) (27 de 28 tareas; T028 bloqueada por Pedidos) y evidencia de `test:db` 73/73 ([evidencia](evidencias/2026-11-23/inventario/README.md)). El texto original corresponde al 18/11/2026 |
 | [002 · Carrito](../../specs/002-carrito/spec.md) | Reglas del carrito e interfaz | 32 de 32 | Completa |
 | [004 · Catálogo público](../../specs/004-catalogo-publico/spec.md) | Catálogo, Demo, fotografías y rediseño | 54 de 54 | Completa; las fotografías reales siguen pendientes |
 | [005 · OpenAPI](../../specs/005-openapi-swagger/spec.md) | Documentación de la API | 12 de 12 | Completa; el contrato no es exhaustivo |
@@ -133,6 +135,8 @@ No existe la especificación 003 (reservada a Pedidos y Pago). Cada especificaci
 | **Jest** (carrito, inventario, catálogo y compatibilidad) | **88/88** (6 suites) | [salida](evidencias/2026-11-18/pruebas/jest.txt) |
 | Vitest frontend | **177/177** (13 archivos), ejecutado en el CI | [resumen-ci](evidencias/2026-11-18/ci/resumen-ci.txt) |
 | Pruebas con PostgreSQL (`test:db`, 7 archivos) | **Solo en CI**: pasó. No se ejecutó localmente para esta versión | [resumen-ci](evidencias/2026-11-18/ci/resumen-ci.txt) |
+
+> **Nota de cifras.** Cifras al commit `200675c`: 338 unitarias en 21 archivos y 470 en total. Ejecución del 25/11/2026: 344 en 22 archivos y 476 en 31 archivos. Cobertura global sin cambios: 73,52 / 70,73 / 78,07 / 76,01 %. (Verificado el 25/11/2026 con `npm test` y `npm run test:cov:todo` en `backend/`; las tablas de esta sección conservan las cifras de `200675c`.)
 
 **Cobertura global del backend (Vitest, unitarias + HTTP, 470 pruebas, 95 archivos de `src/`)** — comando `npm run test:cov:todo`, definición única en [`vitest.cobertura.ts`](../../backend/vitest.cobertura.ts):
 
@@ -163,9 +167,13 @@ La evaluación completa (método adaptado de ATAM, 25 tácticas, escenarios y ri
 | **AC08 Integridad** (EQ-02) | Unidad de trabajo de Pedidos | Evidencia en la rama local de Pedidos | 16/11/2026 · `a3f0cd0` (no está en `main`) | **Parcial**: no aplica a `main` |
 | **AC02 Escalabilidad · AC03 Disponibilidad** | — | Sin medición | — | **No verificado** |
 
+**Limitación de la carga (AC01/AC02).** No se ejecutó carga progresiva (`ramping-vus`) hasta 2000 VUs. El máximo medido fue de **100 VUs constantes** ([`ops/k6/catalogo.js`](../../ops/k6/catalogo.js)): p95 = 381,4 ms (con espera) y p95 = 1 043 ms (esfuerzo máximo, sin espera), según [EQ-04](../05-implementacion/evidencias/EQ-04/2026-11-05/README.md). Nada de lo anterior permite afirmar el comportamiento con más de 100 usuarios concurrentes.
+
 Resumen: **0 atributos satisfechos por completo**; 2 con reservas (AC01, AC07), 3 parciales (AC04, AC05, AC08) y 2 sin verificar. Que la documentación y las pruebas estén en verde **no** equivale a que los atributos estén validados. Las mediciones son locales y deben repetirse en el entorno de despliegue (Sprint 03). Los escenarios con mayor prioridad (EQ-01 y EQ-08) dependen de Pagos, que no existe.
 
 Evidencias: [matriz AC04 vigente](evidencias/2026-11-18/calidad/ac04/matriz-autorizacion.md) · [EQ-03](../05-implementacion/evidencias/EQ-03/2026-11-05/README.md) · [EQ-04](../05-implementacion/evidencias/EQ-04/2026-11-05/README.md) · [AC04 del 05/11](../05-implementacion/evidencias/AC04/2026-11-05/README.md) · [evidencias del 16/11](evidencias/2026-11-16/README.md).
+
+Base de datos, índices, transacciones y estrategia de caché (esta última **no implementada**): [05 · Base de datos y caché](../05-implementacion/05-base-de-datos-y-cache.md).
 
 ## 10. Evidencias de funcionamiento
 
@@ -197,7 +205,8 @@ Todo se ejecutó sobre `200675c`, con el frontend (`:3001`), el backend (`:3000`
 8. **No se descargó el artefacto de cobertura** del CI.
 9. **La Demo no es un despliegue de producción** (PostgreSQL local, `next dev`, valores de Supabase ficticios).
 10. Los ADR siguen formalmente en «Propuesta» y las decisiones DEC-01 a DEC-12 están pendientes (véase el [informe de diseño](01-informe-sprint-02.md)).
-11. La spec 001 (Inventario) carece de `plan.md` y `tasks.md`.
+11. ~~La spec 001 (Inventario) carece de `plan.md` y `tasks.md`.~~ **Superado (actualización 2026-11-23):** la spec 001 ya tiene [`plan.md`](../../specs/001-inventario/plan.md) y [`tasks.md`](../../specs/001-inventario/tasks.md) (27 de 28; T028 bloqueada por Pedidos); véase la [evidencia](evidencias/2026-11-23/inventario/README.md). La limitación vigente es la T028.
+12. **No se ejecutó carga progresiva (`ramping-vus`) hasta 2000 VUs.** El máximo medido fue de **100 VUs constantes** ([`ops/k6/catalogo.js`](../../ops/k6/catalogo.js), ejecutor `constant-vus`): p95 = 381,4 ms con espera de ≈ 1 s entre consultas y **p95 = 1 043 ms** en la prueba complementaria de esfuerzo máximo (sin espera), ambos en entorno local ([EQ-04](../05-implementacion/evidencias/EQ-04/2026-11-05/README.md)). Por tanto, no hay evidencia del comportamiento por encima de 100 usuarios concurrentes (AC02 Escalabilidad queda **no verificado**).
 
 ## 12. Conclusiones
 
